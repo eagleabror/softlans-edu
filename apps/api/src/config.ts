@@ -41,12 +41,18 @@ const schema = z
       });
     }
   });
+export const configurationFields = Object.freeze(Object.keys(schema.shape));
+export class ConfigurationError extends Error {
+  constructor(public readonly fields: string[]) {
+    super(`Invalid configuration: ${fields.join(", ")}`);
+  }
+}
 export function parseConfig(env: NodeJS.ProcessEnv) {
   const result = schema.safeParse(env);
   if (!result.success)
-    throw new Error(
-      `Invalid configuration: ${result.error.issues.map((i) => i.path.join(".")).join(", ")}`,
-    );
+    throw new ConfigurationError([
+      ...new Set(result.error.issues.map((issue) => String(issue.path[0]))),
+    ]);
   return {
     ...result.data,
     PUBLIC_REGISTRATION_ENABLED:

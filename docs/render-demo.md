@@ -124,9 +124,8 @@ an initial deployment**; this task has not performed that action.
    hostname mismatch.
 5. Wait for a successful build, startup and `/api/ready` health check. If startup
    fails, verify variable names, URI/database/user permissions, Atlas network
-   rules, cluster availability and build outputs. Logs intentionally show only a
-   safe startup message. Do not enable debug routes or print credentials/raw DB
-   errors to investigate.
+   rules, cluster availability and build outputs. See the safe startup diagnostics
+   below. Do not enable debug routes or print credentials/raw DB errors to investigate.
 6. Keep the provided Render hostname as the single canonical origin. If you
    later add a custom domain, configure HTTPS first, set `APP_ORIGIN` to that
    exact canonical origin and redeploy. Use only that URL for authentication;
@@ -166,6 +165,50 @@ if someone changes `DEMO_MODE`. Local `.env.example` leaves development signup
 enabled. Do not create or commit a real `.env`, upload an entire local `.env` to
 Render, or put `SUPER_ADMIN_*`, `SEED_PASSWORD` or `SEED_DEMO=true` in the running
 demo service. No frontend environment variables are required.
+
+## Safe startup diagnostics
+
+Startup failures produce one JSON log entry, for example:
+
+```json
+{"event":"startup_failed","stage":"mongodb_connection","category":"server_selection_failed"}
+```
+
+Stages run in order: `configuration` → `application` → `mongodb_connection` →
+`replica_set` → `index_initialization` → `listen`. A failure stops later stages,
+disconnects MongoDB and sets a failing process exit code. A cleanup failure adds
+a separate `startup_cleanup_failed` entry without replacing the original failure.
+Logs never include raw error messages, stacks, driver/topology objects, index
+values, connection strings, hostnames, credentials or environment values.
+Configuration errors may include `fields`: allowlisted variable **names only**.
+No diagnostic information is added to public HTTP responses.
+
+| Stage / category | Settings to verify |
+| --- | --- |
+| `configuration` / `invalid_configuration` | Check the listed field names in Render **Environment**. Use `NODE_ENV=production`; an exact HTTPS `APP_ORIGIN` without a trailing slash; a random `JWT_SECRET` of at least 48 characters; a MongoDB URI; integer `PORT`/`TRUST_PROXY_HOPS`; and lowercase `true`/`false` demo flags. Never paste their secret values into logs or support messages. |
+| `application` / `application_initialization_failed` | Verify the repository root, both production builds, and the generated `apps/web/dist/index.html`. The application/frontend must initialize before the database is opened. |
+| `mongodb_connection` / `invalid_database_uri` | Use the Atlas **Connect → Drivers** URI with placeholders replaced privately, encoded username/password, the intended application database, and the original Atlas TLS/authentication options. Preserve Atlas's `authSource` when supplied; do not substitute the application database as the authentication database. |
+| `mongodb_connection` / `authentication_failed` | Verify the Atlas **database user**, its password and URI encoding. Atlas account/dashboard credentials are different from database credentials. |
+| Database stage / `database_permission_denied` | Verify the application user's `readWrite` access to the exact demo database, including collection/index initialization. Do not grant broad project/admin access to work around an error. |
+| `mongodb_connection` / `dns_resolution_failed`, `network_connection_failed`, `network_timeout`, or `server_selection_failed` | Verify the copied Atlas cluster address, that the cluster is running rather than paused, DNS/SRV availability, and **all Render outbound IPs/CIDRs** in Atlas Network Access. An operator's laptop IP does not authorize Render. `server_selection_failed` is a broad symptom, not proof of a specific network cause. |
+| Database stage / `tls_connection_failed` | Verify Atlas's TLS settings and trusted certificate chain. Keep certificate verification enabled; do not use insecure TLS options. |
+| `replica_set` / `replica_set_required` | Use the documented Atlas replica set with logical-session/transaction support. Do not use a standalone, `directConnection=true`, or an invented replica-set name. |
+| `replica_set` / `replica_set_check_failed` | Connection completed, but the `hello` verification failed. Check cluster health and the database user's permissions. An unsupported topology is reported separately as `replica_set_required`. |
+| `index_initialization` / `duplicate_key` or `index_conflict` | Connection and topology verification passed. Inspect existing data/index definitions privately with authorized database tools. Do not disable uniqueness, drop indexes or delete data automatically. |
+| `index_initialization` / `index_initialization_failed` | Verify collection/index permissions and cluster health. Unknown driver errors keep this generic category rather than disclosing raw diagnostics. |
+| `listen` / `port_in_use`, `listen_permission_denied`, or `listen_failed` | Let Render supply `PORT`, use `npm start` from the repository root, and keep one Node listener bound to `0.0.0.0`. |
+
+Known driver/OS codes and names map to fixed categories. Unrecognized errors use
+a stage-specific fallback such as `database_connection_failed`; raw names/codes,
+messages and nested causes are never printed to provide more detail.
+
+In Render **Settings → Build & Deploy**, confirm the configured branch **and the
+deployed commit** contain this diagnostic fix. The Render-readiness work is on
+`feat/phase-1-foundation`; `main` may still contain the earlier Phase 1 startup.
+The older message “API startup failed. Verify environment configuration, MongoDB
+replica set and indexes.” cannot identify the failing stage and indicates the
+older startup code. After reviewing/merging the fix, an operator can manually
+deploy the updated branch; preparing the PR does not perform a deployment.
 
 ## Demo accounts and registration policy
 
