@@ -9,7 +9,7 @@
     "start": "node dist/apps/api/src/server.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:unit": "vitest run tests/unit.test.ts tests/deployment.test.ts",
+    "test:unit": "vitest run tests/unit.test.ts tests/deployment.test.ts tests/startup-diagnostics.test.ts tests/server.test.ts",
     "test:integration": "vitest run tests/integration.test.ts tests/database.test.ts",
     "seed:dev": "tsx src/scripts/seed.ts",
     "provision:super-admin": "tsx src/scripts/super-admin.ts"
