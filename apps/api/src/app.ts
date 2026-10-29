@@ -22,6 +22,7 @@ import {
   COOKIE_NAME,
 } from "./security.js";
 import type { SessionView, UserView } from "@softlans/contracts";
+import { notFound, serveFrontend } from "./frontend.js";
 
 const dummyHash = bcrypt.hashSync("softlans-internal-timing-padding", 12);
 export function userView(user: UserRecord): UserView {
@@ -41,7 +42,10 @@ async function sessionView(user: UserRecord): Promise<SessionView> {
     tenant: tenant ? { id: tenant._id.toString(), name: tenant.name } : null,
   };
 }
-export function createApp(config: Config) {
+export function createApp(
+  config: Config,
+  options: { frontendDist?: string } = {},
+) {
   const app = express();
   app.disable("x-powered-by");
   app.set("trust proxy", config.TRUST_PROXY_HOPS);
@@ -78,7 +82,16 @@ export function createApp(config: Config) {
             },
           }),
     });
-  app.use("/api", limiter(300, 15 * 60_000));
+  const apiLimiter = limiter(300, 15 * 60_000);
+  app.use("/api", (req, res, next) => {
+    // Render probes must not exhaust the public API request budget.
+    if (
+      ["GET", "HEAD"].includes(req.method) &&
+      ["/health", "/ready"].includes(req.path.toLowerCase())
+    )
+      next();
+    else apiLimiter(req, res, next);
+  });
   app.use(protectWrites(config));
   app.use(express.json({ limit: "16kb", strict: true }));
   app.use(cookieParser());
@@ -90,6 +103,12 @@ export function createApp(config: Config) {
   );
 
   app.post("/api/auth/register", limiter(5, 60 * 60_000), async (req, res) => {
+    if (!config.PUBLIC_REGISTRATION_ENABLED)
+      throw new AppError(
+        403,
+        "REGISTRATION_DISABLED",
+        "Yangi hisob ochish vaqtincha yopilgan. Demo uchun mas’ul shaxsga murojaat qiling.",
+      );
     const input = registerSchema.parse(req.body);
     const passwordHash = await bcrypt.hash(input.password, 12);
     // Transactions require a replica set, including development and CI.
@@ -249,9 +268,10 @@ export function createApp(config: Config) {
       res.status(201).json({ user: userView(user) });
     },
   );
-  app.use((_req, _res, next) =>
-    next(new AppError(404, "NOT_FOUND", "Sahifa topilmadi.")),
-  );
+  // Reserve every API path before static files and the React Router fallback.
+  app.use("/api", (_req, _res, next) => next(notFound()));
+  if (options.frontendDist) serveFrontend(app, options.frontendDist);
+  app.use((_req, _res, next) => next(notFound()));
   app.use(errorHandler);
   return app;
 }
