@@ -51,6 +51,8 @@ import type {
 } from "@softlans/contracts";
 import { api, HttpError } from "./api";
 
+import { StudentsList, StudentDetail, StudentForm } from "./Students";
+
 const roleNames: Record<Role, string> = {
   super_admin: "Super administrator",
   business_owner: "Markaz egasi",
@@ -420,6 +422,12 @@ function Shell() {
               Jamoa
             </NavLink>
           )}
+          {canManage && (
+            <NavLink to="/students" onClick={() => setOpen(false)}>
+              <GraduationCap size={19} />
+              O‘quvchilar
+            </NavLink>
+          )}
           {session.tenant && (
             <NavLink to="/center" onClick={() => setOpen(false)}>
               <Building2 size={19} />
@@ -490,6 +498,17 @@ function Shell() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             {canManage && <Route path="/team" element={<Team />} />}
+            {canManage && (
+              <>
+                <Route path="/students" element={<StudentsList />} />
+                <Route path="/students/new" element={<StudentForm />} />
+                <Route path="/students/:id" element={<StudentDetail />} />
+                <Route
+                  path="/students/:id/edit"
+                  element={<StudentForm edit />}
+                />
+              </>
+            )}
             {session.tenant && <Route path="/center" element={<Center />} />}
             <Route path="/account" element={<Account />} />
             <Route path="*" element={<Navigate to="/" replace />} />
@@ -639,6 +658,34 @@ function Dashboard() {
                 ? "Platforma darajasidagi kirish"
                 : "Ta’lim beruvchi jamoa"
             }
+          />
+        </div>
+      )}
+      {owner && data?.students && (
+        <div className="stats-grid student-stats">
+          <Stat
+            title="Jami o‘quvchilar"
+            value={data.students.total}
+            icon={<GraduationCap size={21} />}
+            note="Arxivlanganlar bilan birga"
+          />
+          <Stat
+            title="Faol o‘quvchilar"
+            value={data.students.active}
+            icon={<Users size={21} />}
+            note="Ta’limni davom ettirayotganlar"
+          />
+          <Stat
+            title="To‘xtatilgan o‘quvchilar"
+            value={data.students.paused}
+            icon={<Users size={21} />}
+            note="Vaqtincha tanaffusdagi o‘quvchilar"
+          />
+          <Stat
+            title="Yaqinda qabul qilinganlar"
+            value={data.students.recent}
+            icon={<Plus size={21} />}
+            note="Oxirgi 30 kun ichida"
           />
         </div>
       )}

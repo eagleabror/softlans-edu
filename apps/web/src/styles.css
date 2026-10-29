@@ -1887,3 +1887,136 @@ td {
     scroll-behavior: auto !important;
   }
 }
+
+.student-filters,
+.student-pagination,
+.student-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.student-filters {
+  padding: 20px;
+  align-items: flex-end;
+  border-bottom: 1px solid #e7ebe2;
+}
+.student-filters label {
+  flex: 1;
+  min-width: 145px;
+}
+.student-filters label:first-child {
+  flex: 2;
+}
+.student-filters .plain-input {
+  margin: 7px 0 0;
+  display: block;
+}
+.student-filters label,
+.student-form label {
+  font-size: 12px;
+  color: #526b43;
+}
+.student-pagination {
+  padding: 20px;
+  font-size: 12px;
+}
+.student-pagination > span {
+  margin-right: auto;
+}
+.student-form {
+  max-width: 850px;
+}
+.student-form fieldset {
+  border: 0;
+  padding: 0;
+  margin-top: 20px;
+  min-width: 0;
+}
+.student-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px 20px;
+}
+.student-form label {
+  display: block;
+  margin-bottom: 8px;
+}
+.student-form .plain-input {
+  width: 100%;
+}
+.student-form textarea {
+  resize: vertical;
+}
+.student-field-error {
+  display: block;
+  color: #9b503d;
+  margin: -12px 0 15px;
+  font-size: 12px;
+}
+[aria-invalid="true"] {
+  border-color: #9b503d;
+}
+.student-success {
+  border: 1px solid #cadcbb;
+  background: #edf2e5;
+  color: #3f5835;
+  padding: 14px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 13px;
+}
+.student-note {
+  white-space: pre-wrap;
+  max-width: 70%;
+}
+.student-actions {
+  margin-top: 20px;
+}
+.student-dialog {
+  margin: auto;
+  max-width: 460px;
+  width: calc(100% - 32px);
+  border: 1px solid #e7ebe2;
+  border-radius: 14px;
+  color: #2f4437;
+}
+.student-dialog::backdrop {
+  background: #1d322c66;
+  backdrop-filter: blur(2px);
+}
+.student-dialog p {
+  margin-top: 15px;
+  font-size: 13px;
+  line-height: 1.8;
+}
+.student-paused {
+  background: #fff3d8;
+  color: #846122;
+}
+.student-archived {
+  background: #ecefeb;
+  color: #687264;
+}
+.student-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.student-stats .stat-top {
+  font-size: 11px;
+}
+@media (max-width: 900px) {
+  .student-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .student-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .student-filters {
+    padding: 16px;
+  }
+  .student-pagination {
+    padding: 16px;
+  }
+}

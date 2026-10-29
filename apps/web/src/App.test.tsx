@@ -91,6 +91,7 @@ describe("Uzbek authentication and role-aware navigation", () => {
             ? session
             : {
                 scope: "tenant",
+                students: { total: 17, active: 11, paused: 4, recent: 6 },
                 teamCount: 3,
                 teacherCount: 1,
                 adminCount: 1,
@@ -105,6 +106,9 @@ describe("Uzbek authentication and role-aware navigation", () => {
     ).toBeVisible();
     expect(screen.getByRole("link", { name: "Jamoa" })).toBeVisible();
     await waitFor(() => expect(screen.getByText("3")).toBeVisible());
+    expect(screen.getByRole("link", { name: "O‘quvchilar" })).toBeVisible();
+    for (const count of ["17", "11", "4", "6"])
+      expect(screen.getByText(count)).toBeVisible();
   });
   it("hides team navigation and team counts from teachers", async () => {
     vi.stubGlobal(
@@ -127,6 +131,9 @@ describe("Uzbek authentication and role-aware navigation", () => {
     await screen.findByRole("heading", { name: "Xush kelibsiz, Aziz!" });
     expect(
       screen.queryByRole("link", { name: "Jamoa" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "O‘quvchilar" }),
     ).not.toBeInTheDocument();
     expect(
       await screen.findByText("Jamoa ma’lumotlari rahbariyat uchun"),

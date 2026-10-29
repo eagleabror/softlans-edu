@@ -25,6 +25,7 @@ export interface DashboardView {
   teamCount: number | null;
   adminCount: number | null;
   teacherCount: number | null;
+  students?: StudentStatistics;
   joinedAt: string;
 }
 export interface ApiError {
@@ -34,4 +35,36 @@ export interface ApiError {
     requestId: string;
     fields?: Record<string, string[]>;
   };
+}
+
+export type StudentStatus = "active" | "paused" | "archived";
+export interface StudentStatistics {
+  total: number;
+  active: number;
+  paused: number;
+  recent: number;
+}
+export interface StudentInput {
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  parentName?: string;
+  parentPhone?: string;
+  birthDate?: string | null;
+  enrollmentDate?: string;
+  notes?: string;
+}
+export interface StudentView extends StudentInput {
+  id: string;
+  status: StudentStatus;
+  enrollmentDate: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface StudentsView {
+  students: StudentView[];
+  total: number;
+  page: number;
+  pageSize: number;
 }

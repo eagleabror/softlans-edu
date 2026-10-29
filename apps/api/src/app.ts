@@ -24,6 +24,8 @@ import {
 import type { SessionView, UserView } from "@softlans/contracts";
 import { notFound, serveFrontend } from "./frontend.js";
 
+import { studentsRouter, studentStatistics } from "./students.js";
+
 const dummyHash = bcrypt.hashSync("softlans-internal-timing-padding", 12);
 export function userView(user: UserRecord): UserView {
   return {
@@ -60,7 +62,7 @@ export function createApp(
     cors({
       origin: config.APP_ORIGIN,
       credentials: true,
-      methods: ["GET", "POST"],
+      methods: ["GET", "POST", "PATCH"],
       allowedHeaders: ["Content-Type"],
     }),
   );
@@ -71,16 +73,14 @@ export function createApp(
       standardHeaders: "draft-8",
       legacyHeaders: false,
       handler: (_req, res) =>
-        res
-          .status(429)
-          .json({
-            error: {
-              code: "RATE_LIMITED",
-              message:
-                "So‘rovlar soni ko‘p. Birozdan so‘ng qayta urinib ko‘ring.",
-              requestId: res.locals.requestId,
-            },
-          }),
+        res.status(429).json({
+          error: {
+            code: "RATE_LIMITED",
+            message:
+              "So‘rovlar soni ko‘p. Birozdan so‘ng qayta urinib ko‘ring.",
+            requestId: res.locals.requestId,
+          },
+        }),
     });
   const apiLimiter = limiter(300, 15 * 60_000);
   app.use("/api", (req, res, next) => {
@@ -171,6 +171,8 @@ export function createApp(
     res.clearCookie(COOKIE_NAME, clearOptions).status(204).end();
   });
 
+  app.use("/api/students", authenticate(config), studentsRouter);
+
   app.get("/api/dashboard", authenticate(config), async (req, res) => {
     const actor = principal(req);
     if (actor.role === "super_admin") {
@@ -199,16 +201,18 @@ export function createApp(
       });
       return;
     }
-    const [teamCount, adminCount, teacherCount] = await Promise.all([
+    const [teamCount, adminCount, teacherCount, students] = await Promise.all([
       User.countDocuments({ ...scope, active: true }),
       User.countDocuments({ ...scope, active: true, role: "admin" }),
       User.countDocuments({ ...scope, active: true, role: "teacher" }),
+      studentStatistics(scope),
     ]);
     res.json({
       scope: "tenant",
       teamCount,
       adminCount,
       teacherCount,
+      students,
       joinedAt: actor.user.createdAt.toISOString(),
     });
   });
