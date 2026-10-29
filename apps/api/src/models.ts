@@ -1,4 +1,5 @@
 import mongoose, { Schema, type InferSchemaType } from "mongoose";
+import { Group, Membership } from "./group-models.js";
 import { normalizeName, normalizePhone } from "./student-validation.js";
 
 const tenantSchema = new Schema(
@@ -101,6 +102,7 @@ const studentSchema = new Schema(
       default: "active",
     },
     notes: { type: String, trim: true, maxlength: 2000 },
+    membershipRevision: { type: Number, default: 0, select: false },
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -123,6 +125,10 @@ export type UserRecord = InferSchemaType<typeof userSchema> & {
   _id: mongoose.Types.ObjectId;
 };
 export async function ensureIndexes() {
+  await Group.createCollection();
+  await Membership.createCollection();
+  await Group.createIndexes();
+  await Membership.createIndexes();
   await Student.createCollection();
   await Student.createIndexes();
   await Tenant.createCollection();

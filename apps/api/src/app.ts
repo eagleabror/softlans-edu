@@ -24,6 +24,7 @@ import {
 import type { SessionView, UserView } from "@softlans/contracts";
 import { notFound, serveFrontend } from "./frontend.js";
 
+import { groupsRouter, groupStatistics } from "./groups.js";
 import { studentsRouter, studentStatistics } from "./students.js";
 
 const dummyHash = bcrypt.hashSync("softlans-internal-timing-padding", 12);
@@ -171,6 +172,7 @@ export function createApp(
     res.clearCookie(COOKIE_NAME, clearOptions).status(204).end();
   });
 
+  app.use("/api/groups", authenticate(config), groupsRouter);
   app.use("/api/students", authenticate(config), studentsRouter);
 
   app.get("/api/dashboard", authenticate(config), async (req, res) => {
@@ -201,18 +203,21 @@ export function createApp(
       });
       return;
     }
-    const [teamCount, adminCount, teacherCount, students] = await Promise.all([
-      User.countDocuments({ ...scope, active: true }),
-      User.countDocuments({ ...scope, active: true, role: "admin" }),
-      User.countDocuments({ ...scope, active: true, role: "teacher" }),
-      studentStatistics(scope),
-    ]);
+    const [teamCount, adminCount, teacherCount, students, groups] =
+      await Promise.all([
+        User.countDocuments({ ...scope, active: true }),
+        User.countDocuments({ ...scope, active: true, role: "admin" }),
+        User.countDocuments({ ...scope, active: true, role: "teacher" }),
+        studentStatistics(scope),
+        groupStatistics(scope),
+      ]);
     res.json({
       scope: "tenant",
       teamCount,
       adminCount,
       teacherCount,
       students,
+      groups,
       joinedAt: actor.user.createdAt.toISOString(),
     });
   });
