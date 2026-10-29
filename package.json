@@ -1,0 +1,28 @@
+{
+  "name": "softlans-edu",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.12.0",
+    "npm": ">=10"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n api,web \"npm run dev -w @softlans/api\" \"npm run dev -w @softlans/web\"",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:unit": "npm run test:unit -w @softlans/api",
+    "test:integration": "npm run test:integration -w @softlans/api",
+    "seed:dev": "npm run seed:dev -w @softlans/api",
+    "provision:super-admin": "npm run provision:super-admin -w @softlans/api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.5"
+  }
+}
