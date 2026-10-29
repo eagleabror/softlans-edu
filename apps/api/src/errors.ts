@@ -10,6 +10,10 @@ export class AppError extends Error {
   }
 }
 export const errorHandler: ErrorRequestHandler = (error, req, res, _next) => {
+  if (res.headersSent) {
+    _next(error);
+    return;
+  }
   const requestId = res.locals.requestId as string;
   if (error instanceof ZodError) {
     res
