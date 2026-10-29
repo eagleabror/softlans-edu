@@ -26,6 +26,7 @@ export interface DashboardView {
   adminCount: number | null;
   teacherCount: number | null;
   students?: StudentStatistics;
+  groups?: { total: number; active: number; activeMemberships: number };
   joinedAt: string;
 }
 export interface ApiError {
@@ -64,6 +65,48 @@ export interface StudentView extends StudentInput {
 }
 export interface StudentsView {
   students: StudentView[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface GroupInput {
+  name: string;
+  courseName: string;
+  teacherId: string;
+  capacity: number;
+  monthlyFee: number;
+  status: StudentStatus;
+  startDate: string;
+  description?: string;
+}
+export interface GroupView extends GroupInput {
+  id: string;
+  teacherName?: string;
+  activeMemberCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface GroupsView {
+  groups: GroupView[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+export interface GroupMember {
+  id: string;
+  studentId: string;
+  enrolledAt: string;
+  status: "active" | "removed";
+  student: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    status: StudentStatus;
+  } | null;
+}
+export interface GroupMembersView {
+  members: GroupMember[];
   total: number;
   page: number;
   pageSize: number;

@@ -51,6 +51,7 @@ import type {
 } from "@softlans/contracts";
 import { api, HttpError } from "./api";
 
+import { GroupsList, GroupForm, GroupDetail } from "./Groups";
 import { StudentsList, StudentDetail, StudentForm } from "./Students";
 
 const roleNames: Record<Role, string> = {
@@ -429,6 +430,12 @@ function Shell() {
             </NavLink>
           )}
           {session.tenant && (
+            <NavLink to="/groups" onClick={() => setOpen(false)}>
+              <Users size={19} />
+              Guruhlar
+            </NavLink>
+          )}
+          {session.tenant && (
             <NavLink to="/center" onClick={() => setOpen(false)}>
               <Building2 size={19} />
               Markaz ma’lumotlari
@@ -508,6 +515,22 @@ function Shell() {
                   element={<StudentForm edit />}
                 />
               </>
+            )}
+            {session.tenant && (
+              <Route
+                path="/groups"
+                element={<GroupsList manage={canManage} />}
+              />
+            )}
+            {session.tenant && (
+              <Route
+                path="/groups/:id"
+                element={<GroupDetail manage={canManage} />}
+              />
+            )}
+            {canManage && <Route path="/groups/new" element={<GroupForm />} />}
+            {canManage && (
+              <Route path="/groups/:id/edit" element={<GroupForm edit />} />
             )}
             {session.tenant && <Route path="/center" element={<Center />} />}
             <Route path="/account" element={<Account />} />
@@ -686,6 +709,28 @@ function Dashboard() {
             value={data.students.recent}
             icon={<Plus size={21} />}
             note="Oxirgi 30 kun ichida"
+          />
+        </div>
+      )}
+      {owner && data?.groups && (
+        <div className="stats-grid">
+          <Stat
+            title="Jami guruhlar"
+            value={data.groups.total}
+            icon={<Users size={21} />}
+            note="Arxivlanganlar bilan birga"
+          />
+          <Stat
+            title="Faol guruhlar"
+            value={data.groups.active}
+            icon={<Users size={21} />}
+            note="Amaldagi guruhlar"
+          />
+          <Stat
+            title="Faol a’zoliklar"
+            value={data.groups.activeMemberships}
+            icon={<GraduationCap size={21} />}
+            note="Guruhlardagi faol a’zoliklar"
           />
         </div>
       )}
