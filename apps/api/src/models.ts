@@ -1,4 +1,5 @@
 import mongoose, { Schema, type InferSchemaType } from "mongoose";
+import { normalizeName, normalizePhone } from "./student-validation.js";
 
 const tenantSchema = new Schema(
   {
@@ -47,12 +48,83 @@ userSchema.pre("validate", function () {
   }
 });
 
+const studentSchema = new Schema(
+  {
+    tenantId: {
+      type: Schema.Types.ObjectId,
+      ref: "Tenant",
+      required: true,
+      immutable: true,
+    },
+    firstName: {
+      type: String,
+      required: true,
+      trim: true,
+      set: normalizeName,
+      match: /^[\p{L}\p{M} ‘ʼ'’`-]+$/u,
+      maxlength: 100,
+    },
+    lastName: {
+      type: String,
+      required: true,
+      trim: true,
+      set: normalizeName,
+      match: /^[\p{L}\p{M} ‘ʼ'’`-]+$/u,
+      maxlength: 100,
+    },
+    phone: {
+      type: String,
+      trim: true,
+      set: normalizePhone,
+      maxlength: 16,
+      match: /^\+?\d{7,15}$|^$/,
+    },
+    parentName: {
+      type: String,
+      trim: true,
+      set: normalizeName,
+      maxlength: 100,
+    },
+    parentPhone: {
+      type: String,
+      trim: true,
+      set: normalizePhone,
+      maxlength: 16,
+      match: /^\+?\d{7,15}$|^$/,
+    },
+    birthDate: { type: Date, default: null },
+    enrollmentDate: { type: Date, required: true, default: Date.now },
+    status: {
+      type: String,
+      enum: ["active", "paused", "archived"],
+      required: true,
+      default: "active",
+    },
+    notes: { type: String, trim: true, maxlength: 2000 },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      immutable: true,
+    },
+  },
+  { timestamps: true, strict: "throw" },
+);
+studentSchema.index({ tenantId: 1, enrollmentDate: -1, _id: -1 });
+studentSchema.index({ tenantId: 1, status: 1, enrollmentDate: -1, _id: -1 });
+export const Student = mongoose.model("Student", studentSchema);
+export type StudentRecord = InferSchemaType<typeof studentSchema> & {
+  _id: mongoose.Types.ObjectId;
+};
+
 export const Tenant = mongoose.model("Tenant", tenantSchema);
 export const User = mongoose.model("User", userSchema);
 export type UserRecord = InferSchemaType<typeof userSchema> & {
   _id: mongoose.Types.ObjectId;
 };
 export async function ensureIndexes() {
+  await Student.createCollection();
+  await Student.createIndexes();
   await Tenant.createCollection();
   await User.createCollection();
   await Tenant.createIndexes();
