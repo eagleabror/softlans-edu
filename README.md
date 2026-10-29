@@ -62,6 +62,7 @@ Or set `MONGODB_URI` to your Atlas connection URI, keeping credentials only in `
 | `npm run test:unit`             | API security, validation, configuration tests |
 | `npm run test:integration`      | Real HTTP + temporary MongoDB replica set     |
 | `npm run build`                 | Compile API and build frontend                |
+| `npm start`                     | Run compiled single-origin production service |
 | `npm start -w @softlans/api`    | Run compiled API from its workspace           |
 | `npm run seed:dev`              | Explicit, development-only sample data        |
 | `npm run provision:super-admin` | Create a platform operator out of band        |
@@ -146,7 +147,11 @@ All use the supplied seed password. The script refuses production/test modes and
 
 ## Deployment assumptions and Phase 1 limits
 
-Build with `npm ci && npm run build`. Run the compiled Express service using `npm start -w @softlans/api` from the repository with production environment variables injected. Serve `apps/web/dist` through your HTTPS reverse proxy, routing `/api/*` to Express and other paths to `index.html` for React Router. Never rewrite unknown API routes to the SPA. No frontend secrets are needed. This change prepares a PR and does not deploy or merge the application.
+For the public Render demo, follow the [Render + MongoDB Atlas deployment guide](docs/render-demo.md). It includes exact Dashboard fields, Atlas database-user and network setup, environment variables, demo account policy, and verification steps. The root `render.yaml` is an optional Blueprint for one Node Web Service; apply it only after this change is merged into `feat/phase-1-foundation`. Auto-deploy is off. No deployment, account connection or automatic seed is performed by this change.
+
+Build from the repository root with `npm ci --include=dev && npm run build && npm prune --omit=dev` and run `npm start` with production variables injected. Express serves `apps/web/dist` and `/api` behind one HTTPS origin, binds `0.0.0.0` using `process.env.PORT`, and handles React Router navigation/refresh. Unknown API routes stay JSON 404s. Production startup refuses a missing frontend build or a MongoDB server without replica-set sessions. Set the Render health check to `/api/ready`; `/api/health` remains liveness. No separate frontend service, rewrite rules or frontend secrets are needed.
+
+Set `DEMO_MODE=true` and `PUBLIC_REGISTRATION_ENABLED=false` for a public demo. Demo mode closes registration by default; an explicit registration flag overrides that default. Both flags accept only `true` or `false`. Local development registration remains enabled with the supplied `.env.example`. Disabling registration is enforced by the API before database writes; the form displays a safe Uzbek message. Existing login, tenant isolation, roles, cookies and CSRF checks remain enforced. Demo mode is not a read-only sandbox: use fictional data, arrange reviewer credentials privately, never publish administrator passwords, and never run development seeds on Render.
 
 Set `NODE_ENV=production`, a strong unique `JWT_SECRET`, HTTPS `APP_ORIGIN`, and a least-privilege authenticated TLS MongoDB replica-set URI. The service creates required collections and indexes at startup and refuses to listen when setup fails. Coordinate index changes as deployment migrations as the schema evolves. Keep database backups and verify restoration before handling real customer data.
 

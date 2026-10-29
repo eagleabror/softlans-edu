@@ -1,0 +1,29 @@
+# One Node service serves React and /api under the same HTTPS origin.
+services:
+  - type: web
+    name: softlans-edu-demo
+    runtime: node
+    branch: feat/phase-1-foundation
+    plan: starter
+    numInstances: 1
+    autoDeployTrigger: off
+    buildCommand: npm ci --include=dev && npm run build && npm prune --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/ready
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: APP_ORIGIN
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: TRUST_PROXY_HOPS
+        value: "1"
+      - key: DEMO_MODE
+        value: "true"
+      - key: PUBLIC_REGISTRATION_ENABLED
+        value: "false"

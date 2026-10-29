@@ -381,3 +381,81 @@ describe("request hardening", () => {
     expect((await request(app).get("/api/unknown")).status).toBe(404);
   });
 });
+
+describe("public demo deployment", () => {
+  const demoOrigin = "https://softlans-demo.example.test";
+  it("closes signup without creating data and preserves HTTPS cookie login, tenants and roles", async () => {
+    const owner = await register();
+    const other = await register("owner@b.test", "Markaz B");
+    await member(cookie(owner), "teacher");
+    app = createApp(
+      parseConfig({
+        NODE_ENV: "production",
+        APP_ORIGIN: demoOrigin,
+        MONGODB_URI: config.MONGODB_URI,
+        JWT_SECRET: secret,
+        TRUST_PROXY_HOPS: "1",
+        DEMO_MODE: "true",
+        PUBLIC_REGISTRATION_ENABLED: "false",
+      }),
+    );
+    const blocked = await request(app)
+      .post("/api/auth/register")
+      .set("Origin", demoOrigin)
+      .send({
+        name: "Test Owner", email: "closed@a.test", password, centerName: "Closed",
+      });
+    expect(blocked.status).toBe(403);
+    expect(blocked.body.error.code).toBe("REGISTRATION_DISABLED");
+    expect(await Tenant.countDocuments()).toBe(2);
+    expect(await User.countDocuments()).toBe(3);
+
+    const signedIn = await request(app)
+      .post("/api/auth/login")
+      .set("Origin", demoOrigin)
+      .set("X-Forwarded-Proto", "https")
+      .send({ email: "owner@a.test", password });
+    expect(signedIn.status).toBe(200);
+    const sessionCookie = signedIn.headers["set-cookie"][0] as string;
+    expect(sessionCookie).toMatch(/; Secure/);
+    expect(sessionCookie).toMatch(/; HttpOnly/);
+    expect(sessionCookie).toMatch(/; SameSite=Strict/);
+    expect(sessionCookie).toMatch(/; Path=\/api/);
+    expect(sessionCookie).not.toMatch(/Domain=/i);
+    const team = await request(app)
+      .get("/api/team")
+      .set("Cookie", cookie(signedIn));
+    expect(team.status).toBe(200);
+    expect(team.body.total).toBe(2);
+    const foreign = await request(app)
+      .get(`/api/team/${other.body.user.id}`)
+      .set("Cookie", cookie(signedIn));
+    expect(foreign.status).toBe(404);
+    const teacher = await request(app)
+      .post("/api/auth/login")
+      .set("Origin", demoOrigin)
+      .send({ email: "teacher@a.test", password });
+    const denied = await request(app)
+      .get("/api/team")
+      .set("Cookie", cookie(teacher));
+    expect(denied.status).toBe(403);
+    expect((await request(app).get("/api/ready")).body).toEqual({
+      ready: true,
+    });
+  });
+  it("supports explicitly enabling demo registration with a real transaction", async () => {
+    app = createApp(
+      parseConfig({
+        NODE_ENV: "test",
+        APP_ORIGIN: origin,
+        MONGODB_URI: config.MONGODB_URI,
+        JWT_SECRET: secret,
+        DEMO_MODE: "true",
+        PUBLIC_REGISTRATION_ENABLED: "true",
+      }),
+    );
+    expect((await register()).status).toBe(201);
+    expect(await User.countDocuments()).toBe(1);
+    expect(await Tenant.countDocuments()).toBe(1);
+  });
+});
