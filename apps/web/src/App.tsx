@@ -1,3 +1,4 @@
+import { DailyReports } from "./DailyReports";
 import { Notifications } from "./Notifications";
 import { TelegramSettings } from "./Telegram";
 import { PayrollPage, PayrollDetail } from "./Payroll";
@@ -558,6 +559,11 @@ function Shell() {
               <Users size={18} /> O‘qituvchilar maoshi
             </NavLink>
           )}
+          {session.user.role === "business_owner" && (
+            <NavLink to="/daily-reports" onClick={() => setOpen(false)}>
+              Kunlik hisobotlar
+            </NavLink>
+          )}
           {session.tenant && (
             <>
               {canManage && (
@@ -799,6 +805,9 @@ function Shell() {
                   element={<TelegramSettings />}
                 />
               </>
+            )}
+            {session.user.role === "business_owner" && (
+              <Route path="/daily-reports" element={<DailyReports />} />
             )}
             <Route path="/account" element={<Account />} />
             <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,3 +1,4 @@
+import { planDailyReports } from "../daily-reports.js";
 import mongoose from "mongoose";
 import { setTimeout as delay } from "node:timers/promises";
 import { parseConfig } from "../config.js";
@@ -8,6 +9,7 @@ const config = parseConfig(process.env);
 try {
   await connectDatabase(config.MONGODB_URI);
   await ensureIndexes();
+  await planDailyReports();
   await planNotifications();
   const deadline = Date.now() + 45000;
   while (Date.now() < deadline) {

@@ -2555,3 +2555,66 @@ td {
 .telegram-settings h2 { font-size: 19px; }
 .telegram-settings label { display: flex; align-items: center; gap: 12px; min-height: 44px; }
 .telegram-settings .button { justify-self: start; max-width: 100%; white-space: normal; }
+
+.daily-reports .panel {
+  margin-top: 20px;
+  padding: 24px;
+}
+.daily-reports form {
+  margin-top: 20px;
+}
+.daily-reports fieldset {
+  border: 0;
+  padding: 0;
+  margin: 16px 0;
+  min-width: 0;
+}
+.daily-reports legend {
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.daily-reports label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  margin: 8px 0;
+  flex-wrap: wrap;
+}
+.daily-reports input[type="time"] {
+  display: block;
+  width: 100%;
+}
+.daily-time-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.daily-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+.daily-reports pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  line-height: 1.7;
+  background: #f7f8f5;
+  padding: 16px;
+  border-radius: 10px;
+}
+.daily-reports :is(input, button, a):focus-visible {
+  outline: 2px solid #263e35;
+  outline-offset: 3px;
+}
+@media (max-width: 600px) {
+  .daily-time-grid {
+    grid-template-columns: 1fr;
+  }
+  .daily-reports .panel {
+    padding: 16px;
+  }
+}

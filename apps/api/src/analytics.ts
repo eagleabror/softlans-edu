@@ -67,7 +67,7 @@ type ReadStage = Exclude<
   PipelineStage,
   PipelineStage.Merge | PipelineStage.Out
 >;
-function validPayments(scope: Scope): ReadStage[] {
+export function validPayments(scope: Scope): ReadStage[] {
   return [
     {
       $lookup: {

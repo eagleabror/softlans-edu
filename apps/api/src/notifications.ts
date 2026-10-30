@@ -1,3 +1,5 @@
+import { ownerEligibility } from "./daily-reports.js";
+import { TelegramIntegration } from "./telegram-models.js";
 import { randomUUID } from "node:crypto";
 import { Api, GrammyError } from "grammy";
 import type { Types } from "mongoose";
@@ -320,7 +322,7 @@ export async function processNotification(
       },
     },
     { new: true, sort: { nextAttemptAt: 1 } },
-  );
+  ).select("+reportText");
   let pacing = 1100;
   let sendStarted = false;
   try {
@@ -334,33 +336,39 @@ export async function processNotification(
           ...(code ? { $push: { attemptsLog: { at: new Date(), code } } } : {}),
         },
       );
-    const g = await GuardianLink.findOne({
-      _id: job.guardianId,
-      tenantId: job.tenantId,
-      studentId: job.studentId,
-      revision: job.guardianRevision,
-      enabled: true,
-      consentAt: { $exists: true },
-      verifiedAt: { $exists: true },
-    }).select("+chatId");
+    const owner = job.kind === "owner_daily" || job.kind === "owner_test";
+    const ownerState = owner ? await ownerEligibility(job, now) : null;
+    const g = owner
+      ? null
+      : await GuardianLink.findOne({
+          _id: job.guardianId,
+          tenantId: job.tenantId,
+          studentId: job.studentId,
+          revision: job.guardianRevision,
+          enabled: true,
+          consentAt: { $exists: true },
+          verifiedAt: { $exists: true },
+        }).select("+chatId");
     const s =
       (await NotificationSettings.findOne({ tenantId: job.tenantId })) ??
       new NotificationSettings({ tenantId: job.tenantId });
     if (
-      !g?.chatId ||
-      (job.kind !== "test" && !g.get(job.kind)) ||
-      !(await Tenant.exists({ _id: job.tenantId, active: true })) ||
-      !(await Student.exists({
-        _id: job.studentId,
-        tenantId: job.tenantId,
-        status: "active",
-      })) ||
-      !(await sourceEligible(job, s, now))
+      owner
+        ? !ownerState?.eligible
+        : !g?.chatId ||
+          (job.kind !== "test" && !g.get(job.kind)) ||
+          !(await Tenant.exists({ _id: job.tenantId, active: true })) ||
+          !(await Student.exists({
+            _id: job.studentId,
+            tenantId: job.tenantId,
+            status: "active",
+          })) ||
+          !(await sourceEligible(job, s, now))
     ) {
       await finish({ status: "cancelled", errorCode: "INELIGIBLE" });
       return true;
     }
-    if (quiet(now, s.quietStart, s.quietEnd)) {
+    if (owner ? ownerState?.quiet : quiet(now, s.quietStart, s.quietEnd)) {
       await finish({
         status: "pending",
         nextAttemptAt: new Date(now.getTime() + 60000),
@@ -378,10 +386,12 @@ export async function processNotification(
       { $inc: { attempts: 1 } },
     );
     if (!claim.modifiedCount) return true;
-    const text =
-      job.kind === "test"
+    const text = owner
+      ? job.reportText!
+      : job.kind === "test"
         ? defaults[s.language].test
-        : s.get(`${job.kind}Template`) || defaults[s.language][job.kind];
+        : s.get(`${job.kind}Template`) ||
+          defaults[s.language][job.kind as "debt" | "attendance" | "lesson"];
     try {
       sendStarted = true;
       await (
@@ -390,7 +400,7 @@ export async function processNotification(
           new Api(config.TELEGRAM_BOT_TOKEN!, {
             timeoutSeconds: 10,
           }).sendMessage(chat, message))
-      )(g.chatId, text);
+      )(owner ? ownerState!.chatId! : g!.chatId!, text);
       await finish(
         { status: "sent", sentAt: new Date(), errorCode: null },
         "SENT",
@@ -412,7 +422,19 @@ export async function processNotification(
         safeCode,
       );
       if (code === 429) pacing = delay;
-      if (code === 403 || code === 400)
+      if (owner && (code === 403 || code === 400))
+        await TelegramIntegration.updateOne(
+          {
+            tenantId: job.tenantId,
+            userId: job.userId,
+            revision: job.integrationRevision,
+          },
+          {
+            $set: { "notificationPreferences.enabled": false },
+            $inc: { revision: 1 },
+          },
+        );
+      if (!owner && g && (code === 403 || code === 400))
         await GuardianLink.updateOne(
           { _id: g._id, revision: g.revision },
           {

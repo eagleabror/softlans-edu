@@ -1,3 +1,4 @@
+import { DailyReportSettings } from "./daily-report-models.js";
 import { notificationModels } from "./notification-models.js";
 import { telegramModels } from "./telegram-models.js";
 import {
@@ -113,6 +114,7 @@ const studentSchema = new Schema(
       match: /^\+?\d{7,15}$|^$/,
     },
     birthDate: { type: Date, default: null },
+    archivedAt: { type: Date, default: null },
     enrollmentDate: { type: Date, required: true, default: Date.now },
     status: {
       type: String,
@@ -147,6 +149,7 @@ export async function ensureIndexes() {
   for (const model of [
     ...telegramModels,
     ...notificationModels,
+    DailyReportSettings,
     SalaryRule,
     Payroll,
     SalaryPayout,

@@ -1,3 +1,4 @@
+import { dailyReportRouter } from "./daily-report-api.js";
 import { notificationRouter } from "./notification-api.js";
 import { telegramRouter, telegramWebhook } from "./telegram.js";
 import { payrollRouter } from "./payroll.js";
@@ -197,6 +198,7 @@ export function createApp(
     authenticate(config),
     telegramRouter(config),
   );
+  app.use("/api/daily-reports", authenticate(config), dailyReportRouter(config));
   app.use(
     "/api/notifications",
     authenticate(config),
