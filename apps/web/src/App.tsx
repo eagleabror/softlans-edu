@@ -2,6 +2,8 @@ import { Debts, DebtStats } from "./Debts";
 import { Billing, FinancialStats } from "./Billing";
 import {
   createContext,
+  lazy,
+  Suspense,
   useContext,
   useEffect,
   useRef,
@@ -88,6 +90,9 @@ function uzbekDate(value: Date) {
   ];
   return `${part("day")} ${months[Number(part("month")) - 1]}, ${part("year")}`;
 }
+const FinancialReports = lazy(() =>
+  import("./FinancialReports").then((m) => ({ default: m.FinancialReports })),
+);
 const AuthContext = createContext<{
   session: SessionView;
   setSession: (s: SessionView | null) => void;
@@ -427,6 +432,12 @@ function Shell() {
             </NavLink>
           )}
           {canManage && (
+            <NavLink to="/reports" onClick={() => setOpen(false)}>
+              <Layers size={19} />
+              Moliyaviy hisobotlar
+            </NavLink>
+          )}
+          {canManage && (
             <NavLink to="/debts" onClick={() => setOpen(false)}>
               <Layers size={19} />
               Qarzdorlar
@@ -539,6 +550,14 @@ function Shell() {
             <Route path="/" element={<Dashboard />} />
             {canManage && (
               <>
+                <Route
+                  path="/reports"
+                  element={
+                    <Suspense fallback={<p role="status">Yuklanmoqda…</p>}>
+                      <FinancialReports />
+                    </Suspense>
+                  }
+                />
                 <Route path="/debts" element={<Debts />} />
                 <Route path="/debts/overdue" element={<Debts overdue />} />
                 <Route path="/debts/groups" element={<Debts groups />} />
