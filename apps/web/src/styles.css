@@ -587,8 +587,16 @@ svg {
   border-right: 1px solid #e7ebe2;
   display: flex;
   flex-direction: column;
-  padding: 31px 20px 0;
+  padding: 31px 20px env(safe-area-inset-bottom, 0px);
+  height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
   z-index: 30;
+}
+.sidebar > * {
+  flex-shrink: 0;
 }
 .logo-link {
   padding: 0 7px;
@@ -1644,7 +1652,7 @@ td {
     transform: translateX(-100%);
     transition: transform 0.25s ease;
     width: 252px;
-    padding: 28px 20px 0;
+    padding: 28px 20px env(safe-area-inset-bottom, 0px);
   }
   .sidebar-open {
     transform: translateX(0);

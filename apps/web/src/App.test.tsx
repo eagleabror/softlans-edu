@@ -154,3 +154,59 @@ describe("Uzbek authentication and role-aware navigation", () => {
     expect(screen.getByRole("button", { name: "Qayta urinish" })).toBeVisible();
   });
 });
+
+describe("Mobile sidebar", () => {
+  function mobileSession() {
+    vi.stubGlobal("matchMedia", vi.fn(() => ({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })));
+    vi.stubGlobal("fetch", vi.fn((url: string) => response(
+      url.endsWith("/me") ? session : {
+        scope: "tenant", teamCount: 3, teacherCount: 1, adminCount: 1,
+        joinedAt: new Date().toISOString(),
+      },
+    )));
+  }
+  it("contains keyboard focus, closes with Escape and restores focus and background scrolling", async () => {
+    mobileSession();
+    renderApp("/");
+    const opener = await screen.findByRole("button", { name: "Menyuni ochish" });
+    expect(opener).toHaveAttribute("aria-controls", "app-sidebar");
+    expect(document.getElementById("app-sidebar")).toHaveAttribute("inert");
+    await userEvent.click(opener);
+    const drawer = screen.getByRole("dialog", { name: "Asosiy menyu paneli" });
+    expect(drawer).toHaveAttribute("aria-modal", "true");
+    expect(document.body.style.overflow).toBe("hidden");
+    expect(document.querySelector(".app-main")).toHaveAttribute("inert");
+    expect(document.activeElement).toHaveAttribute("aria-label", "Menyuni yopish");
+    screen.getByRole("button", { name: "Hisobdan chiqish" }).focus();
+    await userEvent.tab();
+    expect(document.activeElement).toHaveClass("logo-link");
+    await userEvent.tab({ shift: true });
+    expect(document.activeElement).toHaveAttribute("aria-label", "Hisobdan chiqish");
+    await userEvent.keyboard("{Escape}");
+    expect(opener).toHaveFocus();
+    expect(opener).toHaveAttribute("aria-expanded", "false");
+    expect(drawer).toHaveAttribute("inert");
+    expect(document.body.style.overflow).toBe("");
+    expect(document.querySelector(".app-main")).not.toHaveAttribute("inert");
+  });
+  it("closes on navigation and backdrop click, and releases the scroll lock on unmount", async () => {
+    mobileSession();
+    const view = renderApp("/");
+    const opener = await screen.findByRole("button", { name: "Menyuni ochish" });
+    await userEvent.click(opener);
+    await userEvent.click(screen.getByRole("link", { name: "Hisobim" }));
+    expect(opener).toHaveAttribute("aria-expanded", "false");
+    expect(document.body.style.overflow).toBe("");
+    await userEvent.click(opener);
+    await userEvent.click(document.querySelector(".sidebar-overlay")!);
+    expect(opener).toHaveFocus();
+    expect(opener).toHaveAttribute("aria-expanded", "false");
+    await userEvent.click(opener);
+    view.unmount();
+    expect(document.body.style.overflow).toBe("");
+  });
+});
