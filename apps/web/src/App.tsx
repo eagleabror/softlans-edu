@@ -1,3 +1,4 @@
+import { Notifications } from "./Notifications";
 import { TelegramSettings } from "./Telegram";
 import { PayrollPage, PayrollDetail } from "./Payroll";
 import { Attendance, AttendanceMark, AttendanceStats } from "./Attendance";
@@ -402,9 +403,10 @@ function Shell() {
       }
       if (event.key !== "Tab") return;
       const controls = sidebar.current?.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled])',
+        "a[href], button:not([disabled])",
       );
-      const first = controls?.[0], last = controls?.[controls.length - 1];
+      const first = controls?.[0],
+        last = controls?.[controls.length - 1];
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last?.focus();
@@ -557,10 +559,17 @@ function Shell() {
             </NavLink>
           )}
           {session.tenant && (
-            <NavLink to="/settings/telegram" onClick={() => setOpen(false)}>
-              <Settings2 size={19} />
-              Sozlamalar · Telegram
-            </NavLink>
+            <>
+              {canManage && (
+                <NavLink to="/notifications" onClick={() => setOpen(false)}>
+                  Telegram xabarnomalari
+                </NavLink>
+              )}
+              <NavLink to="/settings/telegram" onClick={() => setOpen(false)}>
+                <Settings2 size={19} />
+                Sozlamalar · Telegram
+              </NavLink>
+            </>
           )}
           <NavLink to="/account" onClick={() => setOpen(false)}>
             <Settings2 size={19} />
@@ -774,7 +783,22 @@ function Shell() {
             )}
             {canManage && <Route path="/classrooms" element={<Classrooms />} />}
             {session.tenant && (
-              <Route path="/settings/telegram" element={<TelegramSettings />} />
+              <>
+                {canManage && (
+                  <Route
+                    path="/notifications"
+                    element={
+                      <Notifications
+                        owner={session.user.role === "business_owner"}
+                      />
+                    }
+                  />
+                )}
+                <Route
+                  path="/settings/telegram"
+                  element={<TelegramSettings />}
+                />
+              </>
             )}
             <Route path="/account" element={<Account />} />
             <Route path="*" element={<Navigate to="/" replace />} />

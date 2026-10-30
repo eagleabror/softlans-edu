@@ -1,3 +1,4 @@
+import { notificationModels } from "./notification-models.js";
 import { telegramModels } from "./telegram-models.js";
 import {
   SalaryRule,
@@ -145,6 +146,7 @@ export type UserRecord = InferSchemaType<typeof userSchema> & {
 export async function ensureIndexes() {
   for (const model of [
     ...telegramModels,
+    ...notificationModels,
     SalaryRule,
     Payroll,
     SalaryPayout,

@@ -13,7 +13,8 @@
     "test:integration": "vitest run tests/integration.test.ts tests/database.test.ts tests/students.test.ts tests/groups.test.ts tests/schedules.test.ts tests/billing.test.ts tests/debts.test.ts tests/payroll.test.ts tests/telegram.test.ts",
     "seed:dev": "tsx src/scripts/seed.ts",
     "provision:super-admin": "tsx src/scripts/super-admin.ts",
-    "telegram:dispatch": "tsx src/scripts/telegram-dispatch.ts"
+    "telegram:dispatch": "tsx src/scripts/telegram-dispatch.ts",
+    "telegram:automation": "tsx src/scripts/telegram-automation.ts"
   },
   "dependencies": {
     "@softlans/contracts": "*",

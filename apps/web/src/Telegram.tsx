@@ -92,8 +92,8 @@ export function TelegramSettings() {
                   Telegram bildirishnomalarini olish
                 </label>
                 <p>
-                  Avtomatik eslatmalar hozircha yuborilmaydi. /stop buyrug‘i
-                  bildirishnomalarni o‘chiradi.
+                  Shaxsiy hisob sozlamalari. Ota-onalar xabarlari alohida
+                  boshqariladi. /stop buyrug‘i bildirishnomalarni o‘chiradi.
                 </p>
                 <button
                   className="button light"
