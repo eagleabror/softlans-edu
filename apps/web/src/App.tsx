@@ -373,6 +373,53 @@ function AuthPage({
 function Shell() {
   const { session, setSession } = useAuth();
   const [open, setOpen] = useState(false);
+  const [mobile, setMobile] = useState(
+    () => window.matchMedia?.("(max-width: 700px)").matches ?? false,
+  );
+  const sidebar = useRef<HTMLElement>(null);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const media = window.matchMedia?.("(max-width: 700px)");
+    if (!media) return;
+    const sync = () => {
+      setMobile(media.matches);
+      setOpen(false);
+    };
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
+  useEffect(() => {
+    if (!mobile || !open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButton.current?.focus({ preventScroll: true });
+    const keydown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpen(false);
+      }
+      if (event.key !== "Tab") return;
+      const controls = sidebar.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled])',
+      );
+      const first = controls?.[0], last = controls?.[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    };
+    document.addEventListener("keydown", keydown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", keydown);
+      if (window.matchMedia?.("(max-width: 700px)").matches)
+        menuButton.current?.focus({ preventScroll: true });
+    };
+  }, [mobile, open]);
   const [logoutError, setLogoutError] = useState("");
   const [busy, setBusy] = useState(false);
   const canManage = ["business_owner", "admin"].includes(session.user.role);
@@ -394,15 +441,25 @@ function Shell() {
       {open && (
         <button
           className="sidebar-overlay"
+          tabIndex={-1}
           aria-label="Menyuni yopish"
           onClick={() => setOpen(false)}
         />
       )}
-      <aside className={`sidebar ${open ? "sidebar-open" : ""}`}>
+      <aside
+        id="app-sidebar"
+        ref={sidebar}
+        className={`sidebar ${open ? "sidebar-open" : ""}`}
+        inert={mobile && !open}
+        role={mobile && open ? "dialog" : undefined}
+        aria-modal={mobile && open ? true : undefined}
+        aria-label="Asosiy menyu paneli"
+      >
         <Link className="logo-link" to="/" onClick={() => setOpen(false)}>
           <Logo />
         </Link>
         <button
+          ref={closeButton}
           className="mobile-close icon-button"
           aria-label="Menyuni yopish"
           onClick={() => setOpen(false)}
@@ -535,11 +592,13 @@ function Shell() {
           {logoutError && <Notice>{logoutError}</Notice>}
         </div>
       </aside>
-      <div className="app-main">
+      <div className="app-main" inert={mobile && open}>
         <header className="topbar">
           <div className="topbar-left">
             <button
+              ref={menuButton}
               className="mobile-menu icon-button"
+              aria-controls="app-sidebar"
               aria-label="Menyuni ochish"
               aria-expanded={open}
               onClick={() => setOpen(!open)}
