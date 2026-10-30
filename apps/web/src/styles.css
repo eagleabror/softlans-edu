@@ -2545,3 +2545,8 @@ td {
     gap: 12px;
   }
 }
+
+.payroll-field-error {
+  color: #9b503d;
+  font-size: 14px;
+}

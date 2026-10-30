@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api } from "./api";
+import { api, HttpError } from "./api";
 import { uzs } from "./Billing";
 type Line = {
   ruleId: string;
@@ -55,6 +55,16 @@ const statuses: Record<string, string> = {
   approved: "Tasdiqlangan",
   partially_paid: "Qisman to‘langan",
   paid: "To‘langan",
+};
+const ruleFieldMessages: Record<string, string> = {
+  teacherId: "O‘qituvchini tanlang.",
+  groupId: "Guruhni qayta tanlang.",
+  salaryType: "Maosh turini tanlang.",
+  percentage: "Foiz 0–100 oralig‘ida, ko‘pi bilan ikki kasr xonali bo‘lsin.",
+  fixedAmount: "Summa 0–1 000 000 000 000 oralig‘idagi butun so‘m bo‘lsin.",
+  effectiveFrom: "Amal boshlanadigan oyni tanlang.",
+  effectiveUntil: "Tugash sanasi boshlanish sanasidan oldin bo‘lmasin.",
+  reason: "Sababni 3–1000 ta belgida kiriting.",
 };
 const now = () =>
   new Intl.DateTimeFormat("en-CA", {
@@ -129,6 +139,20 @@ export function PayrollPage({
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [success, setSuccess] = useState("");
+  const [ruleErrors, setRuleErrors] = useState<Record<string, string>>({});
+  const ruleForm = useRef<HTMLFormElement>(null);
+  const fieldFeedback = (name: string) => ({
+    "aria-invalid": !!ruleErrors[name],
+    "aria-describedby": ruleErrors[name]
+      ? `salary-rule-${name}-error`
+      : undefined,
+  });
+  const fieldError = (name: string) =>
+    ruleErrors[name] && (
+      <span id={`salary-rule-${name}-error`} className="payroll-field-error">
+        {ruleErrors[name]}
+      </span>
+    );
   const [editing, setEditing] = useState<Rule | null>(null),
     [salaryType, setType] = useState("collected");
   useEffect(() => {
@@ -219,25 +243,44 @@ export function PayrollPage({
   }
   async function saveRule(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setRuleErrors({});
     const f = new FormData(e.currentTarget);
     await act(async () => {
-      await send(
-        editing ? `/payroll/rules/${editing._id}` : "/payroll/rules",
-        {
-          teacherId: f.get("teacherId"),
-          groupId: f.get("groupId") || null,
-          salaryType,
-          percentage:
-            salaryType === "fixed" ? null : Number(f.get("percentage")),
-          fixedAmount:
-            salaryType === "fixed" ? Number(f.get("fixedAmount")) : null,
-          effectiveFrom: f.get("effectiveFrom"),
-          effectiveUntil: f.get("effectiveUntil") || null,
-          reason: f.get("reason"),
-        },
-        editing ? "PUT" : "POST",
-      );
-      setEditing(null);
+      try {
+        await send(
+          editing ? `/payroll/rules/${editing._id}` : "/payroll/rules",
+          {
+            teacherId: f.get("teacherId"),
+            groupId: f.get("groupId") || null,
+            salaryType,
+            percentage:
+              salaryType === "fixed" ? null : Number(f.get("percentage")),
+            fixedAmount:
+              salaryType === "fixed" ? Number(f.get("fixedAmount")) : null,
+            effectiveFrom: String(f.get("effectiveFrom")) + "-01",
+            effectiveUntil: f.get("effectiveUntil") || null,
+            reason: f.get("reason"),
+          },
+          editing ? "PUT" : "POST",
+        );
+        setEditing(null);
+      } catch (e) {
+        if (e instanceof HttpError && e.fields) {
+          const fields = Object.keys(e.fields).filter(
+            (name) => name in ruleFieldMessages,
+          );
+          setRuleErrors(
+            Object.fromEntries(
+              fields.map((name) => [name, ruleFieldMessages[name]!]),
+            ),
+          );
+          const first = ruleForm.current?.elements.namedItem(fields[0] ?? "");
+          if (first instanceof HTMLElement) first.focus();
+          if (fields.length)
+            throw new Error("Belgilangan maydonlarni tuzatib, qayta saqlang.");
+        }
+        throw e;
+      }
     });
   }
   return (
@@ -422,6 +465,8 @@ export function PayrollPage({
       {settings && owner && (
         <form
           className="panel payroll-form"
+          ref={ruleForm}
+          aria-label="Maosh qoidasi"
           onSubmit={saveRule}
           key={editing?._id ?? "new"}
         >
@@ -430,6 +475,7 @@ export function PayrollPage({
             O‘qituvchi
             <select
               name="teacherId"
+              {...fieldFeedback("teacherId")}
               required
               defaultValue={editing?.teacherId ?? teacherId}
             >
@@ -440,10 +486,15 @@ export function PayrollPage({
                 </option>
               ))}
             </select>
+            {fieldError("teacherId")}
           </label>
           <label>
             Guruh (ixtiyoriy)
-            <select name="groupId" defaultValue={editing?.groupId ?? ""}>
+            <select
+              name="groupId"
+              {...fieldFeedback("groupId")}
+              defaultValue={editing?.groupId ?? ""}
+            >
               <option value="">Umumiy qoida</option>
               {groups.map((g) => (
                 <option key={g.id} value={g.id}>
@@ -451,6 +502,7 @@ export function PayrollPage({
                 </option>
               ))}
             </select>
+            {fieldError("groupId")}
           </label>
           <div className="payroll-controls">
             <button
@@ -473,6 +525,8 @@ export function PayrollPage({
           <label>
             Maosh turi
             <select
+              name="salaryType"
+              {...fieldFeedback("salaryType")}
               value={salaryType}
               onChange={(e) => setType(e.target.value)}
             >
@@ -482,12 +536,14 @@ export function PayrollPage({
                 </option>
               ))}
             </select>
+            {fieldError("salaryType")}
           </label>
           {salaryType === "fixed" ? (
             <label>
               Belgilangan summa (UZS)
               <input
                 name="fixedAmount"
+                {...fieldFeedback("fixedAmount")}
                 type="number"
                 min="0"
                 max="1000000000000"
@@ -495,12 +551,14 @@ export function PayrollPage({
                 required
                 defaultValue={editing?.fixedAmount ?? ""}
               />
+              {fieldError("fixedAmount")}
             </label>
           ) : (
             <label>
               Foiz
               <input
                 name="percentage"
+                {...fieldFeedback("percentage")}
                 type="number"
                 min="0"
                 max="100"
@@ -508,28 +566,41 @@ export function PayrollPage({
                 required
                 defaultValue={editing?.percentage ?? ""}
               />
+              {fieldError("percentage")}
             </label>
           )}
           <label>
-            Amal boshlanishi (oyning 1-kuni)
+            Amal boshlanish oyi
             <input
               name="effectiveFrom"
-              type="date"
+              {...fieldFeedback("effectiveFrom")}
+              type="month"
               required
-              defaultValue={editing?.effectiveFrom ?? month + "-01"}
+              defaultValue={editing?.effectiveFrom.slice(0, 7) ?? month}
             />
+            {fieldError("effectiveFrom")}
           </label>
+          <p className="muted">Qoida tanlangan oyning 1-kunidan amal qiladi.</p>
           <label>
             Amal tugashi
             <input
               name="effectiveUntil"
+              {...fieldFeedback("effectiveUntil")}
               type="date"
               defaultValue={editing?.effectiveUntil ?? ""}
             />
+            {fieldError("effectiveUntil")}
           </label>
           <label>
             Sabab
-            <textarea name="reason" required minLength={3} maxLength={1000} />
+            <textarea
+              name="reason"
+              {...fieldFeedback("reason")}
+              required
+              minLength={3}
+              maxLength={1000}
+            />
+            {fieldError("reason")}
           </label>
           <button className="button primary" disabled={busy}>
             {busy ? "Saqlanmoqda…" : "Saqlash"}
@@ -848,8 +919,8 @@ export function PayrollDetail({ owner }: { owner: boolean }) {
           >
             <h2 id="payroll-approval">Maoshni tasdiqlaysizmi?</h2>
             <p>
-              {p.teacherName} · {p.payrollMonth} · {uzs(p.finalSalary)}. Tasdiqlangan hisob-kitob
-              saqlanadi va o‘zgarmaydi.
+              {p.teacherName} · {p.payrollMonth} · {uzs(p.finalSalary)}.
+              Tasdiqlangan hisob-kitob saqlanadi va o‘zgarmaydi.
             </p>
             <button
               className="button primary"

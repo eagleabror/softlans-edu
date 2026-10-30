@@ -441,3 +441,35 @@ it("uses group fixed override instead of the teacher fixed default when all grou
   });
   expect((await preview()).body.grossSalary).toBe(700);
 });
+it("loads all salary settings page resources with their initial query parameters", async () => {
+  for (const path of [
+    "/api/groups/teachers?page=1",
+    "/api/groups?pageSize=100&page=1",
+    "/api/payroll/rules?page=1",
+  ]) {
+    const r = await request(app).get(path).set("Cookie", owner);
+    expect({ path, status: r.status, error: r.body.error }).toMatchObject({
+      path,
+      status: 200,
+    });
+  }
+});
+it("identifies salary rule validation fields rather than hiding them in a generic error", async () => {
+  const invalidDay = await rule({ effectiveFrom: "2026-10-30" });
+  expect(invalidDay.status).toBe(400);
+  expect(invalidDay.body.error.fields.effectiveFrom).toContain(
+    "Oy boshini tanlang.",
+  );
+  const invalidEnd = await rule({
+    effectiveFrom: "2026-10-01",
+    effectiveUntil: "2026-09-30",
+  });
+  expect(invalidEnd.status).toBe(400);
+  expect(invalidEnd.body.error.fields.effectiveUntil).toContain(
+    "Tugash sanasi boshlanish sanasidan oldin bo‘lmasin.",
+  );
+  const missingPercent = await rule({ percentage: null });
+  expect(missingPercent.body.error.fields.percentage).toContain(
+    "Foizni kiriting.",
+  );
+});
