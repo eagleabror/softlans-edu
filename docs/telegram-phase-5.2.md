@@ -47,7 +47,7 @@ No message bodies, student names, financial amounts, Telegram API error descript
 
 ## Delivery architecture
 
-Attendance mutations create outbox events **inside the same transaction** as attendance records. No event is visible to the planner until commit. Only actual status changes produce an event; unmarked roster members never generate absence alerts. Delivered messages are never deleted or edited. With corrections enabled, a new generic update is queued; obsolete undelivered events are suppressed using the latest student/session event. Cancellation suppresses pending attendance notices.
+Attendance mutations create outbox events **inside the same transaction** as attendance records. No event is visible to the planner until commit. Only actual status changes produce an event; unmarked roster members never generate absence alerts. Delivered messages are never deleted or edited. Entering absent (or enabled late/excused) always qualifies for its configured alert, even when an earlier mark exists. With corrections enabled, other status corrections also queue a generic update; obsolete undelivered events are suppressed using the latest student/session event. Cancellation suppresses pending attendance notices.
 
 The independent planner traverses enabled tenants/verified consenting guardians with cursors, then idempotently upserts jobs. Debt event dates use Asia/Tashkent and the existing transactionally reconciled charge `paidAmount` cache, so fully paid/cancelled charges are suppressed and reversals can restore eligibility. Source validity and balance are checked again before sending. The debt event key includes charge/due-date/offset/guardian, preventing repeat sends for that event.
 
@@ -65,10 +65,11 @@ Production does not run a `setInterval` notification loop. Run this independentl
 
 ```sh
 npm ci
+npm run build
 npm run telegram:automation -w @softlans/api
 ```
 
-Use Node 22.12+ and the same release/lockfile as the web service. Supply configuration through the scheduler's secret store: `MONGODB_URI`, `JWT_SECRET`, `APP_ORIGIN`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET`, plus any required existing configuration. Never put values in workflow source, command arguments, logs or a PR. The script does not register webhooks or listen publicly. It verifies the replica set and indexes, plans eligible events, then processes jobs for up to 45 seconds with awaited pacing; it exits and disconnects. Overlap is protected by database claims. Schedule at least every minute for useful one-hour lead times; per-invocation send throughput is deliberately conservative. Do not simultaneously run a competing legacy dispatch schedule unless staff delivery is needed; both share bot pacing.
+Use Node 22.12+ and the same release/lockfile as the web service. Supply configuration through the scheduler's secret store: `MONGODB_URI`, `JWT_SECRET`, `APP_ORIGIN`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET`, plus any required existing configuration. Never put values in workflow source, command arguments, logs or a PR. The command uses compiled JavaScript and works after `npm prune --omit=dev`; for source-based local development use `npm run telegram:automation:dev -w @softlans/api`. The script does not register webhooks or listen publicly. It verifies the replica set and indexes, plans eligible events, then processes jobs for up to 45 seconds with awaited pacing; it exits and disconnects. Overlap is protected by database claims. Schedule at least every minute for useful one-hour lead times; per-invocation send throughput is deliberately conservative. Do not simultaneously run a competing legacy dispatch schedule unless staff delivery is needed; both share bot pacing.
 
 **Render Free web service:** Render Free does not provide a free persistent worker/cron runtime. Do not configure a paid Render worker or cron job automatically. Use an external scheduler capable of executing the command (for example a trusted self-hosted cron runner). A standard cron entry on that host can invoke a wrapper every minute:
 
@@ -131,3 +132,5 @@ The wrapper should `cd` to the checked-out release and execute `npm run telegram
 - `apps/web/src/App.tsx`: permission-aware navigation and route.
 - `apps/web/src/Telegram.tsx`: retain personal linking with updated explanatory copy.
 - `docs/telegram-phase-5.2.md`: API, architecture, operational limits, scheduler setup, validation and manual checklist.
+
+For missing attendance deliveries, see [the investigation and live verification runbook](attendance-notification-troubleshooting.md).

@@ -14,7 +14,8 @@
     "seed:dev": "tsx src/scripts/seed.ts",
     "provision:super-admin": "tsx src/scripts/super-admin.ts",
     "telegram:dispatch": "tsx src/scripts/telegram-dispatch.ts",
-    "telegram:automation": "tsx src/scripts/telegram-automation.ts"
+    "telegram:automation": "node dist/apps/api/src/scripts/telegram-automation.js",
+    "telegram:automation:dev": "tsx src/scripts/telegram-automation.ts"
   },
   "dependencies": {
     "@softlans/contracts": "*",

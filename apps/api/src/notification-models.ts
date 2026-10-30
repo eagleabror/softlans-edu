@@ -130,7 +130,31 @@ export const NotificationSettings = mongoose.model(
 export const AttendanceEvent = mongoose.model("AttendanceEvent", event);
 export const NotificationJob = mongoose.model("NotificationJob", job);
 export const NotificationAudit = mongoose.model("NotificationAudit", audit);
+// Global liveness metadata only: no tenant/student identifiers, counts, or secrets.
+const processorState = new Schema({
+  _id: String,
+  runId: String,
+  lastStartedAt: Date,
+  lastHeartbeatAt: Date,
+  lastCompletedAt: Date,
+  lastFailedAt: Date,
+  stage: {
+    type: String,
+    enum: [
+      "planning_guardians",
+      "planning_owners",
+      "delivery",
+      "completed",
+      "failed",
+    ],
+  },
+});
+export const NotificationProcessorState = mongoose.model(
+  "NotificationProcessorState",
+  processorState,
+);
 export const notificationModels = [
+  NotificationProcessorState,
   GuardianLink,
   NotificationSettings,
   AttendanceEvent,

@@ -1,3 +1,4 @@
+import { notificationDiagnostics } from "./notification-diagnostics.js";
 import { Router } from "express";
 import { rateLimit } from "express-rate-limit";
 import { z } from "zod";
@@ -61,6 +62,22 @@ export function notificationRouter(config: Config) {
       action,
       targetId,
     });
+  r.get("/diagnostics", requireRoles("business_owner"), async (req, res) => {
+    const target = z
+      .object({ studentId: id.optional(), sessionId: id.optional() })
+      .strict()
+      .refine((v) => !!v.studentId === !!v.sessionId)
+      .parse(req.query);
+    res.json(
+      await notificationDiagnostics(
+        config,
+        scope(req).tenantId,
+        target.studentId && target.sessionId
+          ? { studentId: target.studentId, sessionId: target.sessionId }
+          : undefined,
+      ),
+    );
+  });
   r.get("/settings", requireRoles("business_owner"), async (req, res) => {
     const s =
       (await NotificationSettings.findOne(scope(req))) ??
