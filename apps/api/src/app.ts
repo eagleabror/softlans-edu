@@ -4,6 +4,7 @@ import {
   followUpsRouter,
   leadStatistics,
 } from "./leads.js";
+import { superAdminRouter } from "./super-admin.js";
 import { studentImportsRouter } from "./student-imports.js";
 import { notificationScheduler } from "./notification-scheduler.js";
 import { dailyReportRouter } from "./daily-report-api.js";
@@ -184,6 +185,7 @@ export function createApp(
       !valid ||
       !user ||
       !user.active ||
+      (user.role === "super_admin" ? user.tenantId !== null : !user.tenantId) ||
       (user.tenantId &&
         !(await Tenant.exists({ _id: user.tenantId, active: true })))
     ) {
@@ -225,6 +227,7 @@ export function createApp(
     notificationRouter(config),
   );
   app.use("/api/payroll", authenticate(config), payrollRouter);
+  app.use("/api/super-admin", authenticate(config), superAdminRouter);
   app.use("/api/attendance", authenticate(config), attendanceRouter);
   app.use("/api/analytics", authenticate(config), analyticsRouter);
   app.use("/api/debts", authenticate(config), debtsRouter);
@@ -241,8 +244,8 @@ export function createApp(
     const actor = principal(req);
     if (actor.role === "super_admin") {
       const [tenantCount, teamCount] = await Promise.all([
-        Tenant.countDocuments({ active: true }),
-        User.countDocuments({ active: true, role: { $ne: "super_admin" } }),
+        Tenant.countDocuments({ active: true }).maxTimeMS(3_000),
+        User.countDocuments({ active: true, role: { $ne: "super_admin" } }).maxTimeMS(3_000),
       ]);
       res.json({
         scope: "platform",

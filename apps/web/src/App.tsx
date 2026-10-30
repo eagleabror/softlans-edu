@@ -1,3 +1,4 @@
+import { SuperAdminLayout } from "./SuperAdmin";
 import {
   LeadsList,
   LeadForm,
@@ -658,6 +659,17 @@ function Shell() {
         <main className="page-content">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route
+              path="/super-admin/*"
+              element={
+                <section className="panel">
+                  <h1>Bu sahifaga kirish uchun ruxsat yo‘q.</h1>
+                  <Link className="button light" to="/">
+                    Bosh sahifaga qaytish
+                  </Link>
+                </section>
+              }
+            />
             {canManage && (
               <>
                 <Route path="/leads" element={<LeadsList />} />
@@ -1582,6 +1594,10 @@ export function App() {
           Qayta urinish
         </button>
       </div>
+    );
+  if (session?.user.role === "super_admin" && session.tenant === null)
+    return (
+      <SuperAdminLayout session={session} onLogout={() => setSession(null)} />
     );
   if (session)
     return (

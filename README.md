@@ -1,5 +1,7 @@
 # SoftLans Edu 2.0 — Phase 1
 
+6.3.1 bosqichidagi alohida Super Admin paneli, API, xavfsizlik chegaralari va demo tekshiruvlari: [Super Admin va markazlarni boshqarish](docs/phase-6.3.1-super-admin.md).
+
 A TypeScript monorepo for an education-center CRM in Uzbekistan. Phase 1 implements center registration, cookie authentication, tenant isolation, four roles, a dashboard, and team account creation. All application interface text is Uzbek. Student management, courses, attendance, billing, messaging, password recovery, and subscriptions are outside this phase.
 
 ## Prerequisites
