@@ -99,7 +99,8 @@ afterAll(async () => {
   await repl?.stop();
 });
 beforeEach(async () => {
-  for (const m of Object.values(mongoose.models)) await m.deleteMany({});
+  // Privileged fixture cleanup also clears append-only audit collections.
+  for (const m of Object.values(mongoose.models)) await m.collection.deleteMany({});
   tenantId = (await Tenant.create({ name: "Center" }))._id;
   const user = await User.create({
     tenantId,

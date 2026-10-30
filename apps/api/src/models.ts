@@ -1,4 +1,5 @@
 import { leadModels } from "./lead-models.js";
+import { PlatformAudit } from "./super-admin-models.js";
 import { StudentImportLog, StudentImportSession } from "./import-models.js";
 import { DailyReportSettings } from "./daily-report-models.js";
 import { notificationModels } from "./notification-models.js";
@@ -28,9 +29,12 @@ const tenantSchema = new Schema(
     billingRevision: { type: Number, default: 0, select: false },
     schedulingRevision: { type: Number, default: 0, select: false },
     active: { type: Boolean, default: true, required: true },
+    statusRevision: { type: Number, default: 0, min: 0, select: false },
   },
   { timestamps: true, strict: "throw" },
 );
+tenantSchema.index({ createdAt: -1, _id: -1 });
+tenantSchema.index({ active: 1, createdAt: -1, _id: -1 });
 
 const userSchema = new Schema(
   {
@@ -151,6 +155,7 @@ export type UserRecord = InferSchemaType<typeof userSchema> & {
 };
 export async function ensureIndexes() {
   for (const model of [
+    PlatformAudit,
     StudentImportLog,
     StudentImportSession,
     ...leadModels,

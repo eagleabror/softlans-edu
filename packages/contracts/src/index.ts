@@ -59,6 +59,61 @@ export interface ApiError {
   };
 }
 
+export type PlatformTenantStatus = "active" | "blocked";
+export interface PlatformStatisticsView {
+  totalTenants: number;
+  activeTenants: number;
+  blockedTenants: number;
+  todayTenants: number;
+  last30DaysTenants: number;
+  totalStudents: number;
+  totalUsers: number;
+  growth: { date: string; count: number }[];
+  timezone: "Asia/Tashkent";
+  generatedAt: string;
+}
+export interface PlatformTenantView {
+  id: string;
+  name: string;
+  status: PlatformTenantStatus;
+  createdAt: string;
+  statusRevision: number;
+  userCount: number;
+  studentCount: number;
+  // No reliable tenant activity timestamp exists in the current data model.
+  lastActivityAt: null;
+}
+export interface PlatformTenantsView {
+  tenants: PlatformTenantView[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+export interface PlatformTenantDetailView {
+  tenant: PlatformTenantView;
+  owner: { id: string; name: string; email: string } | null;
+}
+export interface PlatformTenantStatusView {
+  tenant: Pick<PlatformTenantView, "id" | "status" | "statusRevision">;
+}
+export interface PlatformAuditEntry {
+  id: string;
+  actorId: string;
+  tenantId: string;
+  action: "block" | "activate";
+  reason: string;
+  createdAt: string;
+  previousStatus: PlatformTenantStatus;
+  newStatus: PlatformTenantStatus;
+  revision: number;
+}
+export interface PlatformAuditView {
+  entries: PlatformAuditEntry[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export type StudentStatus = "active" | "paused" | "archived";
 export interface StudentStatistics {
   total: number;
