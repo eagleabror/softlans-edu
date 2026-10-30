@@ -83,9 +83,18 @@ export const TelegramDispatch = mongoose.model(
   "TelegramDispatch",
   dispatchSchema,
 );
+const webhookRegistrationSchema = new Schema({
+  _id: String,
+  fingerprint: { type: String, required: true },
+});
+export const TelegramWebhookRegistration = mongoose.model(
+  "TelegramWebhookRegistration",
+  webhookRegistrationSchema,
+);
 export const telegramModels = [
   TelegramIntegration,
   TelegramUpdate,
   TelegramDelivery,
   TelegramDispatch,
+  TelegramWebhookRegistration,
 ];

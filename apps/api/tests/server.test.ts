@@ -4,11 +4,15 @@ import { randomBytes } from "node:crypto";
 
 const mocks = vi.hoisted(() => ({
   createApp: vi.fn(),
+  registerWebhook: vi.fn(),
   open: vi.fn(),
   verify: vi.fn(),
   indexes: vi.fn(),
   listen: vi.fn(),
   disconnect: vi.fn(),
+}));
+vi.mock("../src/telegram-webhook-registration.js", () => ({
+  registerTelegramWebhook: mocks.registerWebhook,
 }));
 vi.mock("../src/app.js", () => ({ createApp: mocks.createApp }));
 vi.mock("../src/models.js", () => ({ ensureIndexes: mocks.indexes }));
@@ -86,6 +90,7 @@ function diagnostic() {
   expect(process.exitCode).toBe(1);
   expect(information).not.toHaveBeenCalled();
   expect(mocks.disconnect).toHaveBeenCalledOnce();
+  expect(mocks.registerWebhook).not.toHaveBeenCalled();
   return JSON.parse(serialized);
 }
 
@@ -204,6 +209,17 @@ describe("server startup failure logging", () => {
       ],
     ]);
   });
+  it("continues startup without waiting for Telegram", async () => {
+    mocks.registerWebhook.mockReturnValue(new Promise(() => {}));
+    await import("../src/server.js");
+    expect(mocks.registerWebhook).toHaveBeenCalledOnce();
+    expect(process.exitCode).toBe(exitCode);
+    expect(mocks.disconnect).not.toHaveBeenCalled();
+    expect(errors).not.toHaveBeenCalled();
+    expect(process.listenerCount("SIGTERM")).toBeGreaterThan(
+      listeners.SIGTERM!.length,
+    );
+  });
   it("runs every prerequisite in order and logs listening only after binding", async () => {
     await import("../src/server.js");
     expect(errors).not.toHaveBeenCalled();
@@ -221,5 +237,9 @@ describe("server startup failure logging", () => {
     expect(information).toHaveBeenCalledWith("API listening on port 10000");
     expect(process.exitCode).toBe(exitCode);
     expect(server.listenerCount("error")).toBe(0);
+    expect(mocks.registerWebhook).toHaveBeenCalledOnce();
+    expect(mocks.registerWebhook.mock.invocationCallOrder[0]).toBeGreaterThan(
+      information.mock.invocationCallOrder[0]!,
+    );
   });
 });
