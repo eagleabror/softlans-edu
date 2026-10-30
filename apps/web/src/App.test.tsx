@@ -105,6 +105,9 @@ describe("Uzbek authentication and role-aware navigation", () => {
       await screen.findByRole("heading", { name: "Xush kelibsiz, Aziz!" }),
     ).toBeVisible();
     expect(screen.getByRole("link", { name: "Jamoa" })).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "Moliyaviy hisobotlar" }),
+    ).toBeVisible();
     await waitFor(() => expect(screen.getByText("3")).toBeVisible());
     expect(screen.getByRole("link", { name: "O‘quvchilar" })).toBeVisible();
     for (const count of ["17", "11", "4", "6"])
@@ -134,6 +137,9 @@ describe("Uzbek authentication and role-aware navigation", () => {
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: "O‘quvchilar" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Moliyaviy hisobotlar" }),
     ).not.toBeInTheDocument();
     expect(
       await screen.findByText("Jamoa ma’lumotlari rahbariyat uchun"),

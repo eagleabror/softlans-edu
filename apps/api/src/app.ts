@@ -1,3 +1,4 @@
+import { analyticsRouter } from "./analytics.js";
 import { debtsRouter, debtSummary } from "./debts.js";
 import { billingRouter, billingSummary } from "./billing.js";
 import express from "express";
@@ -179,6 +180,7 @@ export function createApp(
     res.clearCookie(COOKIE_NAME, clearOptions).status(204).end();
   });
 
+  app.use("/api/analytics", authenticate(config), analyticsRouter);
   app.use("/api/debts", authenticate(config), debtsRouter);
   app.use("/api/billing", authenticate(config), billingRouter);
   app.use("/api/classrooms", authenticate(config), classroomsRouter);

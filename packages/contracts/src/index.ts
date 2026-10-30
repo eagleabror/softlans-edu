@@ -251,3 +251,44 @@ export interface GroupDebt extends Omit<DebtSummary, "asOf" | "timezone"> {
   groupId: string;
   groupName: string;
 }
+
+export interface FinancialGroup {
+  id: string;
+  name: string;
+  students: number;
+  billed: number;
+  collected: number;
+  outstanding: number;
+  rate: number;
+}
+export interface FinancialReport {
+  period: {
+    start: string;
+    end: string;
+    firstMonth: string;
+    lastMonth: string;
+    timezone: string;
+    asOf: string;
+  };
+  summary: {
+    payments: number;
+    paymentCount: number;
+    billed: number;
+    collected: number;
+    outstanding: number;
+    overdue: number;
+    debtors: number;
+    rate: number;
+  };
+  monthly: {
+    month: string;
+    billed: number;
+    collected: number;
+    payments: number;
+    count: number;
+  }[];
+  aging: { bucket: string; amount: number }[];
+  methods: { method: string; amount: number; count: number }[];
+  groups: FinancialGroup[];
+  totalGroups: number;
+}

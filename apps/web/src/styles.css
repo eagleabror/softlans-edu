@@ -2229,3 +2229,125 @@ td {
     gap: 8px;
   }
 }
+
+/* Phase 3.3: scoped financial reporting surfaces. */
+.financial-reports {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+  animation: appear 0.2s ease;
+}
+.financial-reports .panel {
+  padding: 24px;
+  min-width: 0;
+}
+.financial-reports h2 {
+  font-size: 19px;
+  margin-bottom: 12px;
+}
+.financial-reports p {
+  line-height: 1.65;
+}
+.report-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: end;
+}
+.report-filters label {
+  display: grid;
+  gap: 8px;
+  flex: 1 1 170px;
+  min-width: 0;
+}
+.financial-reports .plain-input {
+  width: 100%;
+  border: 1px solid #7b847f;
+  min-height: 44px;
+}
+.report-kpis {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+}
+.report-kpis .stat-card {
+  min-width: 0;
+}
+.report-kpis .stat-card strong {
+  font-size: clamp(22px, 2vw, 30px);
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+.report-kpis .stat-card p {
+  font-size: 13px;
+  color: #526344;
+}
+.report-charts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.report-chart-canvas {
+  min-width: 0;
+  width: 100%;
+}
+.report-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.report-groups .report-actions {
+  margin-top: 20px;
+}
+.financial-reports table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.financial-reports th,
+.financial-reports td {
+  padding: 14px;
+  border-bottom: 1px solid #e7ebe2;
+  white-space: nowrap;
+  text-align: right;
+}
+.financial-reports th:first-child {
+  text-align: left;
+}
+.financial-reports th button {
+  min-height: 44px;
+  cursor: pointer;
+}
+.financial-reports caption {
+  text-align: left;
+  padding: 12px 0;
+  color: #526344;
+}
+.financial-reports summary {
+  cursor: pointer;
+  padding: 12px 0;
+}
+.financial-reports :focus-visible {
+  outline: 2px solid #526b43;
+  outline-offset: 3px;
+}
+.report-skeleton .stat-card {
+  background: #edf2e5;
+  min-height: 130px;
+  margin-top: 16px;
+}
+@media (max-width: 1000px) {
+  .report-charts {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .financial-reports .panel {
+    padding: 16px;
+  }
+  .report-filters label {
+    flex-basis: 100%;
+  }
+  .report-actions .button {
+    flex: 1 1 auto;
+  }
+}
