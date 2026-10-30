@@ -1,3 +1,4 @@
+import { Charge } from "./billing-models.js";
 import { lockBilling } from "./billing-lock.js";
 import { lockScheduling } from "./schedule-lock.js";
 import { Schedule } from "./schedule-models.js";
@@ -187,6 +188,13 @@ for (const mode of ["update", "archive", "teacher"] as const) {
       )
         throw conflict(
           "Avval guruhning faol dars jadvallarini o‘chiring yoki yakunlang.",
+        );
+      // Preserve legacy charge ownership before changing the current teacher.
+      if ("teacherId" in input && input.teacherId !== g.teacherId.toString())
+        await Charge.updateMany(
+          { ...tenant, groupId: g._id, payrollTeacherId: null },
+          { $set: { payrollTeacherId: g.teacherId } },
+          { session },
         );
       g.set(input);
       await g.save({ session });

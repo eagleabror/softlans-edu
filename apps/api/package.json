@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:unit": "vitest run tests/unit.test.ts tests/deployment.test.ts tests/startup-diagnostics.test.ts tests/server.test.ts",
-    "test:integration": "vitest run tests/integration.test.ts tests/database.test.ts tests/students.test.ts tests/groups.test.ts tests/schedules.test.ts tests/billing.test.ts tests/debts.test.ts",
+    "test:integration": "vitest run tests/integration.test.ts tests/database.test.ts tests/students.test.ts tests/groups.test.ts tests/schedules.test.ts tests/billing.test.ts tests/debts.test.ts tests/payroll.test.ts",
     "seed:dev": "tsx src/scripts/seed.ts",
     "provision:super-admin": "tsx src/scripts/super-admin.ts"
   },

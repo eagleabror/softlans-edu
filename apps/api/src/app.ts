@@ -1,3 +1,4 @@
+import { payrollRouter } from "./payroll.js";
 import { attendanceRouter, attendanceSummary } from "./attendance.js";
 import { analyticsRouter } from "./analytics.js";
 import { debtsRouter, debtSummary } from "./debts.js";
@@ -183,6 +184,7 @@ export function createApp(
     res.clearCookie(COOKIE_NAME, clearOptions).status(204).end();
   });
 
+  app.use("/api/payroll", authenticate(config), payrollRouter);
   app.use("/api/attendance", authenticate(config), attendanceRouter);
   app.use("/api/analytics", authenticate(config), analyticsRouter);
   app.use("/api/debts", authenticate(config), debtsRouter);
