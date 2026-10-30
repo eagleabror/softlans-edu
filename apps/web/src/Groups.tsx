@@ -7,6 +7,7 @@ import type {
   GroupMembersView,
   StudentsView,
 } from "@softlans/contracts";
+import { ScheduleList } from "./Scheduling";
 import { api, HttpError } from "./api";
 const statuses = {
   active: "Faol",
@@ -524,6 +525,7 @@ export function GroupDetail({ manage }: { manage: boolean }) {
               {g.monthlyFee.toLocaleString("uz-UZ")} UZS / oy
             </p>
             <p>O‘qituvchi: {g.teacherName}</p>
+            <ScheduleList manage={manage} groupId={g.id} />
             <p>
               Sig‘im: {g.activeMemberCount} / {g.capacity}
             </p>

@@ -1,10 +1,12 @@
 import mongoose, { Schema, type InferSchemaType } from "mongoose";
+import { Classroom, Schedule } from "./schedule-models.js";
 import { Group, Membership } from "./group-models.js";
 import { normalizeName, normalizePhone } from "./student-validation.js";
 
 const tenantSchema = new Schema(
   {
     name: { type: String, required: true, trim: true, maxlength: 120 },
+    schedulingRevision: { type: Number, default: 0, select: false },
     active: { type: Boolean, default: true, required: true },
   },
   { timestamps: true, strict: "throw" },
@@ -125,6 +127,10 @@ export type UserRecord = InferSchemaType<typeof userSchema> & {
   _id: mongoose.Types.ObjectId;
 };
 export async function ensureIndexes() {
+  await Classroom.createCollection();
+  await Schedule.createCollection();
+  await Classroom.createIndexes();
+  await Schedule.createIndexes();
   await Group.createCollection();
   await Membership.createCollection();
   await Group.createIndexes();

@@ -1,3 +1,5 @@
+import { lockScheduling } from "./schedule-lock.js";
+import { Schedule } from "./schedule-models.js";
 import { Router } from "express";
 import mongoose from "mongoose";
 import { z } from "zod";
@@ -159,6 +161,7 @@ for (const mode of ["update", "archive", "teacher"] as const) {
     if ("teacherId" in input && input.teacherId)
       await validateTeacher(input.teacherId, tenant.tenantId);
     const result = await mongoose.connection.transaction(async (session) => {
+      await lockScheduling(tenant.tenantId, session);
       const g = await Group.findOne({ _id: req.params.id, ...tenant }).session(
         session,
       );
@@ -169,6 +172,20 @@ for (const mode of ["update", "archive", "teacher"] as const) {
         input.capacity < g.activeMemberCount
       )
         throw conflict("Sig‘im a’zolar sonidan kam bo‘lmasin.");
+      if (
+        (("teacherId" in input &&
+          input.teacherId &&
+          input.teacherId !== g.teacherId.toString()) ||
+          ("status" in input && input.status !== "active")) &&
+        (await Schedule.exists({
+          ...tenant,
+          groupId: g._id,
+          status: "active",
+        }).session(session))
+      )
+        throw conflict(
+          "Avval guruhning faol dars jadvallarini o‘chiring yoki yakunlang.",
+        );
       g.set(input);
       await g.save({ session });
       return groupView(g);

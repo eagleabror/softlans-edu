@@ -62,22 +62,26 @@ it("supports loading, empty and retry after errors", async () => {
 });
 it("shows teacher members without management controls", async () => {
   vi.mocked(api).mockImplementation(async (path) =>
-    path.includes("/members")
-      ? {
-          members: [
-            {
-              id: "m",
-              studentId: "s",
-              enrolledAt: "2026-10-01",
-              status: "active",
-              student: { firstName: "Ali", lastName: "Valiyev" },
-            },
-          ],
-          total: 1,
-          page: 1,
-          pageSize: 20,
-        }
-      : { group },
+    path.startsWith("/schedules")
+      ? { schedules: [], total: 0, page: 1, pageSize: 20 }
+      : path.startsWith("/groups?")
+        ? { groups: [], total: 0, pageSize: 20 }
+        : path.includes("/members")
+          ? {
+              members: [
+                {
+                  id: "m",
+                  studentId: "s",
+                  enrolledAt: "2026-10-01",
+                  status: "active",
+                  student: { firstName: "Ali", lastName: "Valiyev" },
+                },
+              ],
+              total: 1,
+              page: 1,
+              pageSize: 20,
+            }
+          : { group },
   );
   render(
     <MemoryRouter initialEntries={["/groups/abc"]}>
