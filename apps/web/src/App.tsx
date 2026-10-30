@@ -51,6 +51,7 @@ import type {
 } from "@softlans/contracts";
 import { api, HttpError } from "./api";
 
+import { ScheduleList, ScheduleForm, Classrooms } from "./Scheduling";
 import { GroupsList, GroupForm, GroupDetail } from "./Groups";
 import { StudentsList, StudentDetail, StudentForm } from "./Students";
 
@@ -441,6 +442,24 @@ function Shell() {
               Markaz ma’lumotlari
             </NavLink>
           )}
+          {session.tenant && (
+            <NavLink to="/schedules" onClick={() => setOpen(false)}>
+              <Layers size={19} />
+              Dars jadvali
+            </NavLink>
+          )}
+          {session.tenant && (
+            <NavLink to="/schedules/weekly" onClick={() => setOpen(false)}>
+              <Layers size={19} />
+              Haftalik kalendar
+            </NavLink>
+          )}
+          {canManage && (
+            <NavLink to="/classrooms" onClick={() => setOpen(false)}>
+              <Building2 size={19} />
+              Xonalar
+            </NavLink>
+          )}
           <NavLink to="/account" onClick={() => setOpen(false)}>
             <Settings2 size={19} />
             Hisobim
@@ -533,6 +552,28 @@ function Shell() {
               <Route path="/groups/:id/edit" element={<GroupForm edit />} />
             )}
             {session.tenant && <Route path="/center" element={<Center />} />}
+            {session.tenant && (
+              <Route
+                path="/schedules"
+                element={<ScheduleList manage={canManage} />}
+              />
+            )}
+            {session.tenant && (
+              <Route
+                path="/schedules/weekly"
+                element={<ScheduleList manage={canManage} weekly />}
+              />
+            )}
+            {canManage && (
+              <Route path="/schedules/new" element={<ScheduleForm />} />
+            )}
+            {canManage && (
+              <Route
+                path="/schedules/:id/edit"
+                element={<ScheduleForm edit />}
+              />
+            )}
+            {canManage && <Route path="/classrooms" element={<Classrooms />} />}
             <Route path="/account" element={<Account />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
@@ -731,6 +772,28 @@ function Dashboard() {
             value={data.groups.activeMemberships}
             icon={<GraduationCap size={21} />}
             note="Guruhlardagi faol a’zoliklar"
+          />
+        </div>
+      )}
+      {data?.scheduling && (
+        <div className="stats-grid">
+          <Stat
+            title="Bugungi darslar"
+            value={data.scheduling.todayLessons}
+            icon={<Layers />}
+            note="Asia/Tashkent"
+          />
+          <Stat
+            title="Faol xonalar"
+            value={data.scheduling.activeClassrooms}
+            icon={<Building2 />}
+            note="Markaz doirasida"
+          />
+          <Stat
+            title="Haftalik darslar"
+            value={data.scheduling.weeklyLessons}
+            icon={<Layers />}
+            note="Joriy hafta"
           />
         </div>
       )}

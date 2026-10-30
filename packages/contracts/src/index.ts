@@ -27,6 +27,12 @@ export interface DashboardView {
   teacherCount: number | null;
   students?: StudentStatistics;
   groups?: { total: number; active: number; activeMemberships: number };
+  scheduling?: {
+    todayLessons: number;
+    weeklyLessons: number;
+    activeClassrooms: number;
+    timezone: string;
+  };
   joinedAt: string;
 }
 export interface ApiError {
@@ -107,6 +113,51 @@ export interface GroupMember {
 }
 export interface GroupMembersView {
   members: GroupMember[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface ClassroomView {
+  id: string;
+  name: string;
+  capacity: number | null;
+  description: string;
+  status: "active" | "inactive";
+  createdAt: string;
+  updatedAt: string;
+}
+export interface ScheduleInput {
+  groupId: string;
+  teacherId: string;
+  classroomId: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  effectiveFrom?: string | null;
+  effectiveUntil?: string | null;
+  status: "active" | "inactive";
+}
+export interface ScheduleView extends ScheduleInput {
+  id: string;
+  groupName?: string;
+  teacherName?: string;
+  classroomName?: string;
+  date?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface SchedulesView {
+  schedules: ScheduleView[];
+  total: number;
+  page: number;
+  pageSize: number;
+  timezone: string;
+  weekStart?: string;
+  weekEnd?: string;
+}
+export interface ClassroomsView {
+  classrooms: ClassroomView[];
   total: number;
   page: number;
   pageSize: number;

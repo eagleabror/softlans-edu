@@ -2080,3 +2080,80 @@ td {
     max-width: 100%;
   }
 }
+
+.schedule-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0;
+}
+.schedule-panel,
+.schedule-form {
+  padding: 24px;
+  margin: 20px 0;
+}
+.schedule-form {
+  max-width: 620px;
+}
+.schedule-form label,
+.schedule-filters label {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.schedule-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.schedule-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(145px, 1fr));
+  gap: 10px;
+  overflow-x: auto;
+}
+.schedule-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+}
+.schedule-day h3 {
+  font-size: 14px;
+  margin: 16px 0;
+}
+.lesson-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--surface, #f3f6ef);
+  border-left: 3px solid #53745a;
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  animation: appear 0.2s ease;
+  overflow-wrap: anywhere;
+}
+.lesson-block strong {
+  color: #385c46;
+}
+.lesson-block span,
+.lesson-block small {
+  font-size: 12px;
+}
+@media (max-width: 760px) {
+  .schedule-week {
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+  }
+  .schedule-panel,
+  .schedule-form {
+    padding: 16px;
+  }
+  .schedule-filters {
+    grid-template-columns: 1fr;
+  }
+}

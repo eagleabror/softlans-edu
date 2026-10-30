@@ -24,6 +24,11 @@ import {
 import type { SessionView, UserView } from "@softlans/contracts";
 import { notFound, serveFrontend } from "./frontend.js";
 
+import {
+  classroomsRouter,
+  schedulesRouter,
+  scheduleStatistics,
+} from "./schedules.js";
 import { groupsRouter, groupStatistics } from "./groups.js";
 import { studentsRouter, studentStatistics } from "./students.js";
 
@@ -172,6 +177,8 @@ export function createApp(
     res.clearCookie(COOKIE_NAME, clearOptions).status(204).end();
   });
 
+  app.use("/api/classrooms", authenticate(config), classroomsRouter);
+  app.use("/api/schedules", authenticate(config), schedulesRouter);
   app.use("/api/groups", authenticate(config), groupsRouter);
   app.use("/api/students", authenticate(config), studentsRouter);
 
@@ -203,13 +210,14 @@ export function createApp(
       });
       return;
     }
-    const [teamCount, adminCount, teacherCount, students, groups] =
+    const [teamCount, adminCount, teacherCount, students, groups, scheduling] =
       await Promise.all([
         User.countDocuments({ ...scope, active: true }),
         User.countDocuments({ ...scope, active: true, role: "admin" }),
         User.countDocuments({ ...scope, active: true, role: "teacher" }),
         studentStatistics(scope),
         groupStatistics(scope),
+        scheduleStatistics(scope),
       ]);
     res.json({
       scope: "tenant",
@@ -218,6 +226,7 @@ export function createApp(
       teacherCount,
       students,
       groups,
+      scheduling,
       joinedAt: actor.user.createdAt.toISOString(),
     });
   });
