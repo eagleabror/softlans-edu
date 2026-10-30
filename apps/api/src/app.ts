@@ -1,3 +1,4 @@
+import { billingRouter, billingSummary } from "./billing.js";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -177,6 +178,7 @@ export function createApp(
     res.clearCookie(COOKIE_NAME, clearOptions).status(204).end();
   });
 
+  app.use("/api/billing", authenticate(config), billingRouter);
   app.use("/api/classrooms", authenticate(config), classroomsRouter);
   app.use("/api/schedules", authenticate(config), schedulesRouter);
   app.use("/api/groups", authenticate(config), groupsRouter);
@@ -210,15 +212,23 @@ export function createApp(
       });
       return;
     }
-    const [teamCount, adminCount, teacherCount, students, groups, scheduling] =
-      await Promise.all([
-        User.countDocuments({ ...scope, active: true }),
-        User.countDocuments({ ...scope, active: true, role: "admin" }),
-        User.countDocuments({ ...scope, active: true, role: "teacher" }),
-        studentStatistics(scope),
-        groupStatistics(scope),
-        scheduleStatistics(scope),
-      ]);
+    const [
+      teamCount,
+      adminCount,
+      teacherCount,
+      students,
+      groups,
+      scheduling,
+      financial,
+    ] = await Promise.all([
+      User.countDocuments({ ...scope, active: true }),
+      User.countDocuments({ ...scope, active: true, role: "admin" }),
+      User.countDocuments({ ...scope, active: true, role: "teacher" }),
+      studentStatistics(scope),
+      groupStatistics(scope),
+      scheduleStatistics(scope),
+      billingSummary(scope),
+    ]);
     res.json({
       scope: "tenant",
       teamCount,
@@ -227,6 +237,7 @@ export function createApp(
       students,
       groups,
       scheduling,
+      financial,
       joinedAt: actor.user.createdAt.toISOString(),
     });
   });

@@ -1,3 +1,9 @@
+import {
+  Charge,
+  Payment,
+  PaymentReversal,
+  ChargeAdjustment,
+} from "./billing-models.js";
 import mongoose, { Schema, type InferSchemaType } from "mongoose";
 import { Classroom, Schedule } from "./schedule-models.js";
 import { Group, Membership } from "./group-models.js";
@@ -6,6 +12,7 @@ import { normalizeName, normalizePhone } from "./student-validation.js";
 const tenantSchema = new Schema(
   {
     name: { type: String, required: true, trim: true, maxlength: 120 },
+    billingRevision: { type: Number, default: 0, select: false },
     schedulingRevision: { type: Number, default: 0, select: false },
     active: { type: Boolean, default: true, required: true },
   },
@@ -127,6 +134,10 @@ export type UserRecord = InferSchemaType<typeof userSchema> & {
   _id: mongoose.Types.ObjectId;
 };
 export async function ensureIndexes() {
+  for (const model of [Charge, Payment, PaymentReversal, ChargeAdjustment]) {
+    await model.createCollection();
+    await model.createIndexes();
+  }
   await Classroom.createCollection();
   await Schedule.createCollection();
   await Classroom.createIndexes();

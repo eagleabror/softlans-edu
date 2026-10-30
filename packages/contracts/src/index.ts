@@ -33,6 +33,7 @@ export interface DashboardView {
     activeClassrooms: number;
     timezone: string;
   };
+  financial?: BillingSummary;
   joinedAt: string;
 }
 export interface ApiError {
@@ -158,6 +159,64 @@ export interface SchedulesView {
 }
 export interface ClassroomsView {
   classrooms: ClassroomView[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface BillingSummary {
+  month: string;
+  timezone: string;
+  billedAmount: number;
+  receivedAmount: number;
+  outstandingAmount: number;
+  paymentCount: number;
+}
+export interface ChargeView {
+  id: string;
+  studentId: string;
+  groupId: string;
+  billingMonth: string;
+  studentName: string;
+  groupName: string;
+  originalAmount: number;
+  discountAmount: number;
+  finalAmount: number;
+  paidAmount: number;
+  remainingAmount: number;
+  status: "unpaid" | "partial" | "paid" | "cancelled";
+  dueDate: string;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface PaymentView {
+  studentName?: string;
+  id: string;
+  studentId: string;
+  chargeId: string;
+  amount: number;
+  method: "cash" | "bank_transfer" | "click_manual";
+  paidAt: string;
+  reference: string;
+  note: string;
+  recordedBy: string;
+  createdAt: string;
+  updatedAt: string;
+  reversal: null | {
+    id: string;
+    reason: string;
+    recordedBy: string;
+    createdAt: string;
+  };
+}
+export interface ChargesView {
+  charges: ChargeView[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+export interface PaymentsView {
+  payments: PaymentView[];
   total: number;
   page: number;
   pageSize: number;

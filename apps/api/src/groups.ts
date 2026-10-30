@@ -1,3 +1,4 @@
+import { lockBilling } from "./billing-lock.js";
 import { lockScheduling } from "./schedule-lock.js";
 import { Schedule } from "./schedule-models.js";
 import { Router } from "express";
@@ -162,6 +163,7 @@ for (const mode of ["update", "archive", "teacher"] as const) {
       await validateTeacher(input.teacherId, tenant.tenantId);
     const result = await mongoose.connection.transaction(async (session) => {
       await lockScheduling(tenant.tenantId, session);
+      await lockBilling(tenant.tenantId, session);
       const g = await Group.findOne({ _id: req.params.id, ...tenant }).session(
         session,
       );
@@ -244,6 +246,7 @@ groupsRouter.post("/:id/members", manage, async (req, res) => {
       .parse(req.body),
     tenant = tenantScope(principal(req));
   const member = await mongoose.connection.transaction(async (session) => {
+    await lockBilling(tenant.tenantId, session);
     // Write the student too: concurrent archival must serialize with enrollment.
     const student = await Student.findOneAndUpdate(
       { _id: studentId, ...tenant, status: { $ne: "archived" } },
@@ -295,6 +298,7 @@ groupsRouter.post(
     if (!mongoose.isObjectIdOrHexString(req.params.studentId)) throw missing();
     const tenant = tenantScope(principal(req));
     await mongoose.connection.transaction(async (session) => {
+      await lockBilling(tenant.tenantId, session);
       const m = await Membership.findOneAndUpdate(
         {
           ...tenant,

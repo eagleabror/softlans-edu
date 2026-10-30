@@ -1,3 +1,4 @@
+import { Billing, FinancialStats } from "./Billing";
 import {
   createContext,
   useContext,
@@ -419,6 +420,12 @@ function Shell() {
             Bosh sahifa
           </NavLink>
           {canManage && (
+            <NavLink to="/billing" onClick={() => setOpen(false)}>
+              <Layers size={19} />
+              To‘lovlar
+            </NavLink>
+          )}
+          {canManage && (
             <NavLink to="/team" onClick={() => setOpen(false)}>
               <Users size={19} />
               Jamoa
@@ -523,6 +530,40 @@ function Shell() {
         <main className="page-content">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            {canManage && (
+              <>
+                <Route
+                  path="/billing"
+                  element={
+                    <Billing owner={session.user.role === "business_owner"} />
+                  }
+                />
+                <Route
+                  path="/billing/history"
+                  element={
+                    <Billing
+                      owner={session.user.role === "business_owner"}
+                      history
+                    />
+                  }
+                />
+                <Route
+                  path="/students/:id/finance"
+                  element={
+                    <Billing owner={session.user.role === "business_owner"} />
+                  }
+                />
+                <Route
+                  path="/students/:id/finance/history"
+                  element={
+                    <Billing
+                      owner={session.user.role === "business_owner"}
+                      history
+                    />
+                  }
+                />
+              </>
+            )}
             {canManage && <Route path="/team" element={<Team />} />}
             {canManage && (
               <>
@@ -775,6 +816,7 @@ function Dashboard() {
           />
         </div>
       )}
+      {data?.financial && <FinancialStats data={data.financial} />}
       {data?.scheduling && (
         <div className="stats-grid">
           <Stat
