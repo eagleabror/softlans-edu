@@ -60,13 +60,41 @@ const ruleInput = z
     reason,
   })
   .strict()
-  .refine(
-    (q) =>
-      (!q.effectiveUntil || q.effectiveUntil >= q.effectiveFrom) &&
-      (q.salaryType === "fixed"
-        ? q.fixedAmount !== null && q.percentage === null
-        : q.percentage !== null && q.fixedAmount === null),
-  );
+  .superRefine((q, ctx) => {
+    if (q.effectiveUntil && q.effectiveUntil < q.effectiveFrom)
+      ctx.addIssue({
+        code: "custom",
+        path: ["effectiveUntil"],
+        message: "Tugash sanasi boshlanish sanasidan oldin bo‘lmasin.",
+      });
+    if (q.salaryType === "fixed") {
+      if (q.fixedAmount === null)
+        ctx.addIssue({
+          code: "custom",
+          path: ["fixedAmount"],
+          message: "Belgilangan summani kiriting.",
+        });
+      if (q.percentage !== null)
+        ctx.addIssue({
+          code: "custom",
+          path: ["percentage"],
+          message: "Belgilangan oylik uchun foiz kiritilmaydi.",
+        });
+    } else {
+      if (q.percentage === null)
+        ctx.addIssue({
+          code: "custom",
+          path: ["percentage"],
+          message: "Foizni kiriting.",
+        });
+      if (q.fixedAmount !== null)
+        ctx.addIssue({
+          code: "custom",
+          path: ["fixedAmount"],
+          message: "Foizli maosh uchun belgilangan summa kiritilmaydi.",
+        });
+    }
+  });
 const listing = z
   .object({
     month: billingMonth.default(currentBillingMonth),
@@ -649,9 +677,14 @@ payrollRouter.get("/:id/payouts", async (req, res) => {
 });
 payrollRouter.get("/:id", async (req, res) => {
   const p = await findPayroll(req);
-  const name = await User.findOne({ ...scope(req), _id: p.teacherId }).select("name");
+  const name = await User.findOne({ ...scope(req), _id: p.teacherId }).select(
+    "name",
+  );
   res.json({
-    payroll: { ...view(p, principal(req).role === "teacher"), teacherName: name?.name ?? "—" },
+    payroll: {
+      ...view(p, principal(req).role === "teacher"),
+      teacherName: name?.name ?? "—",
+    },
     audit:
       principal(req).role === "business_owner"
         ? await PayrollAudit.find({ ...scope(req), entityId: p._id }).sort({
