@@ -166,13 +166,11 @@ export function notificationRouter(config: Config) {
         },
         { upsert: true, new: true },
       );
-      res
-        .status(201)
-        .json({
-          guardianId: g._id,
-          link: `https://t.me/${config.TELEGRAM_BOT_USERNAME}?start=${token}`,
-          expiresAt,
-        });
+      res.status(201).json({
+        guardianId: g._id,
+        link: `https://t.me/${config.TELEGRAM_BOT_USERNAME}?start=${token}`,
+        expiresAt,
+      });
     },
   );
   r.post("/guardians/:id/disconnect", async (req, res) => {
@@ -225,7 +223,11 @@ export function notificationRouter(config: Config) {
         .object({ page: z.coerce.number().int().min(1).max(10000).default(1) })
         .strict()
         .parse(req.query);
-      const filter = { ...scope(req), ...(failed ? { status: "failed" } : {}) };
+      const filter = {
+        ...scope(req),
+        kind: { $in: ["debt", "attendance", "lesson", "test"] },
+        ...(failed ? { status: "failed" } : {}),
+      };
       const [jobs, total] = await Promise.all([
         NotificationJob.find(filter)
           .select(
@@ -243,7 +245,12 @@ export function notificationRouter(config: Config) {
       _id: string;
       count: number;
     }>([
-      { $match: scope(req) },
+      {
+        $match: {
+          ...scope(req),
+          kind: { $in: ["debt", "attendance", "lesson", "test"] },
+        },
+      },
       { $group: { _id: "$status", count: { $sum: 1 } } },
     ]);
     res.json({ counts: Object.fromEntries(rows.map((v) => [v._id, v.count])) });
@@ -284,6 +291,7 @@ export function notificationRouter(config: Config) {
         {
           ...scope(req),
           _id: id.parse(req.params.id),
+          kind: { $in: ["debt", "attendance", "lesson", "test"] },
           status: "failed",
           attempts: { $lt: 5 },
           errorCode: {

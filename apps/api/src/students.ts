@@ -39,6 +39,7 @@ studentsRouter.post("/", async (req, res) => {
   const actor = principal(req);
   const student = await Student.create({
     ...input,
+    ...(input.status === "archived" ? { archivedAt: new Date() } : {}),
     ...tenantScope(actor),
     createdBy: actor.userId,
   });
@@ -103,9 +104,19 @@ for (const statusOnly of [false, true]) {
       ).parse(req.body);
       const student = await mongoose.connection.transaction(async (session) => {
         await lockBilling(tenantScope(principal(req)).tenantId, session);
+        const current = await Student.findOne({
+          _id: req.params.id,
+          ...tenantScope(principal(req)),
+        }).session(session);
+        const archive =
+          "status" in input &&
+          input.status === "archived" &&
+          current?.status !== "archived"
+            ? { archivedAt: new Date() }
+            : {};
         return Student.findOneAndUpdate(
           { _id: req.params.id, ...tenantScope(principal(req)) },
-          { $set: input },
+          { $set: { ...input, ...archive } },
           { new: true, runValidators: true, session },
         );
       });
