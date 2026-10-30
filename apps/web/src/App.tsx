@@ -1,3 +1,4 @@
+import { PayrollPage, PayrollDetail } from "./Payroll";
 import { Attendance, AttendanceMark, AttendanceStats } from "./Attendance";
 import { Debts, DebtStats } from "./Debts";
 import { Billing, FinancialStats } from "./Billing";
@@ -492,6 +493,11 @@ function Shell() {
               Xonalar
             </NavLink>
           )}
+          {["business_owner", "teacher"].includes(session.user.role) && (
+            <NavLink to="/payroll" onClick={() => setOpen(false)}>
+              <Users size={18} /> O‘qituvchilar maoshi
+            </NavLink>
+          )}
           <NavLink to="/account" onClick={() => setOpen(false)}>
             <Settings2 size={19} />
             Hisobim
@@ -555,6 +561,32 @@ function Shell() {
         <main className="page-content">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            {["business_owner", "teacher"].includes(session.user.role) && (
+              <>
+                <Route
+                  path="/payroll"
+                  element={
+                    <PayrollPage
+                      owner={session.user.role === "business_owner"}
+                    />
+                  }
+                />
+                <Route
+                  path="/payroll/:id"
+                  element={
+                    <PayrollDetail
+                      owner={session.user.role === "business_owner"}
+                    />
+                  }
+                />
+              </>
+            )}
+            {session.user.role === "business_owner" && (
+              <Route
+                path="/payroll/settings"
+                element={<PayrollPage owner settings />}
+              />
+            )}
             {session.tenant && (
               <>
                 <Route path="/attendance" element={<Attendance />} />

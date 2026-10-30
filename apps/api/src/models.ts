@@ -1,3 +1,10 @@
+import {
+  SalaryRule,
+  Payroll,
+  SalaryPayout,
+  SalaryPayoutReversal,
+  PayrollAudit,
+} from "./payroll-models.js";
 import { LessonSession, AttendanceRecord } from "./attendance-models.js";
 import {
   Charge,
@@ -135,7 +142,15 @@ export type UserRecord = InferSchemaType<typeof userSchema> & {
   _id: mongoose.Types.ObjectId;
 };
 export async function ensureIndexes() {
-  for (const model of [LessonSession, AttendanceRecord]) {
+  for (const model of [
+    SalaryRule,
+    Payroll,
+    SalaryPayout,
+    SalaryPayoutReversal,
+    PayrollAudit,
+    LessonSession,
+    AttendanceRecord,
+  ]) {
     await model.createCollection();
     await model.createIndexes();
   }

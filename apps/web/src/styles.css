@@ -2458,3 +2458,82 @@ td {
 .attendance-module .muted { color: #526b43; }
 .attendance-module :is(input, button, a) { scroll-margin-bottom: 160px; }
 .attendance-roster { padding-bottom: 100px; }
+
+/* Payroll reuses finance surfaces and contains dense monetary tables on mobile. */
+.payroll-page {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+.payroll-page .panel {
+  padding: 20px;
+  min-width: 0;
+}
+.payroll-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+}
+.payroll-page label {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+}
+.payroll-page input:not([type="checkbox"]),
+.payroll-page select,
+.payroll-page textarea {
+  border: 1px solid #7b847f;
+  border-radius: 8px;
+  min-height: 44px;
+  padding: 10px;
+  background: white;
+  color: #283c34;
+  max-width: 100%;
+}
+.payroll-page :is(input, select, textarea, button, a):focus-visible {
+  outline: 2px solid #526b43;
+  outline-offset: 3px;
+}
+.payroll-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.payroll-form h2 {
+  grid-column: 1 / -1;
+}
+.payroll-page table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.payroll-page th,
+.payroll-page td {
+  padding: 14px;
+  border-bottom: 1px solid #e7ebe2;
+  text-align: left;
+  font-size: 14px;
+}
+.payroll-page td {
+  font-variant-numeric: tabular-nums;
+}
+.payroll-page article {
+  padding: 16px 0;
+  border-bottom: 1px solid #e7ebe2;
+  overflow-wrap: anywhere;
+}
+.payroll-page .stat-card strong {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+  .payroll-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .payroll-controls > label {
+    width: 100%;
+  }
+  .payroll-page .page-heading {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}

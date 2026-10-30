@@ -163,6 +163,7 @@ billingRouter.post("/charges/generate", async (req, res) => {
             $setOnInsert: {
               ...filter,
               generatedBy: principal(req).userId,
+              payrollTeacherId: g.teacherId,
               originalAmount: g.monthlyFee,
               discountAmount: 0,
               finalAmount: g.monthlyFee,

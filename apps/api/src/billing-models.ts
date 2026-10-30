@@ -17,6 +17,7 @@ const chargeSchema = new Schema(
   {
     tenantId: ref("Tenant"),
     generatedBy: ref("User"),
+    payrollTeacherId: { type: Schema.Types.ObjectId, ref: "User", default: null },
     studentId: ref("Student"),
     groupId: ref("Group"),
     billingMonth: {
