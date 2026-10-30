@@ -90,6 +90,7 @@ bot tokens or Telegram account identifiers. Reports contain no individual identi
 Use the **existing Phase 5.2 external scheduler**, with the same command:
 
 ```sh
+npm run build
 npm run telegram:automation -w @softlans/api
 ```
 

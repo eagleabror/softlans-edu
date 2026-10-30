@@ -598,3 +598,205 @@ it("failure before an external send requeues safely with a bounded budget", asyn
   expect(j.attempts).toBe(1);
   expect(send).not.toHaveBeenCalled();
 });
+
+async function diagnosticSession() {
+  return LessonSession.create({
+    tenantId,
+    groupId: oid(),
+    scheduleId: oid(),
+    teacherId: userId,
+    lessonDate: localDate(),
+    startTime: "10:00",
+    endTime: "11:00",
+    groupName: "Synthetic",
+    roster: [studentId],
+  });
+}
+const diagnostics = (sessionId?: string, auth = cookie) =>
+  request(app)
+    .get(
+      base +
+        "/diagnostics" +
+        (sessionId ? `?studentId=${studentId}&sessionId=${sessionId}` : ""),
+    )
+    .set("Cookie", auth);
+it("traces real attendance API -> committed event -> planner -> consenting guardian -> delivery", async () => {
+  await settings({ attendance: true, corrections: false });
+  await connected();
+  const session = await diagnosticSession();
+  const path = `/api/attendance/sessions/${session._id}/attendance`;
+  const save = (status: string, revision: number) =>
+    request(app)
+      .patch(path)
+      .set("Cookie", cookie)
+      .set("Origin", config.APP_ORIGIN)
+      .send({ revision, records: [{ studentId: String(studentId), status }] });
+  expect((await save("present", 0)).status).toBe(200);
+  await planNotifications();
+  expect(await NotificationJob.countDocuments()).toBe(0);
+  expect((await save("absent", 1)).status).toBe(200);
+  expect(
+    (await AttendanceEvent.findOne({ status: "absent" }))?.correction,
+  ).toBe(true);
+  expect((await diagnostics(String(session._id))).body.attendance.reason).toBe(
+    "WAITING_FOR_PLANNER",
+  );
+  await planNotifications();
+  expect(await NotificationJob.countDocuments()).toBe(1);
+  expect((await diagnostics(String(session._id))).body.attendance.reason).toBe(
+    "DELIVERY_PENDING",
+  );
+  const send = vi.fn().mockResolvedValue({});
+  await processNotification(config, send);
+  expect(send).toHaveBeenCalledTimes(1);
+  expect((await diagnostics(String(session._id))).body.attendance.reason).toBe(
+    "DELIVERED",
+  );
+  expect((await save("absent", 2)).status).toBe(200);
+  await planNotifications();
+  await permit();
+  await processNotification(config, send);
+  expect(send).toHaveBeenCalledTimes(1);
+  expect((await save("present", 3)).status).toBe(200);
+  await planNotifications();
+  expect(await NotificationJob.countDocuments()).toBe(1); // Correction-only notices still disabled.
+});
+it("diagnostics distinguish missing settings, verification, consent and recipient opt-out", async () => {
+  const session = await diagnosticSession();
+  await AttendanceEvent.create({
+    tenantId,
+    studentId,
+    sessionId: session._id,
+    revision: 1,
+    status: "absent",
+  });
+  const reason = async () =>
+    (await diagnostics(String(session._id))).body.attendance.reason;
+  expect(await reason()).toBe("TENANT_ATTENDANCE_DISABLED");
+  await settings({ attendance: true });
+  expect(await reason()).toBe("NO_VERIFIED_GUARDIAN");
+  const g = await connected();
+  await GuardianLink.updateOne(
+    { _id: g._id },
+    { $set: { enabled: false }, $unset: { consentAt: 1 } },
+  );
+  expect(await reason()).toBe("NO_GUARDIAN_CONSENT");
+  await GuardianLink.updateOne(
+    { _id: g._id },
+    { $set: { enabled: true, consentAt: new Date(), attendance: false } },
+  );
+  expect(await reason()).toBe("RECIPIENT_ATTENDANCE_DISABLED");
+});
+it("diagnostics are owner-only, tenant scoped, validated and contain no recipient data", async () => {
+  const session = await diagnosticSession();
+  await connected();
+  const response = await diagnostics(String(session._id));
+  expect(response.status).toBe(200);
+  for (const field of [
+    String(studentId),
+    String(tenantId),
+    String(session._id),
+    '"Guardian"',
+    "12345",
+    config.TELEGRAM_BOT_TOKEN!,
+    config.JWT_SECRET,
+  ])
+    expect(response.text).not.toContain(field);
+  const original = studentId;
+  studentId = oid();
+  expect((await diagnostics(String(session._id))).status).toBe(404);
+  studentId = original;
+  expect(
+    (
+      await request(app)
+        .get(base + "/diagnostics?tenantId=" + tenantId)
+        .set("Cookie", cookie)
+    ).status,
+  ).toBe(400);
+  for (const role of ["admin", "teacher", "super_admin"] as const) {
+    const u = await User.create({
+      ...(role === "super_admin" ? {} : { tenantId }),
+      role,
+      name: role,
+      email: `${role}@example.test`,
+      passwordHash: "hash",
+    });
+    expect(
+      (
+        await diagnostics(
+          undefined,
+          `softlans_session=${issueToken(u, config)}`,
+        )
+      ).status,
+    ).toBe(403);
+  }
+});
+it("scheduler diagnostics report never-seen, recent and stale runs without global counts", async () => {
+  const { NotificationProcessorState } =
+    await import("../src/notification-models.js");
+  expect((await diagnostics()).body.processor.state).toBe("never_seen");
+  await NotificationProcessorState.create({
+    _id: "automation",
+    stage: "completed",
+    lastHeartbeatAt: new Date(),
+    lastCompletedAt: new Date(),
+  });
+  expect((await diagnostics()).body.processor.state).toBe("recent");
+  await NotificationProcessorState.updateOne(
+    {},
+    { $set: { lastHeartbeatAt: new Date(0) } },
+  );
+  expect((await diagnostics()).body.processor.state).toBe("stale");
+});
+it("one planner failure cannot prevent guardian delivery, and logs are safe", async () => {
+  const { runNotificationAutomation } =
+    await import("../src/notification-automation.js");
+  const guardians = vi.fn().mockResolvedValue(undefined),
+    owners = vi.fn().mockRejectedValue(new Error("private student bot-secret")),
+    process = vi.fn().mockResolvedValue(false),
+    log = vi.fn();
+  expect(
+    await runNotificationAutomation(config, {
+      guardians,
+      owners,
+      process,
+      log,
+    }),
+  ).toBe(false);
+  expect(guardians).toHaveBeenCalledOnce();
+  expect(process).toHaveBeenCalledOnce();
+  expect(JSON.stringify(log.mock.calls)).not.toContain(
+    "private student bot-secret",
+  );
+  expect((await diagnostics()).body.processor.stage).toBe("failed");
+});
+it("processor records completion and rejects missing bot configuration visibly", async () => {
+  const { runNotificationAutomation } =
+    await import("../src/notification-automation.js");
+  const overrides = {
+    guardians: vi.fn().mockResolvedValue(undefined),
+    owners: vi.fn().mockResolvedValue(undefined),
+    process: vi.fn().mockResolvedValue(false),
+    log: vi.fn(),
+  };
+  expect(await runNotificationAutomation(config, overrides)).toBe(true);
+  expect((await diagnostics()).body.processor.lastCompletedAt).toBeTruthy();
+  expect(
+    await runNotificationAutomation(
+      { ...config, TELEGRAM_BOT_TOKEN: undefined },
+      overrides,
+    ),
+  ).toBe(false);
+  expect(overrides.log).toHaveBeenCalledWith(
+    expect.objectContaining({ code: "TELEGRAM_NOT_CONFIGURED" }),
+  );
+});
+it("absence and enabled late/excused alerts survive edits while correction-only notices remain configurable", () => {
+  const s = { attendance: true, corrections: false, late: true, excused: true };
+  for (const status of ["absent", "late", "excused"])
+    expect(attendanceEnabled(s, status, true)).toBe(true);
+  expect(attendanceEnabled(s, "present", true)).toBe(false);
+  expect(attendanceEnabled({ ...s, attendance: false }, "absent", true)).toBe(
+    false,
+  );
+});

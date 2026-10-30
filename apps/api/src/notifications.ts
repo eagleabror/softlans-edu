@@ -48,11 +48,10 @@ export function attendanceEnabled(
 ) {
   return (
     s.attendance &&
-    (correction
-      ? s.corrections
-      : status === "absent" ||
-        (status === "late" && s.late) ||
-        (status === "excused" && s.excused))
+    (status === "absent" ||
+      (status === "late" && s.late) ||
+      (status === "excused" && s.excused) ||
+      (correction && s.corrections))
   );
 }
 export async function enqueueNotification(
