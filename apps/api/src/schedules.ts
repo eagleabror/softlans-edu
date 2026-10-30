@@ -1,3 +1,5 @@
+import { materializeSchedule } from "./attendance-service.js";
+import { lockBilling } from "./billing-lock.js";
 import { Router, type Request } from "express";
 import mongoose from "mongoose";
 import { z } from "zod";
@@ -278,6 +280,10 @@ for (const create of [true, false]) {
         ? new Schedule({ ...tenant, _id: rowId })
         : await Schedule.findOne({ ...tenant, _id: rowId }).session(session);
       if (!row) throw missing();
+      if (!create) {
+        await lockBilling(tenant.tenantId, session);
+        await materializeSchedule(row, localDate(), session);
+      }
       const assignmentChanged =
         create ||
         (input.groupId !== undefined &&

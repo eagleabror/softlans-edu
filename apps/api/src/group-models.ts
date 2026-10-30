@@ -54,6 +54,7 @@ const membershipSchema = new Schema(
     tenantId: ref("Tenant"),
     groupId: ref("Group"),
     studentId: ref("Student"),
+    removedAt: { type: Date, default: null },
     enrolledAt: {
       type: Date,
       required: true,
@@ -81,6 +82,7 @@ membershipSchema.index({
   _id: -1,
 });
 membershipSchema.index({ tenantId: 1, studentId: 1, status: 1 });
+membershipSchema.index({ tenantId: 1, groupId: 1, enrolledAt: 1, removedAt: 1 });
 export const Group = mongoose.model("Group", groupSchema);
 export const Membership = mongoose.model("Membership", membershipSchema);
 export type GroupRecord = InferSchemaType<typeof groupSchema> & {

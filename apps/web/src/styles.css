@@ -2351,3 +2351,110 @@ td {
     flex: 1 1 auto;
   }
 }
+
+/* Phase 4.1: reuse the forest/lime controls with a touch-first roster. */
+.attendance-module {
+  animation: appear 0.2s ease;
+}
+.attendance-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  margin: 16px 0;
+}
+.attendance-filters,
+.attendance-results {
+  padding: 24px;
+  margin: 20px 0;
+}
+.attendance-filters label {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.attendance-stats {
+  margin: 20px 0;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+.attendance-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+.attendance-lesson {
+  padding: 20px;
+  border: 1px solid #d5ddd2;
+  border-radius: 12px;
+  background: #fafbf7;
+}
+.attendance-lesson h2 {
+  margin: 16px 0 8px;
+}
+.attendance-lesson p {
+  margin-bottom: 16px;
+}
+.attendance-student {
+  padding: 24px;
+  border-bottom: 1px solid #e7ebe2;
+  display: grid;
+  gap: 16px;
+}
+.attendance-statuses {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.attendance-statuses .button {
+  min-height: 44px;
+  transition: background 0.15s ease;
+  border: 1px solid #7b847f;
+}
+.attendance-note {
+  display: grid;
+  gap: 8px;
+  max-width: 560px;
+  font-size: 12px;
+}
+.attendance-module :is(input, select, button, a):focus-visible {
+  outline: 3px solid #526b43;
+  outline-offset: 3px;
+}
+.attendance-save {
+  position: sticky;
+  bottom: 12px;
+  padding: 16px;
+  border: 1px solid #d5ddd2;
+  border-radius: 12px;
+  background: #fff;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+.attendance-module th {
+  font-size: 12px;
+}
+@media (max-width: 700px) {
+  .attendance-filters,
+  .attendance-results,
+  .attendance-student {
+    padding: 16px;
+  }
+  .attendance-filters label {
+    width: 100%;
+  }
+  .attendance-statuses {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .attendance-save .button {
+    width: 100%;
+  }
+}
+.attendance-module .plain-input { border-color: #7b847f; }
+.attendance-module .muted { color: #526b43; }
+.attendance-module :is(input, button, a) { scroll-margin-bottom: 160px; }
+.attendance-roster { padding-bottom: 100px; }

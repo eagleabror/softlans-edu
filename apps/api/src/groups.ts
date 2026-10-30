@@ -306,7 +306,7 @@ groupsRouter.post(
           studentId: req.params.studentId,
           status: "active",
         },
-        { $set: { status: "removed" } },
+        { $set: { status: "removed", removedAt: new Date() } },
         { session, new: true },
       );
       if (!m) throw missing();

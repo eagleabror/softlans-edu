@@ -1,3 +1,4 @@
+import { attendanceRouter, attendanceSummary } from "./attendance.js";
 import { analyticsRouter } from "./analytics.js";
 import { debtsRouter, debtSummary } from "./debts.js";
 import { billingRouter, billingSummary } from "./billing.js";
@@ -102,6 +103,8 @@ export function createApp(
     else apiLimiter(req, res, next);
   });
   app.use(protectWrites(config));
+  // Attendance bulk requests are bounded to 1000 validated records; other APIs keep their existing limit.
+  app.use("/api/attendance", express.json({ limit: "1mb", strict: true }));
   app.use(express.json({ limit: "16kb", strict: true }));
   app.use(cookieParser());
   app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
@@ -180,6 +183,7 @@ export function createApp(
     res.clearCookie(COOKIE_NAME, clearOptions).status(204).end();
   });
 
+  app.use("/api/attendance", authenticate(config), attendanceRouter);
   app.use("/api/analytics", authenticate(config), analyticsRouter);
   app.use("/api/debts", authenticate(config), debtsRouter);
   app.use("/api/billing", authenticate(config), billingRouter);
@@ -208,6 +212,7 @@ export function createApp(
     const scope = tenantScope(actor);
     if (actor.role === "teacher") {
       res.json({
+        attendance: await attendanceSummary(actor),
         scope: "tenant",
         teamCount: null,
         adminCount: null,
@@ -245,6 +250,7 @@ export function createApp(
       scheduling,
       financial,
       debts,
+      attendance: await attendanceSummary(actor),
       joinedAt: actor.user.createdAt.toISOString(),
     });
   });

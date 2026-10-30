@@ -20,6 +20,7 @@ export interface SessionView {
   tenant: TenantView | null;
 }
 export interface DashboardView {
+  attendance?: AttendanceSummary;
   scope: "platform" | "tenant";
   tenantCount?: number;
   teamCount: number | null;
@@ -235,8 +236,10 @@ export interface DebtSummary {
   asOf: string;
   timezone: string;
 }
-export interface DebtCharge
-  extends Omit<ChargeView, "createdAt" | "updatedAt"> {
+export interface DebtCharge extends Omit<
+  ChargeView,
+  "createdAt" | "updatedAt"
+> {
   daysOverdue: number;
   agingBucket: "upcoming" | "1-7" | "8-30" | "31+";
 }
@@ -291,4 +294,51 @@ export interface FinancialReport {
   methods: { method: string; amount: number; count: number }[];
   groups: FinancialGroup[];
   totalGroups: number;
+}
+
+export type AttendanceStatus = "present" | "absent" | "late" | "excused";
+export interface AttendanceSession {
+  id: string;
+  groupId: string;
+  scheduleId: string;
+  teacherId: string;
+  groupName: string;
+  lessonDate: string;
+  startTime: string;
+  endTime: string;
+  status: "scheduled" | "completed" | "cancelled";
+  revision: number;
+  rosterCount: number;
+}
+export interface AttendanceSummary {
+  present: number;
+  absent: number;
+  late: number;
+  excused: number;
+  marked: number;
+  unmarked: number;
+  attendancePercentage: number | null;
+  coveragePercentage: number | null;
+  totalSessions: number;
+  completedSessions: number;
+  awaitingSessions: number;
+  cancelledSessions: number;
+  timezone: string;
+}
+export interface AttendanceRoster {
+  session: AttendanceSession;
+  students: {
+    studentId: string;
+    name: string;
+    status: AttendanceStatus | null;
+    note: string;
+    markedAt: string | null;
+  }[];
+}
+export interface AttendanceSessions {
+  sessions: AttendanceSession[];
+  total: number;
+  page: number;
+  pageSize: number;
+  timezone: string;
 }
