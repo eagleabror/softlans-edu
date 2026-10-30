@@ -1,3 +1,9 @@
+import {
+  leadsRouter,
+  trialsRouter,
+  followUpsRouter,
+  leadStatistics,
+} from "./leads.js";
 import { studentImportsRouter } from "./student-imports.js";
 import { notificationScheduler } from "./notification-scheduler.js";
 import { dailyReportRouter } from "./daily-report-api.js";
@@ -226,6 +232,9 @@ export function createApp(
   app.use("/api/classrooms", authenticate(config), classroomsRouter);
   app.use("/api/schedules", authenticate(config), schedulesRouter);
   app.use("/api/groups", authenticate(config), groupsRouter);
+  app.use("/api/leads", authenticate(config), leadsRouter);
+  app.use("/api/trial-lessons", authenticate(config), trialsRouter);
+  app.use("/api/follow-ups", authenticate(config), followUpsRouter);
   app.use("/api/students", authenticate(config), studentsRouter);
 
   app.get("/api/dashboard", authenticate(config), async (req, res) => {
@@ -286,6 +295,7 @@ export function createApp(
       scheduling,
       financial,
       debts,
+      leads: await leadStatistics(scope),
       attendance: await attendanceSummary(actor),
       joinedAt: actor.user.createdAt.toISOString(),
     });

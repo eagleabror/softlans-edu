@@ -1,3 +1,4 @@
+import { TrialLesson } from "./lead-models.js";
 import { materializeSchedule } from "./attendance-service.js";
 import { lockBilling } from "./billing-lock.js";
 import { Router, type Request } from "express";
@@ -331,6 +332,15 @@ for (const create of [true, false]) {
         )
           throw conflict("O‘qituvchi guruhga biriktirilmagan.");
         if (data.status === "active") {
+          const trials = await TrialLesson.find({
+            ...tenant,
+            result: { $ne: "cancelled" },
+            startTime: { $lt: data.endTime },
+            endTime: { $gt: data.startTime },
+            $or: [{ teacherId: data.teacherId }, { groupId: data.groupId }],
+          }).session(session);
+          if (trials.some((t) => occursBetween(data, t.trialDate, t.trialDate)))
+            throw conflict("Sinov darsi bilan to‘qnashuv bor.");
           const candidates = Schedule.find({
             ...tenant,
             _id: { $ne: rowId },

@@ -1,3 +1,4 @@
+import { leadModels } from "./lead-models.js";
 import { StudentImportLog, StudentImportSession } from "./import-models.js";
 import { DailyReportSettings } from "./daily-report-models.js";
 import { notificationModels } from "./notification-models.js";
@@ -152,6 +153,7 @@ export async function ensureIndexes() {
   for (const model of [
     StudentImportLog,
     StudentImportSession,
+    ...leadModels,
     ...telegramModels,
     ...notificationModels,
     DailyReportSettings,

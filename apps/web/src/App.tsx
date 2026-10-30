@@ -1,3 +1,12 @@
+import {
+  LeadsList,
+  LeadForm,
+  LeadDetail,
+  TrialLessons,
+  FollowUps,
+  LeadAnalytics,
+  LeadKpis,
+} from "./Leads";
 import { StudentImport } from "./StudentImport";
 import { DailyReports } from "./DailyReports";
 import { Notifications } from "./Notifications";
@@ -514,6 +523,12 @@ function Shell() {
             </NavLink>
           )}
           {canManage && (
+            <NavLink to="/leads" onClick={() => setOpen(false)}>
+              <Users size={19} />
+              Lead CRM
+            </NavLink>
+          )}
+          {canManage && (
             <NavLink to="/students" onClick={() => setOpen(false)}>
               <GraduationCap size={19} />
               O‘quvchilar
@@ -643,6 +658,21 @@ function Shell() {
         <main className="page-content">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            {canManage && (
+              <>
+                <Route path="/leads" element={<LeadsList />} />
+                <Route
+                  path="/leads/pipeline"
+                  element={<LeadsList pipeline />}
+                />
+                <Route path="/leads/new" element={<LeadForm />} />
+                <Route path="/leads/:id/edit" element={<LeadForm edit />} />
+                <Route path="/leads/:id" element={<LeadDetail />} />
+                <Route path="/leads/analytics" element={<LeadAnalytics />} />
+                <Route path="/trial-lessons" element={<TrialLessons />} />
+                <Route path="/follow-ups" element={<FollowUps />} />
+              </>
+            )}
             {["business_owner", "teacher"].includes(session.user.role) && (
               <>
                 <Route
@@ -1036,6 +1066,12 @@ function Dashboard() {
             note="Joriy hafta"
           />
         </div>
+      )}
+      {owner && data?.leads && (
+        <section aria-label="Lead CRM ko‘rsatkichlari">
+          <h2>Lead CRM</h2>
+          <LeadKpis data={data.leads} />
+        </section>
       )}
       <div className="dashboard-grid">
         <section className="panel quick-panel">
