@@ -1,3 +1,4 @@
+import { Debts, DebtStats } from "./Debts";
 import { Billing, FinancialStats } from "./Billing";
 import {
   createContext,
@@ -426,6 +427,12 @@ function Shell() {
             </NavLink>
           )}
           {canManage && (
+            <NavLink to="/debts" onClick={() => setOpen(false)}>
+              <Layers size={19} />
+              Qarzdorlar
+            </NavLink>
+          )}
+          {canManage && (
             <NavLink to="/team" onClick={() => setOpen(false)}>
               <Users size={19} />
               Jamoa
@@ -532,6 +539,10 @@ function Shell() {
             <Route path="/" element={<Dashboard />} />
             {canManage && (
               <>
+                <Route path="/debts" element={<Debts />} />
+                <Route path="/debts/overdue" element={<Debts overdue />} />
+                <Route path="/debts/groups" element={<Debts groups />} />
+                <Route path="/debts/students/:id" element={<Debts />} />
                 <Route
                   path="/billing"
                   element={
@@ -817,6 +828,7 @@ function Dashboard() {
         </div>
       )}
       {data?.financial && <FinancialStats data={data.financial} />}
+      {data?.debts && <DebtStats data={data.debts} />}
       {data?.scheduling && (
         <div className="stats-grid">
           <Stat

@@ -40,6 +40,8 @@ chargeSchema.index(
   { unique: true },
 );
 chargeSchema.index({ tenantId: 1, billingMonth: 1, createdAt: -1 });
+chargeSchema.index({ tenantId: 1, cancelled: 1, dueDate: 1, _id: 1 });
+chargeSchema.index({ tenantId: 1, cancelled: 1, groupId: 1, billingMonth: 1 });
 const paymentSchema = new Schema(
   {
     tenantId: ref("Tenant"),
