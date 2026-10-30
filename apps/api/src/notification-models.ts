@@ -153,7 +153,21 @@ export const NotificationProcessorState = mongoose.model(
   "NotificationProcessorState",
   processorState,
 );
+// HTTP trigger admission gate. Jobs themselves retain the existing send leases.
+export const NotificationSchedulerLease = mongoose.model(
+  "NotificationSchedulerLease",
+  new Schema(
+    {
+      _id: String,
+      leaseId: String,
+      leaseUntil: Date,
+      nextAllowedAt: Date,
+    },
+    { strict: "throw" },
+  ),
+);
 export const notificationModels = [
+  NotificationSchedulerLease,
   NotificationProcessorState,
   GuardianLink,
   NotificationSettings,

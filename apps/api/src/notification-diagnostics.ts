@@ -33,7 +33,11 @@ export async function notificationDiagnostics(
     lastFailedAt: state?.lastFailedAt ?? null,
     stage: state?.stage ?? null,
   };
-  const result = { telegramConfigured: telegramConfigured(config), processor };
+  const result = {
+    telegramConfigured: telegramConfigured(config),
+    schedulerEndpointConfigured: !!config.NOTIFICATION_SCHEDULER_SECRET,
+    processor,
+  };
   if (!target) return result;
   const scope = { tenantId };
   const [student, session] = await Promise.all([
