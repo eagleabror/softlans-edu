@@ -1,3 +1,4 @@
+import { StudentImport } from "./StudentImport";
 import { DailyReports } from "./DailyReports";
 import { Notifications } from "./Notifications";
 import { TelegramSettings } from "./Telegram";
@@ -741,6 +742,7 @@ function Shell() {
             {canManage && (
               <>
                 <Route path="/students" element={<StudentsList />} />
+                <Route path="/students/import" element={<StudentImport />} />
                 <Route path="/students/new" element={<StudentForm />} />
                 <Route path="/students/:id" element={<StudentDetail />} />
                 <Route

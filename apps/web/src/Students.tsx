@@ -79,6 +79,9 @@ export function StudentsList() {
             Har bir o‘quvchiga e’tibor. Barcha ma’lumotlar bir joyda.
           </p>
         </div>
+        <Link to="/students/import" className="button light">
+          Excel import
+        </Link>
         <Link to="/students/new" className="button primary">
           <Plus size={17} /> O‘quvchi qo‘shish
         </Link>
