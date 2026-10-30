@@ -160,3 +160,7 @@ Set `NODE_ENV=production`, a strong unique `JWT_SECRET`, HTTPS `APP_ORIGIN`, and
 This is a production-oriented foundation, not a completed production launch: password reset/change, MFA, email verification, invitations, security audit history, distributed throttling, monitoring/alerting and operator recovery workflows remain future work. New team accounts currently receive an initial password chosen by their administrator and delivered outside the application. There is no profile editing or password-management UI in Phase 1. Login and team data are real database operations; the UI deliberately shows no invented students, revenue or attendance metrics.
 
 The Sites hosting runtime uses Workers and cannot run this required Node/Express/Mongoose TCP service. This project retains the requested stack and PR workflow; deploy to a Node-capable host with MongoDB rather than substituting another database or publishing a disconnected frontend.
+
+### Telegram (Phase 5.1)
+
+See [Telegram integration setup and operations](docs/telegram-phase-5.1.md) for backend environment variables, BotFather, Render HTTPS webhook registration, delivery retry operation, security policy and the manual acceptance checklist. Telegram is optional and disabled until configured.

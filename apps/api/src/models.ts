@@ -1,3 +1,4 @@
+import { telegramModels } from "./telegram-models.js";
 import {
   SalaryRule,
   Payroll,
@@ -143,6 +144,7 @@ export type UserRecord = InferSchemaType<typeof userSchema> & {
 };
 export async function ensureIndexes() {
   for (const model of [
+    ...telegramModels,
     SalaryRule,
     Payroll,
     SalaryPayout,
