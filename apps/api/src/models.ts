@@ -1,3 +1,4 @@
+import { LessonSession, AttendanceRecord } from "./attendance-models.js";
 import {
   Charge,
   Payment,
@@ -134,6 +135,10 @@ export type UserRecord = InferSchemaType<typeof userSchema> & {
   _id: mongoose.Types.ObjectId;
 };
 export async function ensureIndexes() {
+  for (const model of [LessonSession, AttendanceRecord]) {
+    await model.createCollection();
+    await model.createIndexes();
+  }
   for (const model of [Charge, Payment, PaymentReversal, ChargeAdjustment]) {
     await model.createCollection();
     await model.createIndexes();

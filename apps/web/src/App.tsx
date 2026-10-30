@@ -1,3 +1,4 @@
+import { Attendance, AttendanceMark, AttendanceStats } from "./Attendance";
 import { Debts, DebtStats } from "./Debts";
 import { Billing, FinancialStats } from "./Billing";
 import {
@@ -468,6 +469,12 @@ function Shell() {
             </NavLink>
           )}
           {session.tenant && (
+            <NavLink to="/attendance" onClick={() => setOpen(false)}>
+              <CheckCheck size={19} />
+              Davomat
+            </NavLink>
+          )}
+          {session.tenant && (
             <NavLink to="/schedules" onClick={() => setOpen(false)}>
               <Layers size={19} />
               Dars jadvali
@@ -548,6 +555,29 @@ function Shell() {
         <main className="page-content">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            {session.tenant && (
+              <>
+                <Route path="/attendance" element={<Attendance />} />
+                <Route path="/attendance/today" element={<Attendance />} />
+                <Route
+                  path="/attendance/history"
+                  element={<Attendance history />}
+                />
+                <Route
+                  path="/attendance/groups/:groupId"
+                  element={<Attendance history />}
+                />
+                <Route
+                  path="/attendance/students/:studentId"
+                  element={<Attendance history />}
+                />
+                <Route
+                  path="/attendance/sessions/:id"
+                  element={<AttendanceMark manage={canManage} />}
+                />
+              </>
+            )}
+
             {canManage && (
               <>
                 <Route
@@ -846,6 +876,7 @@ function Dashboard() {
           />
         </div>
       )}
+      {data?.attendance && <AttendanceStats data={data.attendance} />}
       {data?.financial && <FinancialStats data={data.financial} />}
       {data?.debts && <DebtStats data={data.debts} />}
       {data?.scheduling && (
