@@ -24,6 +24,10 @@ const schema = z
         }
       }, "Use an exact HTTP(S) origin without a trailing slash"),
     MONGODB_URI: z.string().regex(/^mongodb(?:\+srv)?:\/\//),
+    NOTIFICATION_SCHEDULER_SECRET: z
+      .string()
+      .regex(/^[A-Za-z0-9_+\/=-]{43,128}$/)
+      .optional(),
     TELEGRAM_BOT_TOKEN: z.string().optional(),
     TELEGRAM_BOT_USERNAME: z.string().optional(),
     TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
@@ -33,6 +37,20 @@ const schema = z
     PUBLIC_REGISTRATION_ENABLED: booleanFlag.optional(),
   })
   .superRefine((value, ctx) => {
+    if (
+      value.NOTIFICATION_SCHEDULER_SECRET &&
+      [
+        value.JWT_SECRET,
+        value.TELEGRAM_WEBHOOK_SECRET,
+        value.TELEGRAM_BOT_TOKEN,
+      ].includes(value.NOTIFICATION_SCHEDULER_SECRET)
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["NOTIFICATION_SCHEDULER_SECRET"],
+        message: "Use a separate scheduler secret",
+      });
+    }
     if (
       value.NODE_ENV === "production" &&
       !value.APP_ORIGIN.startsWith("https://")

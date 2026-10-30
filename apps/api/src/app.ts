@@ -1,3 +1,4 @@
+import { notificationScheduler } from "./notification-scheduler.js";
 import { dailyReportRouter } from "./daily-report-api.js";
 import { notificationRouter } from "./notification-api.js";
 import { telegramRouter, telegramWebhook } from "./telegram.js";
@@ -112,6 +113,8 @@ export function createApp(
     express.json({ limit: "16kb", strict: true }),
     telegramWebhook(config),
   );
+  // Machine-to-machine authentication is separate from CRM cookies and webhook secrets.
+  app.use("/api/internal/notifications", notificationScheduler(config));
   app.use(protectWrites(config));
   // Attendance bulk requests are bounded to 1000 validated records; other APIs keep their existing limit.
   app.use("/api/attendance", express.json({ limit: "1mb", strict: true }));
@@ -198,7 +201,11 @@ export function createApp(
     authenticate(config),
     telegramRouter(config),
   );
-  app.use("/api/daily-reports", authenticate(config), dailyReportRouter(config));
+  app.use(
+    "/api/daily-reports",
+    authenticate(config),
+    dailyReportRouter(config),
+  );
   app.use(
     "/api/notifications",
     authenticate(config),

@@ -800,3 +800,19 @@ it("absence and enabled late/excused alerts survive edits while correction-only 
     false,
   );
 });
+it("expires an old guardian test without a send attempt instead of forcing stale delivery", async () => {
+  await settings();
+  const g = await connected();
+  const job = await enqueueNotification(g, { kind: "test", key: "stale-test" });
+  await NotificationJob.collection.updateOne(
+    { _id: job!._id },
+    { $set: { createdAt: new Date(Date.now() - 3600001) } },
+  );
+  const send = vi.fn();
+  await processNotification(config, send);
+  const row = await NotificationJob.findById(job!._id);
+  expect(send).not.toHaveBeenCalled();
+  expect(row?.status).toBe("cancelled");
+  expect(row?.attempts).toBe(0);
+  expect(row?.errorCode).toBe("INELIGIBLE");
+});

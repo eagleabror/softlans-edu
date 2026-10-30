@@ -1,3 +1,5 @@
+> Follow-up: the optional authenticated HTTP trigger now permits an external scheduler to invoke the existing Render Free web service. See [phone-friendly setup](render-free-notification-scheduler.md). The historical investigation below describes the deployment before that follow-up; no scheduler was configured automatically.
+
 # Missing guardian attendance notifications: investigation and verification
 
 ## Observed deployment and confirmed defects

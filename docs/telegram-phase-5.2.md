@@ -31,7 +31,7 @@ All routes below are under `/api/notifications`, authenticated with existing coo
 | POST   | `/test`                      | Owner; fixed generic test, verified consenting guardian; 5/hour                |
 | POST   | `/jobs/:id/retry`            | Owner; known retriable 429/500/502/503/504 only; 10/hour; attempts never reset |
 
-All management routes additionally have a 60/minute limiter and the existing application API limiter. Limiters are process-local (existing express-rate-limit convention); multiple instances multiply request budgets. No unrestricted messaging, public guardian lists, or public processor HTTP endpoint is provided. History returns metadata and safe error codes only, never chat IDs, tokens or message bodies.
+All management routes additionally have a 60/minute limiter and the existing application API limiter. Limiters are process-local (existing express-rate-limit convention); multiple instances multiply request budgets. No unrestricted messaging or public guardian lists are provided. An optional machine-authenticated processor trigger is documented in [Render Free scheduler setup](render-free-notification-scheduler.md). History returns metadata and safe error codes only, never chat IDs, tokens or message bodies.
 
 ## Data and indexes
 
@@ -61,7 +61,7 @@ Telegram `sendMessage` has no transactional/idempotent relationship with MongoDB
 
 ## Scheduler setup — no paid services required
 
-Production does not run a `setInterval` notification loop. Run this independently from a trusted scheduler:
+Production does not run a `setInterval` notification loop. For phone-friendly operation on the existing Free web service, use the optional authenticated HTTP trigger described in [Render Free scheduler setup](render-free-notification-scheduler.md). An external scheduler must call it; adding the secret alone does not schedule execution. Alternatively, run this independently from a trusted command runner:
 
 ```sh
 npm ci
