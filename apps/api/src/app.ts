@@ -1,3 +1,4 @@
+import { telegramRouter, telegramWebhook } from "./telegram.js";
 import { payrollRouter } from "./payroll.js";
 import { attendanceRouter, attendanceSummary } from "./attendance.js";
 import { analyticsRouter } from "./analytics.js";
@@ -103,6 +104,12 @@ export function createApp(
       next();
     else apiLimiter(req, res, next);
   });
+  // Webhook authentication is independent of browser cookies and CSRF origin checks.
+  app.post(
+    "/api/integrations/telegram/webhook",
+    express.json({ limit: "16kb", strict: true }),
+    telegramWebhook(config),
+  );
   app.use(protectWrites(config));
   // Attendance bulk requests are bounded to 1000 validated records; other APIs keep their existing limit.
   app.use("/api/attendance", express.json({ limit: "1mb", strict: true }));
@@ -184,6 +191,11 @@ export function createApp(
     res.clearCookie(COOKIE_NAME, clearOptions).status(204).end();
   });
 
+  app.use(
+    "/api/integrations/telegram",
+    authenticate(config),
+    telegramRouter(config),
+  );
   app.use("/api/payroll", authenticate(config), payrollRouter);
   app.use("/api/attendance", authenticate(config), attendanceRouter);
   app.use("/api/analytics", authenticate(config), analyticsRouter);

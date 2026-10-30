@@ -2550,3 +2550,8 @@ td {
   color: #9b503d;
   font-size: 14px;
 }
+
+.telegram-settings { padding: 24px; display: grid; gap: 16px; max-width: 760px; }
+.telegram-settings h2 { font-size: 19px; }
+.telegram-settings label { display: flex; align-items: center; gap: 12px; min-height: 44px; }
+.telegram-settings .button { justify-self: start; max-width: 100%; white-space: normal; }

@@ -1,3 +1,4 @@
+import { TelegramSettings } from "./Telegram";
 import { PayrollPage, PayrollDetail } from "./Payroll";
 import { Attendance, AttendanceMark, AttendanceStats } from "./Attendance";
 import { Debts, DebtStats } from "./Debts";
@@ -555,6 +556,12 @@ function Shell() {
               <Users size={18} /> O‘qituvchilar maoshi
             </NavLink>
           )}
+          {session.tenant && (
+            <NavLink to="/settings/telegram" onClick={() => setOpen(false)}>
+              <Settings2 size={19} />
+              Sozlamalar · Telegram
+            </NavLink>
+          )}
           <NavLink to="/account" onClick={() => setOpen(false)}>
             <Settings2 size={19} />
             Hisobim
@@ -766,6 +773,9 @@ function Shell() {
               />
             )}
             {canManage && <Route path="/classrooms" element={<Classrooms />} />}
+            {session.tenant && (
+              <Route path="/settings/telegram" element={<TelegramSettings />} />
+            )}
             <Route path="/account" element={<Account />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

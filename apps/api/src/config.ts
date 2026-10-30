@@ -24,6 +24,9 @@ const schema = z
         }
       }, "Use an exact HTTP(S) origin without a trailing slash"),
     MONGODB_URI: z.string().regex(/^mongodb(?:\+srv)?:\/\//),
+    TELEGRAM_BOT_TOKEN: z.string().optional(),
+    TELEGRAM_BOT_USERNAME: z.string().optional(),
+    TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
     JWT_SECRET: z.string().min(48),
     TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
     DEMO_MODE: booleanFlag.default(false),
