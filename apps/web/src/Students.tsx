@@ -288,6 +288,9 @@ export function StudentDetail() {
   }
   return (
     <>
+      <Link className="button" to={`/students/${id}/finance`}>
+        Moliyaviy profil
+      </Link>
       <Heading title="O‘quvchi profili" />
       <ErrorNotice error={error} />
       {error && !student && (

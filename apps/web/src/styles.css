@@ -2157,3 +2157,37 @@ td {
     grid-template-columns: 1fr;
   }
 }
+
+.billing-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.billing-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 16px;
+  padding: 24px;
+}
+.billing-filters label {
+  display: grid;
+  gap: 8px;
+  flex: 1;
+  min-width: 170px;
+  font-size: 13px;
+}
+.financial-stats {
+  margin: 16px 0 24px;
+}
+.financial-stats strong {
+  font-size: clamp(16px, 2vw, 24px);
+}
+.member-dialog fieldset {
+  border: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}

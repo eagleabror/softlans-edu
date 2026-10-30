@@ -1,3 +1,4 @@
+import { lockBilling } from "./billing-lock.js";
 import { Router } from "express";
 import mongoose from "mongoose";
 import { Student, type StudentRecord } from "./models.js";
@@ -100,11 +101,14 @@ for (const statusOnly of [false, true]) {
       const input = (
         statusOnly ? studentStatusSchema : studentUpdateSchema
       ).parse(req.body);
-      const student = await Student.findOneAndUpdate(
-        { _id: req.params.id, ...tenantScope(principal(req)) },
-        { $set: input },
-        { new: true, runValidators: true },
-      );
+      const student = await mongoose.connection.transaction(async (session) => {
+        await lockBilling(tenantScope(principal(req)).tenantId, session);
+        return Student.findOneAndUpdate(
+          { _id: req.params.id, ...tenantScope(principal(req)) },
+          { $set: input },
+          { new: true, runValidators: true, session },
+        );
+      });
       if (!student) throw notFound();
       res.json({ student: studentView(student) });
     },
