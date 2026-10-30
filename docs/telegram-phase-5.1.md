@@ -64,49 +64,41 @@ stop - Bildirishnomalarni o‘chirish
 5. Send `/setjoingroups`, select the bot, choose `Disable`. Keep privacy enabled with `/setprivacy` → bot → `Enable`.
 6. Optionally set `/setdescription` to `SoftLans Edu hisobingizni CRM sozlamalari orqali xavfsiz ulang.`
 
-## Render HTTPS webhook setup (manual, after PR review/deployment)
+## Automatic Render HTTPS webhook registration
 
-No existing Render secrets were changed by this implementation. In the existing backend web service's **Environment** page, configure these backend-only values when ready:
+The server uses only the existing backend `TELEGRAM_BOT_TOKEN`,
+`TELEGRAM_BOT_USERNAME` and `TELEGRAM_WEBHOOK_SECRET` environment variables.
+Missing or malformed Telegram values disable the integration without stopping CRM.
+Never prefix these variables with `VITE_`; no Render variable changes are required.
 
-| Variable | Value |
-| --- | --- |
-| `TELEGRAM_BOT_TOKEN` | Token from BotFather |
-| `TELEGRAM_BOT_USERNAME` | Bot username without `@` |
-| `TELEGRAM_WEBHOOK_SECRET` | Independently generated `openssl rand -hex 32` value (64 hex characters) |
+After an authorized deployment, production startup registers
+`https://softlans-edu-demo.onrender.com/api/integrations/telegram/webhook` only
+when `APP_ORIGIN` is `https://softlans-edu-demo.onrender.com`. Local development,
+tests and other origins skip registration to avoid redirecting the shared bot.
+Registration runs after database/index initialization and HTTP listening, never
+from builds, app creation, requests or the delivery task. No deployment is
+performed by this change.
 
-Missing or malformed Telegram values disable Telegram endpoints with 503 while unrelated CRM endpoints keep functioning. Do not prefix these variables with `VITE_`. Keep `APP_ORIGIN` equal to the existing CRM HTTPS origin and preserve the current Render proxy configuration.
+Startup calls `getWebhookInfo`, then `setWebhook` when needed with the existing
+secret as `secret_token`, `allowed_updates: ['message']`, `max_connections: 1`
+and `drop_pending_updates: false`. Existing pending updates are retained.
+Telegram calls use the maintained grammY client with a 10-second timeout per call.
+The CRM continues serving while this best-effort task runs; API or persistence
+failures do not fail startup. Another check occurs at the next application startup.
 
-After an authorized deployment of the PR, run the following **once from a trusted terminal**. Load the same backend bot token and webhook secret into the terminal environment securely, and set `RENDER_PUBLIC_URL` to the existing public web-service HTTPS origin, for example `https://softlans-edu.onrender.com`. Do not run with shell tracing. This registers the webhook; it does not deploy code.
+Telegram does not return the configured secret. A MongoDB record stores only a
+keyed settings fingerprint after successful registration. The first startup,
+missing record or credential rotation reapplies the secret, even if the URL
+already matches. Subsequent startups skip `setWebhook` when the fingerprint and
+visible URL, certificate, connection and update settings match. An external
+secret-only change cannot be detected by Telegram's API; after such a manual
+change, restore the intended configuration by rotating the backend webhook
+secret through the normal operator process and restarting the app.
 
-```sh
-python3 - <<'PY'
-import json, os, urllib.request
-from urllib.parse import urlsplit
-origin = os.environ['RENDER_PUBLIC_URL'].rstrip('/')
-u = urlsplit(origin)
-assert u.scheme == 'https' and u.hostname and not u.username and not u.password
-assert not u.query and not u.fragment and u.path == ''
-payload = json.dumps({
-    'url': origin + '/api/integrations/telegram/webhook',
-    'secret_token': os.environ['TELEGRAM_WEBHOOK_SECRET'],
-    'allowed_updates': ['message'],
-    'max_connections': 1,
-    'drop_pending_updates': False,
-}).encode()
-request = urllib.request.Request(
-    'https://api.telegram.org/bot' + os.environ['TELEGRAM_BOT_TOKEN'] + '/setWebhook',
-    data=payload, headers={'Content-Type': 'application/json'})
-try:
-    with urllib.request.urlopen(request, timeout=30) as response:
-        result = json.load(response)
-    print('Webhook configured' if result.get('ok') else 'Webhook configuration failed')
-except Exception:
-    print('Webhook configuration failed; inspect settings securely without logging token-bearing URLs')
-    raise SystemExit(1)
-PY
-```
-
-Verify `/getWebhookInfo` using the same trusted terminal pattern and Bot API URL; inspect `url`, `pending_update_count`, and `last_error_message` privately. Never log the token-bearing request URL. Public URL must be reachable over HTTPS without browser auth. Invalid webhook secrets must return 401. Requests without configured integration must return 503. Telegram trusts the standard Render TLS certificate; no custom certificate upload is needed. Rotate a bot token via BotFather `/revoke` if exposed, replace backend secret values, then register the webhook again manually.
+Logs contain only the event `telegram_webhook_registration` and status
+`skipped`, `unchanged`, `registered` or `failed`; never API errors, responses,
+token-bearing URLs or credentials. Existing secret-header authentication, CRM
+JWT/origin checks, linking transactions and delivery behavior remain in place.
 
 ## Manual acceptance checklist
 
@@ -123,25 +115,6 @@ Verify `/getWebhookInfo` using the same trusted terminal pattern and Bot API URL
 - [ ] Existing students, payments, attendance, analytics and payroll remain usable.
 
 Automated validation and changed files are recorded in the PR. Live BotFather, Render and visual browser acceptance require the operator's configured bot and deployed service; tests never contact the real Telegram API.
-
-Exact webhook verification command (same secure environment):
-
-```sh
-python3 - <<'PY'
-import json, os, urllib.request
-try:
-    with urllib.request.urlopen('https://api.telegram.org/bot' + os.environ['TELEGRAM_BOT_TOKEN'] + '/getWebhookInfo', timeout=30) as response:
-        data = json.load(response)
-    info = data.get('result', {})
-    expected = os.environ['RENDER_PUBLIC_URL'].rstrip('/') + '/api/integrations/telegram/webhook'
-    print(json.dumps({'ok': data.get('ok'), 'correct_url': info.get('url') == expected,
-                      'pending_update_count': info.get('pending_update_count'),
-                      'last_error_date': info.get('last_error_date')}))
-except Exception:
-    print('Webhook verification failed; do not log token-bearing URLs')
-    raise SystemExit(1)
-PY
-```
 
 ## Implementation verification report
 

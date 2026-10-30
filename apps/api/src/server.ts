@@ -6,6 +6,7 @@ import { parseConfig } from "./config.js";
 import { openDatabaseConnection, verifyReplicaSet } from "./db.js";
 import { ensureIndexes } from "./models.js";
 import { startupDiagnostic, type StartupStage } from "./startup-diagnostics.js";
+import { registerTelegramWebhook } from "./telegram-webhook-registration.js";
 
 let stage: StartupStage = "configuration";
 try {
@@ -49,6 +50,7 @@ try {
   };
   process.once("SIGTERM", shutdown);
   process.once("SIGINT", shutdown);
+  void registerTelegramWebhook(config);
 } catch (error) {
   console.error(JSON.stringify(startupDiagnostic(stage, error)));
   process.exitCode = 1;
