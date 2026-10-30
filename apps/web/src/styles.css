@@ -2618,3 +2618,64 @@ td {
     padding: 16px;
   }
 }
+
+/* Student import uses the existing form and table primitives. */
+.import-panel {
+  margin-bottom: 24px;
+  min-width: 0;
+}
+.import-panel h2 {
+  margin: 16px 0;
+}
+.import-panel fieldset {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.import-panel label {
+  display: grid;
+  gap: 8px;
+}
+.import-panel .import-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+}
+.import-check input {
+  min-width: 24px;
+  min-height: 24px;
+}
+.import-preview {
+  max-height: 480px;
+  overflow: auto;
+}
+.import-panel td {
+  max-width: 280px;
+  overflow-wrap: anywhere;
+}
+.import-panel caption {
+  text-align: left;
+  padding: 12px;
+}
+.import-panel progress {
+  width: 100%;
+  accent-color: var(--color-forest);
+}
+.import-panel :focus-visible {
+  outline: 2px solid #263e35;
+  outline-offset: 3px;
+}
+.import-panel th,
+.import-panel td,
+.import-panel label {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.import-panel .plain-input {
+  border-color: #7b847f;
+}
+.import-panel th {
+  color: #526b43;
+  letter-spacing: normal;
+}

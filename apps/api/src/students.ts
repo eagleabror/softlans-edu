@@ -37,11 +37,20 @@ studentsRouter.use(requireRoles("business_owner", "admin"));
 studentsRouter.post("/", async (req, res) => {
   const input = studentCreateSchema.parse(req.body);
   const actor = principal(req);
-  const student = await Student.create({
-    ...input,
-    ...(input.status === "archived" ? { archivedAt: new Date() } : {}),
-    ...tenantScope(actor),
-    createdBy: actor.userId,
+  const student = await mongoose.connection.transaction(async (session) => {
+    await lockBilling(tenantScope(actor).tenantId, session);
+    const [created] = await Student.create(
+      [
+        {
+          ...input,
+          ...(input.status === "archived" ? { archivedAt: new Date() } : {}),
+          ...tenantScope(actor),
+          createdBy: actor.userId,
+        },
+      ],
+      { session },
+    );
+    return created!;
   });
   res.status(201).json({ student: studentView(student) });
 });

@@ -1,3 +1,4 @@
+import { StudentImportLog, StudentImportSession } from "./import-models.js";
 import { DailyReportSettings } from "./daily-report-models.js";
 import { notificationModels } from "./notification-models.js";
 import { telegramModels } from "./telegram-models.js";
@@ -123,6 +124,7 @@ const studentSchema = new Schema(
       default: "active",
     },
     notes: { type: String, trim: true, maxlength: 2000 },
+    importId: { type: Schema.Types.ObjectId, immutable: true },
     membershipRevision: { type: Number, default: 0, select: false },
     createdBy: {
       type: Schema.Types.ObjectId,
@@ -133,6 +135,7 @@ const studentSchema = new Schema(
   },
   { timestamps: true, strict: "throw" },
 );
+studentSchema.index({ tenantId: 1, phone: 1 });
 studentSchema.index({ tenantId: 1, enrollmentDate: -1, _id: -1 });
 studentSchema.index({ tenantId: 1, status: 1, enrollmentDate: -1, _id: -1 });
 export const Student = mongoose.model("Student", studentSchema);
@@ -147,6 +150,8 @@ export type UserRecord = InferSchemaType<typeof userSchema> & {
 };
 export async function ensureIndexes() {
   for (const model of [
+    StudentImportLog,
+    StudentImportSession,
     ...telegramModels,
     ...notificationModels,
     DailyReportSettings,

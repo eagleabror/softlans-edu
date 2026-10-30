@@ -1,3 +1,4 @@
+import { studentImportsRouter } from "./student-imports.js";
 import { notificationScheduler } from "./notification-scheduler.js";
 import { dailyReportRouter } from "./daily-report-api.js";
 import { notificationRouter } from "./notification-api.js";
@@ -116,6 +117,12 @@ export function createApp(
   // Machine-to-machine authentication is separate from CRM cookies and webhook secrets.
   app.use("/api/internal/notifications", notificationScheduler(config));
   app.use(protectWrites(config));
+  app.use(
+    "/api/student-imports",
+    cookieParser(),
+    authenticate(config),
+    studentImportsRouter,
+  );
   // Attendance bulk requests are bounded to 1000 validated records; other APIs keep their existing limit.
   app.use("/api/attendance", express.json({ limit: "1mb", strict: true }));
   app.use(express.json({ limit: "16kb", strict: true }));
