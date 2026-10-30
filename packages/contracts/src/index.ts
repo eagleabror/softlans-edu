@@ -19,7 +19,19 @@ export interface SessionView {
   user: UserView;
   tenant: TenantView | null;
 }
+export interface LeadStatistics {
+  total: number;
+  converted: number;
+  todayNew: number;
+  monthNew: number;
+  todayTrials: number;
+  overdue: number;
+  conversionRate: number;
+  byStatus: { _id: string; count: number }[];
+  bySource: { _id: string; count: number; converted: number }[];
+}
 export interface DashboardView {
+  leads?: LeadStatistics;
   attendance?: AttendanceSummary;
   scope: "platform" | "tenant";
   tenantCount?: number;
