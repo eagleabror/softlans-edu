@@ -1,3 +1,4 @@
+import { guardianCommand } from "./guardian-webhook.js";
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import mongoose from "mongoose";
 import { Router } from "express";
@@ -72,12 +73,10 @@ export function telegramRouter(config: Config) {
         "ALREADY_LINKED",
         "Avval mavjud ulanishni uzing.",
       );
-    res
-      .status(201)
-      .json({
-        link: `https://t.me/${config.TELEGRAM_BOT_USERNAME}?start=${token}`,
-        expiresAt,
-      });
+    res.status(201).json({
+      link: `https://t.me/${config.TELEGRAM_BOT_USERNAME}?start=${token}`,
+      expiresAt,
+    });
   });
   router.post("/disconnect", async (req, res) => {
     z.object({}).strict().parse(req.body);
@@ -169,6 +168,16 @@ export function telegramWebhook(
         const telegramUserId = String(msg.from.id);
         const [command, token] = (msg.text ?? "").trim().split(/\s+/);
         const cmd = command?.split("@")[0];
+        const guardianReply = await guardianCommand(
+          cmd,
+          token,
+          telegramUserId,
+          session,
+        );
+        if (guardianReply !== undefined) {
+          reply = guardianReply;
+          return;
+        }
         if (cmd === "/start" && token) {
           reply = invalidLink;
           if (!/^[A-Za-z0-9_-]{43}$/.test(token)) return;

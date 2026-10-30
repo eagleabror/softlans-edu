@@ -1,3 +1,4 @@
+import { AttendanceEvent } from "./notification-models.js";
 import { Router, type Request } from "express";
 import mongoose, { type ClientSession } from "mongoose";
 import { z } from "zod";
@@ -293,6 +294,25 @@ for (const method of ["post", "patch"] as const)
             400,
             "INVALID_MEMBERSHIP",
             "O‘quvchi dars ro‘yxatida yo‘q.",
+          );
+        const previous = await AttendanceRecord.findOne({
+          ...tenant,
+          sessionId: s._id,
+          studentId: r.studentId,
+        }).session(tx);
+        if (previous?.status !== r.status)
+          await AttendanceEvent.create(
+            [
+              {
+                ...tenant,
+                sessionId: s._id,
+                studentId: r.studentId,
+                revision: s.revision + 1,
+                status: r.status,
+                correction: !!previous,
+              },
+            ],
+            { session: tx },
           );
         await AttendanceRecord.updateOne(
           { ...tenant, sessionId: s._id, studentId: r.studentId },

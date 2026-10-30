@@ -1,3 +1,4 @@
+import { notificationRouter } from "./notification-api.js";
 import { telegramRouter, telegramWebhook } from "./telegram.js";
 import { payrollRouter } from "./payroll.js";
 import { attendanceRouter, attendanceSummary } from "./attendance.js";
@@ -195,6 +196,11 @@ export function createApp(
     "/api/integrations/telegram",
     authenticate(config),
     telegramRouter(config),
+  );
+  app.use(
+    "/api/notifications",
+    authenticate(config),
+    notificationRouter(config),
   );
   app.use("/api/payroll", authenticate(config), payrollRouter);
   app.use("/api/attendance", authenticate(config), attendanceRouter);
