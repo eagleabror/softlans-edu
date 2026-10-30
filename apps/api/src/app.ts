@@ -1,3 +1,4 @@
+import { debtsRouter, debtSummary } from "./debts.js";
 import { billingRouter, billingSummary } from "./billing.js";
 import express from "express";
 import cors from "cors";
@@ -178,6 +179,7 @@ export function createApp(
     res.clearCookie(COOKIE_NAME, clearOptions).status(204).end();
   });
 
+  app.use("/api/debts", authenticate(config), debtsRouter);
   app.use("/api/billing", authenticate(config), billingRouter);
   app.use("/api/classrooms", authenticate(config), classroomsRouter);
   app.use("/api/schedules", authenticate(config), schedulesRouter);
@@ -220,6 +222,7 @@ export function createApp(
       groups,
       scheduling,
       financial,
+      debts,
     ] = await Promise.all([
       User.countDocuments({ ...scope, active: true }),
       User.countDocuments({ ...scope, active: true, role: "admin" }),
@@ -228,6 +231,7 @@ export function createApp(
       groupStatistics(scope),
       scheduleStatistics(scope),
       billingSummary(scope),
+      debtSummary(scope),
     ]);
     res.json({
       scope: "tenant",
@@ -238,6 +242,7 @@ export function createApp(
       groups,
       scheduling,
       financial,
+      debts,
       joinedAt: actor.user.createdAt.toISOString(),
     });
   });

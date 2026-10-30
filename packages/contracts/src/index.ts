@@ -34,6 +34,7 @@ export interface DashboardView {
     timezone: string;
   };
   financial?: BillingSummary;
+  debts?: DebtSummary;
   joinedAt: string;
 }
 export interface ApiError {
@@ -220,4 +221,33 @@ export interface PaymentsView {
   total: number;
   page: number;
   pageSize: number;
+}
+
+export interface DebtSummary {
+  outstandingAmount: number;
+  overdueAmount: number;
+  upcomingAmount: number;
+  overdue1To7: number;
+  overdue8To30: number;
+  overdueMoreThan30: number;
+  debtorCount: number;
+  overdueDebtorCount: number;
+  asOf: string;
+  timezone: string;
+}
+export interface DebtCharge
+  extends Omit<ChargeView, "createdAt" | "updatedAt"> {
+  daysOverdue: number;
+  agingBucket: "upcoming" | "1-7" | "8-30" | "31+";
+}
+export interface DebtsView {
+  charges: DebtCharge[];
+  total: number;
+  page: number;
+  pageSize: number;
+  summary?: DebtSummary;
+}
+export interface GroupDebt extends Omit<DebtSummary, "asOf" | "timezone"> {
+  groupId: string;
+  groupName: string;
 }

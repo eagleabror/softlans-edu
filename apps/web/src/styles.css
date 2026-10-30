@@ -2191,3 +2191,41 @@ td {
   gap: 12px;
   min-width: 0;
 }
+
+.debts-page .table-wrap {
+  overflow-x: auto;
+  background: white;
+  border-radius: 16px;
+  margin-top: 20px;
+}
+.debts-page table {
+  min-width: 950px;
+  width: 100%;
+  border-collapse: collapse;
+}
+.debts-page th,
+.debts-page td {
+  padding: 14px;
+  text-align: left;
+  border-bottom: 1px solid #edf0f5;
+}
+.debts-page .pagination {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: flex-end;
+  margin: 20px 0;
+}
+@media (max-width: 640px) {
+  .debts-page .page-heading {
+    display: block;
+  }
+  .debts-page .billing-filters {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .debts-page .pagination {
+    justify-content: space-between;
+    gap: 8px;
+  }
+}
