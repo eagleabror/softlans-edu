@@ -129,6 +129,8 @@ An error has `{ "error": { "code": "…", "message": "…", "requestId": "…", 
 
 ### Super Admin provisioning
 
+Render Free va iPhone uchun [GitHub Actions orqali xavfsiz bir martalik provisioning](docs/super-admin-github-actions.md) yo‘riqnomasidan foydalaning.
+
 There is **no public Super Admin registration**. An authorized operator with database/runtime access may temporarily set `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_NAME`, and a strong `SUPER_ADMIN_PASSWORD` in `apps/api/.env` or injected environment variables, then run:
 
 ```powershell
