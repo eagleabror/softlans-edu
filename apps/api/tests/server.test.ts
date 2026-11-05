@@ -243,3 +243,26 @@ describe("server startup failure logging", () => {
     );
   });
 });
+
+describe("graceful shutdown", () => {
+  it.each(["success", "database_failure", "http_failure"])("handles %s without leaking errors or reporting false success", async (mode) => {
+    const fails = mode !== "success";
+    const exit = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    const close = vi.fn((done: (error?: Error) => void) => done(mode === "http_failure" ? new Error(uri) : undefined));
+    Object.assign(server, { close });
+    if (mode === "database_failure") mocks.disconnect.mockRejectedValue(new Error(uri));
+    await import("../src/server.js");
+    const terminate = process.listeners("SIGTERM").find(listener => !listeners.SIGTERM!.includes(listener))!;
+    const interrupt = process.listeners("SIGINT").find(listener => !listeners.SIGINT!.includes(listener))!;
+    terminate("SIGTERM");
+    interrupt("SIGINT");
+    await vi.waitFor(() => expect(exit).toHaveBeenCalledWith(fails ? 1 : 0));
+    expect(close).toHaveBeenCalledOnce();
+    expect(mocks.disconnect).toHaveBeenCalledOnce();
+    expect(information.mock.calls.slice(1)).toEqual([
+      [JSON.stringify({ event: "shutdown", status: "started" })],
+      [JSON.stringify({ event: "shutdown", status: fails ? "failed" : "completed" })],
+    ]);
+    expect(errors).not.toHaveBeenCalled();
+  });
+});

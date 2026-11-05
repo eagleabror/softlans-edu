@@ -1,8 +1,10 @@
-# SoftLans Edu 2.0 — Phase 1
+# SoftLans Edu 2.0
 
 6.3.1 bosqichidagi alohida Super Admin paneli, API, xavfsizlik chegaralari va demo tekshiruvlari: [Super Admin va markazlarni boshqarish](docs/phase-6.3.1-super-admin.md).
 
-A TypeScript monorepo for an education-center CRM in Uzbekistan. Phase 1 implements center registration, cookie authentication, tenant isolation, four roles, a dashboard, and team account creation. All application interface text is Uzbek. Student management, courses, attendance, billing, messaging, password recovery, and subscriptions are outside this phase.
+O‘zbekiston ta’lim markazlari uchun TypeScript monorepo: tenant CRM, o‘quvchilar, guruhlar, jadval, davomat, billing, payroll, leadlar, Telegram, SaaS obunalar va onboarding. Interfeys o‘zbek tilida. Parolni tiklash va MFA hali mavjud emas.
+
+Production xavfsizlik auditi va qo‘lda tekshirish ro‘yxati: [Phase 6.4.1](docs/phase-6-4-1-production-audit.md). Onboarding: [Phase 6.3.3](docs/phase-6-3-3-onboarding.md).
 
 ## Prerequisites
 
@@ -15,7 +17,7 @@ A TypeScript monorepo for an education-center CRM in Uzbekistan. Phase 1 impleme
 ```powershell
 git clone https://github.com/eagleabror/softlans-edu.git
 cd softlans-edu
-git checkout feat/phase-1-foundation
+git checkout main
 npm ci
 Copy-Item apps/api/.env.example apps/api/.env
 node -e "console.log(require('node:crypto').randomBytes(48).toString('hex'))"
@@ -94,7 +96,7 @@ Tests delete users and tenants in that database. The path must be exactly `/soft
 
 ## Authentication and tenant boundaries
 
-- Public registration accepts only `name`, `email`, `password`, `centerName`. Extra fields are rejected. Both tenant and owner are created in one transaction; unique email indexing resolves races without orphan tenants.
+- Public registration accepts `name`, `email`, `password`, `centerName`, and an optional active `planId` for the 14-day trial. Extra fields are rejected. Both tenant and owner are created in one transaction; unique email indexing resolves races without orphan tenants.
 - Login accepts email and password only. Passwords are bcrypt-hashed with cost 12; registration enforces at least 12 characters and at most **72 UTF-8 bytes**, preventing bcrypt truncation.
 - JWTs expire in one hour and contain only subject, session version and standard claims. Verification pins HS256, issuer and audience. JWT roles and tenant IDs are never accepted as authorization sources.
 - Every authenticated request loads the user, current role, active state, session version and active tenant from MongoDB. `tenantScope(actor)` fails closed without membership and adds the server-derived tenant constraint to every tenant user query, count, lookup and creation. Client tenant IDs in body, query or headers cannot select a tenant. Future tenant data must follow this pattern.
@@ -147,9 +149,9 @@ Only against a development database, set `NODE_ENV=development`, `SEED_DEMO=true
 
 All use the supplied seed password. The script refuses production/test modes and duplicate demo emails, uses a transaction and never deletes existing data. Remove the seed password and set `SEED_DEMO=false` after use. No demo data or credentials are bundled into the frontend or created on startup.
 
-## Deployment assumptions and Phase 1 limits
+## Deployment assumptions and operational limits
 
-For the public Render demo, follow the [Render + MongoDB Atlas deployment guide](docs/render-demo.md). It includes exact Dashboard fields, Atlas database-user and network setup, environment variables, demo account policy, and verification steps. The root `render.yaml` is an optional Blueprint for one Node Web Service; apply it only after this change is merged into `feat/phase-1-foundation`. Auto-deploy is off. No deployment, account connection or automatic seed is performed by this change.
+For the public Render demo, follow the [Render + MongoDB Atlas deployment guide](docs/render-demo.md). It includes exact Dashboard fields, Atlas database-user and network setup, environment variables, demo account policy, and verification steps. The root `render.yaml` is a historical demo Blueprint: its branch, plan and auto-deploy fields do not establish the live service configuration. Verify the current Dashboard settings before using it; see the Phase 6.4.1 checklist. This audit does not deploy or modify live settings.
 
 Build from the repository root with `npm ci --include=dev && npm run build && npm prune --omit=dev` and run `npm start` with production variables injected. Express serves `apps/web/dist` and `/api` behind one HTTPS origin, binds `0.0.0.0` using `process.env.PORT`, and handles React Router navigation/refresh. Unknown API routes stay JSON 404s. Production startup refuses a missing frontend build or a MongoDB server without replica-set sessions. Set the Render health check to `/api/ready`; `/api/health` remains liveness. No separate frontend service, rewrite rules or frontend secrets are needed.
 

@@ -39,13 +39,29 @@ try {
     });
   });
   console.info(`API listening on port ${config.PORT}`);
+  let shuttingDown = false;
   const shutdown = () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.info(JSON.stringify({ event: "shutdown", status: "started" }));
     const timeout = setTimeout(() => process.exit(1), 10_000).unref();
-    server.close(() => {
-      void mongoose.disconnect().finally(() => {
+    server.close((error) => {
+      void (async () => {
+        let failed = !!error;
+        try {
+          await mongoose.disconnect();
+        } catch {
+          failed = true;
+        }
         clearTimeout(timeout);
-        process.exit(0);
-      });
+        console.info(
+          JSON.stringify({
+            event: "shutdown",
+            status: failed ? "failed" : "completed",
+          }),
+        );
+        process.exit(failed ? 1 : 0);
+      })();
     });
   };
   process.once("SIGTERM", shutdown);
