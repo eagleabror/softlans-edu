@@ -67,6 +67,11 @@ export const subscriptionEntitlement: RequestHandler = async (req, _res, next) =
     next();
     return;
   }
+  // Only metadata is exempt. The center endpoint and reused CRM APIs remain gated.
+  if (req.method === "PATCH" && path === "/api/onboarding/progress") {
+    next();
+    return;
+  }
   await assertSubscriptionWritable(req.principal.tenantId);
   next();
 };

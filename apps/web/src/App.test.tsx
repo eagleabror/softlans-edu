@@ -216,3 +216,17 @@ describe("Mobile sidebar", () => {
     expect(document.body.style.overflow).toBe("");
   });
 });
+
+it.each(["admin", "teacher"])("does not fetch or display owner setup for %s", async (role) => {
+  const fetchMock = vi.fn((url: string) => response(
+    url.endsWith("/me") ? { ...session, user: { ...session.user, role } } : {
+      scope: "tenant", teamCount: 1, teacherCount: 0, adminCount: 1,
+      joinedAt: new Date().toISOString(),
+    },
+  ));
+  vi.stubGlobal("fetch", fetchMock);
+  renderApp("/");
+  await screen.findByRole("heading", { name: "Xush kelibsiz, Aziz!" });
+  expect(screen.queryByRole("region", { name: "Markazni sozlash" })).not.toBeInTheDocument();
+  expect(fetchMock.mock.calls.some(([url]) => url.includes("/onboarding"))).toBe(false);
+});

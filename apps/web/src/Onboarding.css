@@ -1,0 +1,119 @@
+.onboarding {
+  max-width: 1000px;
+  margin: 0 auto;
+  min-width: 0;
+}
+.onboarding-intro {
+  padding: 16px 0 24px;
+}
+.onboarding-intro h1 {
+  font-size: clamp(24px, 4vw, 32px);
+  margin: 12px 0;
+}
+.onboarding-intro p,
+.onboarding-card p {
+  line-height: 1.7;
+}
+.onboarding-steps {
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  gap: 8px;
+  padding: 0;
+  margin: 0 0 24px;
+}
+.onboarding-steps li {
+  flex: 1 1 130px;
+}
+.onboarding-steps button {
+  width: 100%;
+  min-height: 52px;
+  padding: 8px;
+  border: 1px solid #7b847f;
+  border-radius: 10px;
+  background: white;
+  color: #263e35;
+  text-align: left;
+  transition: background 180ms;
+}
+.onboarding-steps [aria-current] {
+  background: #e6eee3;
+  font-weight: 600;
+  border-color: #263e35;
+}
+.onboarding-steps span {
+  display: inline-block;
+  margin-right: 8px;
+}
+.onboarding-card,
+.setup-checklist {
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px #263e3508;
+}
+.onboarding-card h2 {
+  margin: 20px 0;
+}
+.onboarding-card .auth-form {
+  max-width: 560px;
+}
+.onboarding-card label .plain-input {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+}
+.onboarding-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+.onboarding-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 20px;
+  background: #f4f7f1;
+  border-radius: 12px;
+}
+.onboarding-summary dd {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.onboarding progress,
+.setup-checklist progress {
+  width: 100%;
+  height: 10px;
+  accent-color: #355943;
+}
+.onboarding button:focus-visible,
+.onboarding a:focus-visible,
+.onboarding input:focus-visible,
+.setup-checklist button:focus-visible {
+  outline: 3px solid #526b43;
+  outline-offset: 3px;
+}
+@media (max-width: 640px) {
+  .onboarding-card,
+  .setup-checklist {
+    padding: 16px;
+  }
+  .onboarding-actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+  .onboarding-summary {
+    padding: 12px;
+    gap: 12px;
+  }
+  .setup-checklist .section-heading {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}
+
+.onboarding-card .plain-input { border-color: #7b847f; }
+.onboarding progress::-webkit-progress-bar, .setup-checklist progress::-webkit-progress-bar { background: #e6eee3; border-radius: 8px; }
+.onboarding progress::-webkit-progress-value, .setup-checklist progress::-webkit-progress-value { background: #355943; border-radius: 8px; }
+.onboarding .form-eyebrow, .onboarding .muted { color: #526b43; }

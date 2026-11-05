@@ -1,3 +1,4 @@
+import { Onboarding, SetupChecklist } from "./Onboarding";
 import { Registration } from "./Registration";
 import { TenantSubscription, SubscriptionBanner } from "./Saas";
 import { SuperAdminLayout } from "./SuperAdmin";
@@ -298,7 +299,7 @@ function AuthPage({
               ? "Markazingiz uchun hisob oching va jamoangizni birlashtiring."
               : "Hisobingizga kiring va markazingiz ishini davom ettiring."}
           </p>
-          {register ? <Registration onSession={s => { onSession(s); navigate("/"); }} /> : <form onSubmit={submit} className="auth-form">
+          {register ? <Registration onSession={s => { onSession(s); navigate("/onboarding"); }} /> : <form onSubmit={submit} className="auth-form">
             {register && (
               <>
                 <label htmlFor="centerName">O‘quv markazi nomi</label>
@@ -668,6 +669,14 @@ function Shell() {
           {session.tenant && <SubscriptionBanner owner={session.user.role === "business_owner"} />}
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            {session.user.role === "business_owner" && (
+              <Route path="/onboarding" element={
+                <Onboarding onCenterSaved={name => setSession({
+                  ...session,
+                  tenant: session.tenant ? { ...session.tenant, name } : null,
+                })} />
+              } />
+            )}
             <Route
               path="/super-admin/*"
               element={
@@ -929,6 +938,7 @@ function Dashboard() {
       >
         <span className="date-chip">{date}</span>
       </PageHeading>
+      {session.user.role === "business_owner" && <SetupChecklist />}
       <section className="welcome-banner">
         <div>
           <span className="welcome-label">
@@ -1376,12 +1386,14 @@ function Team() {
     </>
   );
 }
-function AddMember({
+export function AddMember({
   onClose,
   onAdded,
+  teacherOnly = false,
 }: {
   onClose: () => void;
   onAdded: () => void;
+  teacherOnly?: boolean;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const { session } = useAuth();
@@ -1459,7 +1471,7 @@ function AddMember({
           defaultValue="teacher"
         >
           <option value="teacher">O‘qituvchi</option>
-          {session.user.role === "business_owner" && (
+          {!teacherOnly && session.user.role === "business_owner" && (
             <option value="admin">Administrator</option>
           )}
         </select>

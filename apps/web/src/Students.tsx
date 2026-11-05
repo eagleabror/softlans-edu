@@ -416,7 +416,13 @@ const fields = [
   ["birthDate", "Tug‘ilgan sana", "date", undefined, false],
   ["enrollmentDate", "Qabul sanasi", "date", undefined, true],
 ] as const;
-export function StudentForm({ edit = false }: { edit?: boolean }) {
+export function StudentForm({
+  edit = false,
+  onSaved,
+}: {
+  edit?: boolean;
+  onSaved?: () => void;
+}) {
   const { id } = useParams();
   const navigate = useNavigate();
   const [student, setStudent] = useState<StudentView | null>(null);
@@ -462,14 +468,16 @@ export function StudentForm({ edit = false }: { edit?: boolean }) {
         edit ? `/students/${id}` : "/students",
         { method: edit ? "PATCH" : "POST", body: JSON.stringify(values) },
       );
-      navigate(`/students/${result.student.id}`, {
-        replace: true,
-        state: {
-          message: edit
-            ? "O‘quvchi ma’lumotlari saqlandi."
-            : "O‘quvchi qo‘shildi.",
-        },
-      });
+      if (onSaved) onSaved();
+      else
+        navigate(`/students/${result.student.id}`, {
+          replace: true,
+          state: {
+            message: edit
+              ? "O‘quvchi ma’lumotlari saqlandi."
+              : "O‘quvchi qo‘shildi.",
+          },
+        });
     } catch (e) {
       setError((e as Error).message);
       if (e instanceof HttpError) {
@@ -482,7 +490,11 @@ export function StudentForm({ edit = false }: { edit?: boolean }) {
   }
   return (
     <>
-      <Heading title={edit ? "O‘quvchini tahrirlash" : "O‘quvchi qo‘shish"} />
+      {onSaved ? (
+        <h3>O‘quvchi qo‘shish</h3>
+      ) : (
+        <Heading title={edit ? "O‘quvchini tahrirlash" : "O‘quvchi qo‘shish"} />
+      )}
       <ErrorNotice error={error} />
       {edit && !student ? (
         error ? (

@@ -1,3 +1,4 @@
+import { onboardingSchema } from "./onboarding-model.js";
 import { leadModels } from "./lead-models.js";
 import { PlatformAudit } from "./super-admin-models.js";
 import { StudentImportLog, StudentImportSession } from "./import-models.js";
@@ -29,6 +30,9 @@ import { normalizeName, normalizePhone } from "./student-validation.js";
 const tenantSchema = new Schema(
   {
     name: { type: String, required: true, trim: true, maxlength: 120 },
+    phone: { type: String, trim: true, maxlength: 16, match: /^\+?\d{7,15}$|^$/ },
+    address: { type: String, trim: true, maxlength: 300 },
+    onboarding: { type: onboardingSchema, default: undefined },
     billingRevision: { type: Number, default: 0, select: false },
     subscriptionRevision: { type: Number, default: 0, select: false },
     schedulingRevision: { type: Number, default: 0, select: false },
