@@ -321,7 +321,7 @@ function GrowthChart({ growth }: { growth: PlatformStatisticsView["growth"] }) {
               x2="880"
               y1={base - f * 150}
               y2={base - f * 150}
-              stroke="#dfe5d8"
+              stroke="var(--color-line)"
             />
           </g>
         ))}
@@ -333,7 +333,7 @@ function GrowthChart({ growth }: { growth: PlatformStatisticsView["growth"] }) {
             width={Math.max(2, step - 6)}
             height={(item.count / max) * 150}
             rx="3"
-            fill="#526b43"
+            fill="var(--color-brand)"
           >
             <title>
               {item.date}: {item.count} ta

@@ -162,3 +162,8 @@ dialog::backdrop { background: #292d3266; backdrop-filter: blur(3px); }
  .platform-collapsed .platform-brand > span,.platform-collapsed .platform-identity,.platform-collapsed .platform-sidebar > .button { display:revert; }
  .platform-topbar { min-height:64px; padding:8px 16px; }
 }
+@media(max-width:700px) {
+ .platform-shell .stat-top { flex-wrap:nowrap; flex-direction:row; justify-content:space-between; }
+ .platform-shell .stat-top > span:first-child { text-align:left; }
+}
+progress { accent-color:var(--color-brand); }
