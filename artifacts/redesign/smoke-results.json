@@ -1,0 +1,58 @@
+[
+  {
+    "name": "desktop sidebar collapse and expand",
+    "status": "passed"
+  },
+  {
+    "name": "mobile drawer keyboard focus, Escape and restore",
+    "status": "passed"
+  },
+  {
+    "name": "native team dialog open and cancel",
+    "status": "passed"
+  },
+  {
+    "name": "students responsive at 1440px",
+    "status": "passed"
+  },
+  {
+    "name": "students responsive at 1280px",
+    "status": "passed"
+  },
+  {
+    "name": "students responsive at 1024px",
+    "status": "passed"
+  },
+  {
+    "name": "students responsive at 768px",
+    "status": "passed"
+  },
+  {
+    "name": "students responsive at 390px",
+    "status": "passed"
+  },
+  {
+    "name": "students responsive at 320px",
+    "status": "passed"
+  },
+  {
+    "name": "classroom form persists through existing API",
+    "status": "passed"
+  },
+  {
+    "name": "teacher has no finance or team navigation",
+    "status": "passed"
+  },
+  {
+    "name": "teacher finance API still denies access",
+    "status": "passed"
+  },
+  {
+    "name": "Super Admin desktop collapse and mobile drawer",
+    "status": "passed"
+  },
+  {
+    "name": "real authentication form signs into fictional owner account",
+    "status": "passed"
+  }
+]

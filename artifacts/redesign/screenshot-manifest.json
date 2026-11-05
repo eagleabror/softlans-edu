@@ -1,0 +1,2525 @@
+[
+  {
+    "route": "/login",
+    "role": "anonymous",
+    "pageName": "login",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/anonymous-login.png",
+      "mobile": "screenshots/mobile/anonymous-login.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/login",
+    "heading": "Katta maqsadlar.Tartibli boshqaruv."
+  },
+  {
+    "route": "/login",
+    "role": "anonymous",
+    "pageName": "login",
+    "state": "validation-error",
+    "screenshots": {
+      "desktop": "screenshots/desktop/anonymous-login-validation-error.png",
+      "mobile": "screenshots/mobile/anonymous-login-validation-error.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/login",
+    "heading": "Katta maqsadlar.Tartibli boshqaruv."
+  },
+  {
+    "route": "/register",
+    "role": "anonymous",
+    "pageName": "registration",
+    "state": "account",
+    "screenshots": {
+      "desktop": "screenshots/desktop/anonymous-register-account.png",
+      "mobile": "screenshots/mobile/anonymous-register-account.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/register",
+    "heading": "Katta maqsadlar.Tartibli boshqaruv."
+  },
+  {
+    "route": "/register",
+    "role": "anonymous",
+    "pageName": "register",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/anonymous-register.png",
+      "mobile": "screenshots/mobile/anonymous-register.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/register",
+    "heading": "Katta maqsadlar.Tartibli boshqaruv."
+  },
+  {
+    "route": "/register",
+    "role": "anonymous",
+    "pageName": "registration",
+    "state": "plan-selection",
+    "screenshots": {
+      "desktop": "screenshots/desktop/anonymous-register-plan-selection.png",
+      "mobile": "screenshots/mobile/anonymous-register-plan-selection.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/register",
+    "heading": "Katta maqsadlar.Tartibli boshqaruv."
+  },
+  {
+    "route": "/",
+    "role": "business_owner",
+    "pageName": "dashboard",
+    "state": "all-statistics",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-dashboard-all-statistics.png",
+      "mobile": "screenshots/mobile/business_owner-dashboard-all-statistics.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/",
+    "heading": "Xush kelibsiz, Aziz!"
+  },
+  {
+    "route": "/",
+    "role": "business_owner",
+    "pageName": "dashboard",
+    "state": "collapsed",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-dashboard-collapsed.png",
+      "mobile": "screenshots/mobile/business_owner-dashboard-collapsed.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/",
+    "heading": "Xush kelibsiz, Aziz!"
+  },
+  {
+    "route": "/",
+    "role": "business_owner",
+    "pageName": "dashboard",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-dashboard.png",
+      "mobile": "screenshots/mobile/business_owner-dashboard.png"
+    },
+    "state": "default",
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/",
+    "heading": "Xush kelibsiz, Aziz!"
+  },
+  {
+    "route": "/account",
+    "role": "business_owner",
+    "pageName": "account",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-account.png",
+      "mobile": "screenshots/mobile/business_owner-account.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/account",
+    "heading": "Hisobim"
+  },
+  {
+    "route": "/attendance",
+    "role": "business_owner",
+    "pageName": "attendance",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-attendance.png",
+      "mobile": "screenshots/mobile/business_owner-attendance.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/attendance",
+    "heading": "Davomat"
+  },
+  {
+    "route": "/attendance/groups/:groupId",
+    "role": "business_owner",
+    "pageName": "attendance/groups/:groupId",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-attendance-groups-groupId.png",
+      "mobile": "screenshots/mobile/business_owner-attendance-groups-groupId.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/attendance/groups/6aecdafaaad7c149dda2ae5c",
+    "heading": "Guruh davomati"
+  },
+  {
+    "route": "/attendance/history",
+    "role": "business_owner",
+    "pageName": "attendance/history",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-attendance-history.png",
+      "mobile": "screenshots/mobile/business_owner-attendance-history.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/attendance/history",
+    "heading": "Davomat tarixi"
+  },
+  {
+    "route": "/attendance/sessions/:id",
+    "role": "business_owner",
+    "pageName": "attendance/sessions/:id",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-attendance-sessions-id.png",
+      "mobile": "screenshots/mobile/business_owner-attendance-sessions-id.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/attendance/sessions/6aecdafaaad7c149dda2ae6e",
+    "heading": "Davomat belgilash"
+  },
+  {
+    "route": "/attendance/students/:studentId",
+    "role": "business_owner",
+    "pageName": "attendance/students/:studentId",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-attendance-students-studentId.png",
+      "mobile": "screenshots/mobile/business_owner-attendance-students-studentId.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/attendance/students/6aecdafaaad7c149dda2ae50",
+    "heading": "O\u2018quvchi davomati"
+  },
+  {
+    "route": "/attendance/today",
+    "role": "business_owner",
+    "pageName": "attendance/today",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-attendance-today.png",
+      "mobile": "screenshots/mobile/business_owner-attendance-today.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/attendance/today",
+    "heading": "Davomat"
+  },
+  {
+    "route": "/billing",
+    "role": "business_owner",
+    "pageName": "billing",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-billing.png",
+      "mobile": "screenshots/mobile/business_owner-billing.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/billing",
+    "heading": "To\u2018lovlar"
+  },
+  {
+    "route": "/billing/history",
+    "role": "business_owner",
+    "pageName": "billing/history",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-billing-history.png",
+      "mobile": "screenshots/mobile/business_owner-billing-history.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/billing/history",
+    "heading": "To\u2018lovlar"
+  },
+  {
+    "route": "/center",
+    "role": "business_owner",
+    "pageName": "center",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-center.png",
+      "mobile": "screenshots/mobile/business_owner-center.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/center",
+    "heading": "Markaz ma\u2019lumotlari"
+  },
+  {
+    "route": "/classrooms",
+    "role": "business_owner",
+    "pageName": "classrooms",
+    "state": "create-form",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-classrooms-create-form.png",
+      "mobile": "screenshots/mobile/business_owner-classrooms-create-form.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/classrooms",
+    "heading": "Xonalar"
+  },
+  {
+    "route": "/classrooms",
+    "role": "business_owner",
+    "pageName": "classrooms",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-classrooms.png",
+      "mobile": "screenshots/mobile/business_owner-classrooms.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/classrooms",
+    "heading": "Xonalar"
+  },
+  {
+    "route": "/daily-reports",
+    "role": "business_owner",
+    "pageName": "daily-reports",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-daily-reports.png",
+      "mobile": "screenshots/mobile/business_owner-daily-reports.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/daily-reports",
+    "heading": "Kunlik hisobotlar"
+  },
+  {
+    "route": "/debts",
+    "role": "business_owner",
+    "pageName": "debts",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-debts.png",
+      "mobile": "screenshots/mobile/business_owner-debts.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/debts",
+    "heading": "Qarzdorlar"
+  },
+  {
+    "route": "/debts/groups",
+    "role": "business_owner",
+    "pageName": "debts/groups",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-debts-groups.png",
+      "mobile": "screenshots/mobile/business_owner-debts-groups.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/debts/groups",
+    "heading": "Guruhlar bo\u2018yicha qarzlar"
+  },
+  {
+    "route": "/debts/overdue",
+    "role": "business_owner",
+    "pageName": "debts/overdue",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-debts-overdue.png",
+      "mobile": "screenshots/mobile/business_owner-debts-overdue.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/debts/overdue",
+    "heading": "Muddati o\u2018tgan to\u2018lovlar"
+  },
+  {
+    "route": "/debts/students/:id",
+    "role": "business_owner",
+    "pageName": "debts/students/:id",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-debts-students-id.png",
+      "mobile": "screenshots/mobile/business_owner-debts-students-id.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/debts/students/6aecdafaaad7c149dda2ae50",
+    "heading": "Qarzdorlik tafsilotlari"
+  },
+  {
+    "route": "/follow-ups",
+    "role": "business_owner",
+    "pageName": "follow-ups",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-follow-ups.png",
+      "mobile": "screenshots/mobile/business_owner-follow-ups.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/follow-ups",
+    "heading": "Qayta bog\u2018lanish"
+  },
+  {
+    "route": "/groups",
+    "role": "business_owner",
+    "pageName": "groups",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-groups.png",
+      "mobile": "screenshots/mobile/business_owner-groups.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/groups",
+    "heading": "Guruhlar"
+  },
+  {
+    "route": "/groups/:id",
+    "role": "business_owner",
+    "pageName": "groups/:id",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-groups-id.png",
+      "mobile": "screenshots/mobile/business_owner-groups-id.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/groups/6aecdafaaad7c149dda2ae5c",
+    "heading": "Ingliz tili \u00b7 A1"
+  },
+  {
+    "route": "/groups/:id/edit",
+    "role": "business_owner",
+    "pageName": "groups/:id/edit",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-groups-id-edit.png",
+      "mobile": "screenshots/mobile/business_owner-groups-id-edit.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/groups/6aecdafaaad7c149dda2ae5c/edit",
+    "heading": "Guruhni tahrirlash"
+  },
+  {
+    "route": "/groups/new",
+    "role": "business_owner",
+    "pageName": "groups/new",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-groups-new.png",
+      "mobile": "screenshots/mobile/business_owner-groups-new.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/groups/new",
+    "heading": "Guruh yaratish"
+  },
+  {
+    "route": "/leads",
+    "role": "business_owner",
+    "pageName": "leads",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-leads.png",
+      "mobile": "screenshots/mobile/business_owner-leads.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/leads",
+    "heading": "Leadlar"
+  },
+  {
+    "route": "/leads/:id",
+    "role": "business_owner",
+    "pageName": "leads/:id",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-leads-id.png",
+      "mobile": "screenshots/mobile/business_owner-leads-id.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/leads/6aecdafaaad7c149dda2ae94",
+    "heading": "Dilnoza Sinov"
+  },
+  {
+    "route": "/leads/:id/edit",
+    "role": "business_owner",
+    "pageName": "leads/:id/edit",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-leads-id-edit.png",
+      "mobile": "screenshots/mobile/business_owner-leads-id-edit.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/leads/6aecdafaaad7c149dda2ae94/edit",
+    "heading": "Leadni tahrirlash"
+  },
+  {
+    "route": "/leads/analytics",
+    "role": "business_owner",
+    "pageName": "leads/analytics",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-leads-analytics.png",
+      "mobile": "screenshots/mobile/business_owner-leads-analytics.png"
+    },
+    "state": "default",
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/leads/analytics",
+    "heading": "Lead analitikasi"
+  },
+  {
+    "route": "/leads/new",
+    "role": "business_owner",
+    "pageName": "leads/new",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-leads-new.png",
+      "mobile": "screenshots/mobile/business_owner-leads-new.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/leads/new",
+    "heading": "Yangi lead"
+  },
+  {
+    "route": "/leads/pipeline",
+    "role": "business_owner",
+    "pageName": "leads/pipeline",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-leads-pipeline.png",
+      "mobile": "screenshots/mobile/business_owner-leads-pipeline.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/leads/pipeline",
+    "heading": "Sotuv voronkasi"
+  },
+  {
+    "route": "/notifications",
+    "role": "business_owner",
+    "pageName": "notifications",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-notifications.png",
+      "mobile": "screenshots/mobile/business_owner-notifications.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/notifications",
+    "heading": "Telegram xabarnomalari"
+  },
+  {
+    "route": "/onboarding",
+    "role": "business_owner",
+    "pageName": "onboarding",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-onboarding.png",
+      "mobile": "screenshots/mobile/business_owner-onboarding.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/onboarding",
+    "heading": "Yangi imkoniyatlarga xush kelibsiz"
+  },
+  {
+    "route": "/onboarding?step=center",
+    "role": "business_owner",
+    "pageName": "onboarding-center",
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-onboarding-step-center.png",
+      "mobile": "screenshots/mobile/business_owner-onboarding-step-center.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/onboarding?step=center",
+    "heading": "Yangi imkoniyatlarga xush kelibsiz"
+  },
+  {
+    "route": "/onboarding?step=completion",
+    "role": "business_owner",
+    "pageName": "onboarding-completion",
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-onboarding-step-completion.png",
+      "mobile": "screenshots/mobile/business_owner-onboarding-step-completion.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/onboarding?step=completion",
+    "heading": "Yangi imkoniyatlarga xush kelibsiz"
+  },
+  {
+    "route": "/onboarding?step=group",
+    "role": "business_owner",
+    "pageName": "onboarding-group",
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-onboarding-step-group.png",
+      "mobile": "screenshots/mobile/business_owner-onboarding-step-group.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/onboarding?step=group",
+    "heading": "Yangi imkoniyatlarga xush kelibsiz"
+  },
+  {
+    "route": "/onboarding?step=students",
+    "role": "business_owner",
+    "pageName": "onboarding-students",
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-onboarding-step-students.png",
+      "mobile": "screenshots/mobile/business_owner-onboarding-step-students.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/onboarding?step=students",
+    "heading": "Yangi imkoniyatlarga xush kelibsiz"
+  },
+  {
+    "route": "/onboarding?step=teacher",
+    "role": "business_owner",
+    "pageName": "onboarding-teacher",
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-onboarding-step-teacher.png",
+      "mobile": "screenshots/mobile/business_owner-onboarding-step-teacher.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/onboarding?step=teacher",
+    "heading": "Yangi imkoniyatlarga xush kelibsiz"
+  },
+  {
+    "route": "/onboarding?step=telegram",
+    "role": "business_owner",
+    "pageName": "onboarding-telegram",
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-onboarding-step-telegram.png",
+      "mobile": "screenshots/mobile/business_owner-onboarding-step-telegram.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/onboarding?step=telegram",
+    "heading": "Yangi imkoniyatlarga xush kelibsiz"
+  },
+  {
+    "route": "/payroll",
+    "role": "business_owner",
+    "pageName": "payroll",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-payroll.png",
+      "mobile": "screenshots/mobile/business_owner-payroll.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/payroll",
+    "heading": "O\u2018qituvchilar maoshi"
+  },
+  {
+    "route": "/payroll/:id",
+    "role": "business_owner",
+    "pageName": "payroll/:id",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-payroll-id.png",
+      "mobile": "screenshots/mobile/business_owner-payroll-id.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/payroll/6aecdafaaad7c149dda2ae9a",
+    "heading": "Maosh tafsilotlari"
+  },
+  {
+    "route": "/payroll/settings",
+    "role": "business_owner",
+    "pageName": "payroll/settings",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-payroll-settings.png",
+      "mobile": "screenshots/mobile/business_owner-payroll-settings.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/payroll/settings",
+    "heading": "Maosh sozlamalari"
+  },
+  {
+    "route": "/reports",
+    "role": "business_owner",
+    "pageName": "reports",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-reports.png",
+      "mobile": "screenshots/mobile/business_owner-reports.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/reports",
+    "heading": "Moliyaviy hisobotlar"
+  },
+  {
+    "route": "/schedules",
+    "role": "business_owner",
+    "pageName": "schedules",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-schedules.png",
+      "mobile": "screenshots/mobile/business_owner-schedules.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/schedules",
+    "heading": "Dars jadvali"
+  },
+  {
+    "route": "/schedules/:id/edit",
+    "role": "business_owner",
+    "pageName": "schedules/:id/edit",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-schedules-id-edit.png",
+      "mobile": "screenshots/mobile/business_owner-schedules-id-edit.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/schedules/6aecdafaaad7c149dda2ae6c/edit",
+    "heading": "Darsni tahrirlash"
+  },
+  {
+    "route": "/schedules/new",
+    "role": "business_owner",
+    "pageName": "schedules/new",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-schedules-new.png",
+      "mobile": "screenshots/mobile/business_owner-schedules-new.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/schedules/new",
+    "heading": "Dars qo\u2018shish"
+  },
+  {
+    "route": "/schedules/weekly",
+    "role": "business_owner",
+    "pageName": "schedules/weekly",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-schedules-weekly.png",
+      "mobile": "screenshots/mobile/business_owner-schedules-weekly.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/schedules/weekly",
+    "heading": "Haftalik kalendar"
+  },
+  {
+    "route": "/settings/subscription",
+    "role": "business_owner",
+    "pageName": "settings/subscription",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-settings-subscription.png",
+      "mobile": "screenshots/mobile/business_owner-settings-subscription.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/settings/subscription",
+    "heading": "Obuna va tariflar"
+  },
+  {
+    "route": "/settings/telegram",
+    "role": "business_owner",
+    "pageName": "settings/telegram",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-settings-telegram.png",
+      "mobile": "screenshots/mobile/business_owner-settings-telegram.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/settings/telegram",
+    "heading": "Telegram"
+  },
+  {
+    "route": "/students",
+    "role": "business_owner",
+    "pageName": "students",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-students.png",
+      "mobile": "screenshots/mobile/business_owner-students.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/students",
+    "heading": "O\u2018quvchilar"
+  },
+  {
+    "route": "/students",
+    "role": "business_owner",
+    "pageName": "students",
+    "state": "error-state",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-students-error-state.png",
+      "mobile": "screenshots/mobile/business_owner-students-error-state.png"
+    },
+    "errors": [],
+    "expectedErrors": [
+      "desktop: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "desktop: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "mobile: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "mobile: Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    ],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/students",
+    "heading": "O\u2018quvchilar"
+  },
+  {
+    "route": "/students",
+    "role": "business_owner",
+    "pageName": "students",
+    "state": "loading-state",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-students-loading-state.png",
+      "mobile": "screenshots/mobile/business_owner-students-loading-state.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/students",
+    "heading": "O\u2018quvchilar"
+  },
+  {
+    "route": "/students/:id",
+    "role": "business_owner",
+    "pageName": "students/:id",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-students-id.png",
+      "mobile": "screenshots/mobile/business_owner-students-id.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/students/6aecdafaaad7c149dda2ae50",
+    "heading": "O\u2018quvchi profili"
+  },
+  {
+    "route": "/students/:id/edit",
+    "role": "business_owner",
+    "pageName": "students/:id/edit",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-students-id-edit.png",
+      "mobile": "screenshots/mobile/business_owner-students-id-edit.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/students/6aecdafaaad7c149dda2ae50/edit",
+    "heading": "O\u2018quvchini tahrirlash"
+  },
+  {
+    "route": "/students/:id/finance",
+    "role": "business_owner",
+    "pageName": "students/:id/finance",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-students-id-finance.png",
+      "mobile": "screenshots/mobile/business_owner-students-id-finance.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/students/6aecdafaaad7c149dda2ae50/finance",
+    "heading": "O\u2018quvchining moliyaviy profili"
+  },
+  {
+    "route": "/students/:id/finance/history",
+    "role": "business_owner",
+    "pageName": "students/:id/finance/history",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-students-id-finance-history.png",
+      "mobile": "screenshots/mobile/business_owner-students-id-finance-history.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/students/6aecdafaaad7c149dda2ae50/finance/history",
+    "heading": "O\u2018quvchining moliyaviy profili"
+  },
+  {
+    "route": "/students/import",
+    "role": "business_owner",
+    "pageName": "students/import",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-students-import.png",
+      "mobile": "screenshots/mobile/business_owner-students-import.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/students/import",
+    "heading": "Excel import"
+  },
+  {
+    "route": "/students/import",
+    "role": "business_owner",
+    "pageName": "student-import",
+    "state": "preview",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-students-import-preview.png",
+      "mobile": "screenshots/mobile/business_owner-students-import-preview.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/students/import",
+    "heading": "Excel import"
+  },
+  {
+    "route": "/students/new",
+    "role": "business_owner",
+    "pageName": "students/new",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-students-new.png",
+      "mobile": "screenshots/mobile/business_owner-students-new.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/students/new",
+    "heading": "O\u2018quvchi qo\u2018shish"
+  },
+  {
+    "route": "/students/new",
+    "role": "business_owner",
+    "pageName": "student-create",
+    "state": "validation",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-students-new-validation.png",
+      "mobile": "screenshots/mobile/business_owner-students-new-validation.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/students/new",
+    "heading": "O\u2018quvchi qo\u2018shish"
+  },
+  {
+    "route": "/students?search=NoMatchingRecord",
+    "role": "business_owner",
+    "pageName": "students",
+    "state": "empty",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-students-search-NoMatchingRecord-empty.png",
+      "mobile": "screenshots/mobile/business_owner-students-search-NoMatchingRecord-empty.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/students?search=NoMatchingRecord",
+    "heading": "O\u2018quvchilar"
+  },
+  {
+    "route": "/team",
+    "role": "business_owner",
+    "pageName": "team",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-team.png",
+      "mobile": "screenshots/mobile/business_owner-team.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/team",
+    "heading": "Jamoa"
+  },
+  {
+    "route": "/team",
+    "role": "business_owner",
+    "pageName": "team",
+    "state": "modal",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-team-modal.png",
+      "mobile": "screenshots/mobile/business_owner-team-modal.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/team",
+    "heading": "Jamoa"
+  },
+  {
+    "route": "/trial-lessons",
+    "role": "business_owner",
+    "pageName": "trial-lessons",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-trial-lessons.png",
+      "mobile": "screenshots/mobile/business_owner-trial-lessons.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/trial-lessons",
+    "heading": "Sinov darslari"
+  },
+  {
+    "route": "/",
+    "role": "admin",
+    "pageName": "dashboard",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-dashboard.png",
+      "mobile": "screenshots/mobile/admin-dashboard.png"
+    },
+    "state": "default",
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/",
+    "heading": "Xush kelibsiz, Madina!"
+  },
+  {
+    "route": "/account",
+    "role": "admin",
+    "pageName": "account",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-account.png",
+      "mobile": "screenshots/mobile/admin-account.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/account",
+    "heading": "Hisobim"
+  },
+  {
+    "route": "/attendance",
+    "role": "admin",
+    "pageName": "attendance",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-attendance.png",
+      "mobile": "screenshots/mobile/admin-attendance.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/attendance",
+    "heading": "Davomat"
+  },
+  {
+    "route": "/attendance/groups/:groupId",
+    "role": "admin",
+    "pageName": "attendance/groups/:groupId",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-attendance-groups-groupId.png",
+      "mobile": "screenshots/mobile/admin-attendance-groups-groupId.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/attendance/groups/6aecdafaaad7c149dda2ae5c",
+    "heading": "Guruh davomati"
+  },
+  {
+    "route": "/attendance/history",
+    "role": "admin",
+    "pageName": "attendance/history",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-attendance-history.png",
+      "mobile": "screenshots/mobile/admin-attendance-history.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/attendance/history",
+    "heading": "Davomat tarixi"
+  },
+  {
+    "route": "/attendance/sessions/:id",
+    "role": "admin",
+    "pageName": "attendance/sessions/:id",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-attendance-sessions-id.png",
+      "mobile": "screenshots/mobile/admin-attendance-sessions-id.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/attendance/sessions/6aecdafaaad7c149dda2ae6e",
+    "heading": "Davomat belgilash"
+  },
+  {
+    "route": "/attendance/students/:studentId",
+    "role": "admin",
+    "pageName": "attendance/students/:studentId",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-attendance-students-studentId.png",
+      "mobile": "screenshots/mobile/admin-attendance-students-studentId.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/attendance/students/6aecdafaaad7c149dda2ae50",
+    "heading": "O\u2018quvchi davomati"
+  },
+  {
+    "route": "/attendance/today",
+    "role": "admin",
+    "pageName": "attendance/today",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-attendance-today.png",
+      "mobile": "screenshots/mobile/admin-attendance-today.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/attendance/today",
+    "heading": "Davomat"
+  },
+  {
+    "route": "/billing",
+    "role": "admin",
+    "pageName": "billing",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-billing.png",
+      "mobile": "screenshots/mobile/admin-billing.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/billing",
+    "heading": "To\u2018lovlar"
+  },
+  {
+    "route": "/billing/history",
+    "role": "admin",
+    "pageName": "billing/history",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-billing-history.png",
+      "mobile": "screenshots/mobile/admin-billing-history.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/billing/history",
+    "heading": "To\u2018lovlar"
+  },
+  {
+    "route": "/center",
+    "role": "admin",
+    "pageName": "center",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-center.png",
+      "mobile": "screenshots/mobile/admin-center.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/center",
+    "heading": "Markaz ma\u2019lumotlari"
+  },
+  {
+    "route": "/classrooms",
+    "role": "admin",
+    "pageName": "classrooms",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-classrooms.png",
+      "mobile": "screenshots/mobile/admin-classrooms.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/classrooms",
+    "heading": "Xonalar"
+  },
+  {
+    "route": "/debts",
+    "role": "admin",
+    "pageName": "debts",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-debts.png",
+      "mobile": "screenshots/mobile/admin-debts.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/debts",
+    "heading": "Qarzdorlar"
+  },
+  {
+    "route": "/debts/groups",
+    "role": "admin",
+    "pageName": "debts/groups",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-debts-groups.png",
+      "mobile": "screenshots/mobile/admin-debts-groups.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/debts/groups",
+    "heading": "Guruhlar bo\u2018yicha qarzlar"
+  },
+  {
+    "route": "/debts/overdue",
+    "role": "admin",
+    "pageName": "debts/overdue",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-debts-overdue.png",
+      "mobile": "screenshots/mobile/admin-debts-overdue.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/debts/overdue",
+    "heading": "Muddati o\u2018tgan to\u2018lovlar"
+  },
+  {
+    "route": "/debts/students/:id",
+    "role": "admin",
+    "pageName": "debts/students/:id",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-debts-students-id.png",
+      "mobile": "screenshots/mobile/admin-debts-students-id.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/debts/students/6aecdafaaad7c149dda2ae50",
+    "heading": "Qarzdorlik tafsilotlari"
+  },
+  {
+    "route": "/follow-ups",
+    "role": "admin",
+    "pageName": "follow-ups",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-follow-ups.png",
+      "mobile": "screenshots/mobile/admin-follow-ups.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/follow-ups",
+    "heading": "Qayta bog\u2018lanish"
+  },
+  {
+    "route": "/groups",
+    "role": "admin",
+    "pageName": "groups",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-groups.png",
+      "mobile": "screenshots/mobile/admin-groups.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/groups",
+    "heading": "Guruhlar"
+  },
+  {
+    "route": "/groups/:id",
+    "role": "admin",
+    "pageName": "groups/:id",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-groups-id.png",
+      "mobile": "screenshots/mobile/admin-groups-id.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/groups/6aecdafaaad7c149dda2ae5c",
+    "heading": "Ingliz tili \u00b7 A1"
+  },
+  {
+    "route": "/groups/:id/edit",
+    "role": "admin",
+    "pageName": "groups/:id/edit",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-groups-id-edit.png",
+      "mobile": "screenshots/mobile/admin-groups-id-edit.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/groups/6aecdafaaad7c149dda2ae5c/edit",
+    "heading": "Guruhni tahrirlash"
+  },
+  {
+    "route": "/groups/new",
+    "role": "admin",
+    "pageName": "groups/new",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-groups-new.png",
+      "mobile": "screenshots/mobile/admin-groups-new.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/groups/new",
+    "heading": "Guruh yaratish"
+  },
+  {
+    "route": "/leads",
+    "role": "admin",
+    "pageName": "leads",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-leads.png",
+      "mobile": "screenshots/mobile/admin-leads.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/leads",
+    "heading": "Leadlar"
+  },
+  {
+    "route": "/leads/:id",
+    "role": "admin",
+    "pageName": "leads/:id",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-leads-id.png",
+      "mobile": "screenshots/mobile/admin-leads-id.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/leads/6aecdafaaad7c149dda2ae94",
+    "heading": "Dilnoza Sinov"
+  },
+  {
+    "route": "/leads/:id/edit",
+    "role": "admin",
+    "pageName": "leads/:id/edit",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-leads-id-edit.png",
+      "mobile": "screenshots/mobile/admin-leads-id-edit.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/leads/6aecdafaaad7c149dda2ae94/edit",
+    "heading": "Leadni tahrirlash"
+  },
+  {
+    "route": "/leads/analytics",
+    "role": "admin",
+    "pageName": "leads/analytics",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-leads-analytics.png",
+      "mobile": "screenshots/mobile/admin-leads-analytics.png"
+    },
+    "state": "default",
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/leads/analytics",
+    "heading": "Lead analitikasi"
+  },
+  {
+    "route": "/leads/new",
+    "role": "admin",
+    "pageName": "leads/new",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-leads-new.png",
+      "mobile": "screenshots/mobile/admin-leads-new.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/leads/new",
+    "heading": "Yangi lead"
+  },
+  {
+    "route": "/leads/pipeline",
+    "role": "admin",
+    "pageName": "leads/pipeline",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-leads-pipeline.png",
+      "mobile": "screenshots/mobile/admin-leads-pipeline.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/leads/pipeline",
+    "heading": "Sotuv voronkasi"
+  },
+  {
+    "route": "/notifications",
+    "role": "admin",
+    "pageName": "notifications",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-notifications.png",
+      "mobile": "screenshots/mobile/admin-notifications.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/notifications",
+    "heading": "Telegram xabarnomalari"
+  },
+  {
+    "route": "/reports",
+    "role": "admin",
+    "pageName": "reports",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-reports.png",
+      "mobile": "screenshots/mobile/admin-reports.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/reports",
+    "heading": "Moliyaviy hisobotlar"
+  },
+  {
+    "route": "/schedules",
+    "role": "admin",
+    "pageName": "schedules",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-schedules.png",
+      "mobile": "screenshots/mobile/admin-schedules.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/schedules",
+    "heading": "Dars jadvali"
+  },
+  {
+    "route": "/schedules/:id/edit",
+    "role": "admin",
+    "pageName": "schedules/:id/edit",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-schedules-id-edit.png",
+      "mobile": "screenshots/mobile/admin-schedules-id-edit.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/schedules/6aecdafaaad7c149dda2ae6c/edit",
+    "heading": "Darsni tahrirlash"
+  },
+  {
+    "route": "/schedules/new",
+    "role": "admin",
+    "pageName": "schedules/new",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-schedules-new.png",
+      "mobile": "screenshots/mobile/admin-schedules-new.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/schedules/new",
+    "heading": "Dars qo\u2018shish"
+  },
+  {
+    "route": "/schedules/weekly",
+    "role": "admin",
+    "pageName": "schedules/weekly",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-schedules-weekly.png",
+      "mobile": "screenshots/mobile/admin-schedules-weekly.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/schedules/weekly",
+    "heading": "Haftalik kalendar"
+  },
+  {
+    "route": "/settings/subscription",
+    "role": "admin",
+    "pageName": "settings/subscription",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-settings-subscription.png",
+      "mobile": "screenshots/mobile/admin-settings-subscription.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/settings/subscription",
+    "heading": "Obunani faqat markaz egasi boshqaradi."
+  },
+  {
+    "route": "/settings/telegram",
+    "role": "admin",
+    "pageName": "settings/telegram",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-settings-telegram.png",
+      "mobile": "screenshots/mobile/admin-settings-telegram.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/settings/telegram",
+    "heading": "Telegram"
+  },
+  {
+    "route": "/students",
+    "role": "admin",
+    "pageName": "students",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-students.png",
+      "mobile": "screenshots/mobile/admin-students.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/students",
+    "heading": "O\u2018quvchilar"
+  },
+  {
+    "route": "/students/:id",
+    "role": "admin",
+    "pageName": "students/:id",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-students-id.png",
+      "mobile": "screenshots/mobile/admin-students-id.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/students/6aecdafaaad7c149dda2ae50",
+    "heading": "O\u2018quvchi profili"
+  },
+  {
+    "route": "/students/:id/edit",
+    "role": "admin",
+    "pageName": "students/:id/edit",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-students-id-edit.png",
+      "mobile": "screenshots/mobile/admin-students-id-edit.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/students/6aecdafaaad7c149dda2ae50/edit",
+    "heading": "O\u2018quvchini tahrirlash"
+  },
+  {
+    "route": "/students/:id/finance",
+    "role": "admin",
+    "pageName": "students/:id/finance",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-students-id-finance.png",
+      "mobile": "screenshots/mobile/admin-students-id-finance.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/students/6aecdafaaad7c149dda2ae50/finance",
+    "heading": "O\u2018quvchining moliyaviy profili"
+  },
+  {
+    "route": "/students/:id/finance/history",
+    "role": "admin",
+    "pageName": "students/:id/finance/history",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-students-id-finance-history.png",
+      "mobile": "screenshots/mobile/admin-students-id-finance-history.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/students/6aecdafaaad7c149dda2ae50/finance/history",
+    "heading": "O\u2018quvchining moliyaviy profili"
+  },
+  {
+    "route": "/students/import",
+    "role": "admin",
+    "pageName": "students/import",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-students-import.png",
+      "mobile": "screenshots/mobile/admin-students-import.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/students/import",
+    "heading": "Excel import"
+  },
+  {
+    "route": "/students/new",
+    "role": "admin",
+    "pageName": "students/new",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-students-new.png",
+      "mobile": "screenshots/mobile/admin-students-new.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/students/new",
+    "heading": "O\u2018quvchi qo\u2018shish"
+  },
+  {
+    "route": "/team",
+    "role": "admin",
+    "pageName": "team",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-team.png",
+      "mobile": "screenshots/mobile/admin-team.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/team",
+    "heading": "Jamoa"
+  },
+  {
+    "route": "/trial-lessons",
+    "role": "admin",
+    "pageName": "trial-lessons",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-trial-lessons.png",
+      "mobile": "screenshots/mobile/admin-trial-lessons.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/trial-lessons",
+    "heading": "Sinov darslari"
+  },
+  {
+    "route": "/",
+    "role": "teacher",
+    "pageName": "dashboard",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-dashboard.png",
+      "mobile": "screenshots/mobile/teacher-dashboard.png"
+    },
+    "state": "default",
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/",
+    "heading": "Xush kelibsiz, Sardor!"
+  },
+  {
+    "route": "/account",
+    "role": "teacher",
+    "pageName": "account",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-account.png",
+      "mobile": "screenshots/mobile/teacher-account.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/account",
+    "heading": "Hisobim"
+  },
+  {
+    "route": "/attendance",
+    "role": "teacher",
+    "pageName": "attendance",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-attendance.png",
+      "mobile": "screenshots/mobile/teacher-attendance.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/attendance",
+    "heading": "Davomat"
+  },
+  {
+    "route": "/attendance/groups/:groupId",
+    "role": "teacher",
+    "pageName": "attendance/groups/:groupId",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-attendance-groups-groupId.png",
+      "mobile": "screenshots/mobile/teacher-attendance-groups-groupId.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/attendance/groups/6aecdafaaad7c149dda2ae5c",
+    "heading": "Guruh davomati"
+  },
+  {
+    "route": "/attendance/history",
+    "role": "teacher",
+    "pageName": "attendance/history",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-attendance-history.png",
+      "mobile": "screenshots/mobile/teacher-attendance-history.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/attendance/history",
+    "heading": "Davomat tarixi"
+  },
+  {
+    "route": "/attendance/sessions/:id",
+    "role": "teacher",
+    "pageName": "attendance/sessions/:id",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-attendance-sessions-id.png",
+      "mobile": "screenshots/mobile/teacher-attendance-sessions-id.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/attendance/sessions/6aecdafaaad7c149dda2ae6e",
+    "heading": "Davomat belgilash"
+  },
+  {
+    "route": "/attendance/students/:studentId",
+    "role": "teacher",
+    "pageName": "attendance/students/:studentId",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-attendance-students-studentId.png",
+      "mobile": "screenshots/mobile/teacher-attendance-students-studentId.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/attendance/students/6aecdafaaad7c149dda2ae50",
+    "heading": "O\u2018quvchi davomati"
+  },
+  {
+    "route": "/attendance/today",
+    "role": "teacher",
+    "pageName": "attendance/today",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-attendance-today.png",
+      "mobile": "screenshots/mobile/teacher-attendance-today.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/attendance/today",
+    "heading": "Davomat"
+  },
+  {
+    "route": "/center",
+    "role": "teacher",
+    "pageName": "center",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-center.png",
+      "mobile": "screenshots/mobile/teacher-center.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/center",
+    "heading": "Markaz ma\u2019lumotlari"
+  },
+  {
+    "route": "/groups",
+    "role": "teacher",
+    "pageName": "groups",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-groups.png",
+      "mobile": "screenshots/mobile/teacher-groups.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/groups",
+    "heading": "Guruhlar"
+  },
+  {
+    "route": "/groups/:id",
+    "role": "teacher",
+    "pageName": "groups/:id",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-groups-id.png",
+      "mobile": "screenshots/mobile/teacher-groups-id.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/groups/6aecdafaaad7c149dda2ae5c",
+    "heading": "Ingliz tili \u00b7 A1"
+  },
+  {
+    "route": "/payroll",
+    "role": "teacher",
+    "pageName": "payroll",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-payroll.png",
+      "mobile": "screenshots/mobile/teacher-payroll.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/payroll",
+    "heading": "O\u2018qituvchilar maoshi"
+  },
+  {
+    "route": "/payroll/:id",
+    "role": "teacher",
+    "pageName": "payroll/:id",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [
+      "desktop: Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "desktop: Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "desktop: Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "desktop: Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "mobile: Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "mobile: Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "mobile: Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "mobile: Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-payroll-id.png",
+      "mobile": "screenshots/mobile/teacher-payroll-id.png"
+    },
+    "state": "default",
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/payroll/6aecdd3154877f1604a1a0cd",
+    "heading": "Maosh tafsilotlari"
+  },
+  {
+    "route": "/schedules",
+    "role": "teacher",
+    "pageName": "schedules",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-schedules.png",
+      "mobile": "screenshots/mobile/teacher-schedules.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/schedules",
+    "heading": "Dars jadvali"
+  },
+  {
+    "route": "/schedules/weekly",
+    "role": "teacher",
+    "pageName": "schedules/weekly",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-schedules-weekly.png",
+      "mobile": "screenshots/mobile/teacher-schedules-weekly.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/schedules/weekly",
+    "heading": "Haftalik kalendar"
+  },
+  {
+    "route": "/settings/subscription",
+    "role": "teacher",
+    "pageName": "settings/subscription",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-settings-subscription.png",
+      "mobile": "screenshots/mobile/teacher-settings-subscription.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/settings/subscription",
+    "heading": "Obunani faqat markaz egasi boshqaradi."
+  },
+  {
+    "route": "/settings/telegram",
+    "role": "teacher",
+    "pageName": "settings/telegram",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-settings-telegram.png",
+      "mobile": "screenshots/mobile/teacher-settings-telegram.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/settings/telegram",
+    "heading": "Telegram"
+  },
+  {
+    "route": "/super-admin",
+    "role": "super_admin",
+    "pageName": "super-admin",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/super_admin-super-admin.png",
+      "mobile": "screenshots/mobile/super_admin-super-admin.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/super-admin",
+    "heading": "Platforma dashboardi"
+  },
+  {
+    "route": "/super-admin",
+    "role": "super_admin",
+    "pageName": "dashboard",
+    "state": "navigation",
+    "screenshots": {
+      "desktop": "screenshots/desktop/super_admin-super-admin-navigation.png",
+      "mobile": "screenshots/mobile/super_admin-super-admin-navigation.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/super-admin",
+    "heading": "Platforma dashboardi"
+  },
+  {
+    "route": "/super-admin/audit",
+    "role": "super_admin",
+    "pageName": "super-admin/audit",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/super_admin-super-admin-audit.png",
+      "mobile": "screenshots/mobile/super_admin-super-admin-audit.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/super-admin/audit",
+    "heading": "Audit tarixi"
+  },
+  {
+    "route": "/super-admin/payment-requests",
+    "role": "super_admin",
+    "pageName": "super-admin/payment-requests",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/super_admin-super-admin-payment-requests.png",
+      "mobile": "screenshots/mobile/super_admin-super-admin-payment-requests.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/super-admin/payment-requests",
+    "heading": "To\u2018lov so\u2018rovlari"
+  },
+  {
+    "route": "/super-admin/plans",
+    "role": "super_admin",
+    "pageName": "plans",
+    "state": "create-modal",
+    "screenshots": {
+      "desktop": "screenshots/desktop/super_admin-super-admin-plans-create-modal.png",
+      "mobile": "screenshots/mobile/super_admin-super-admin-plans-create-modal.png"
+    },
+    "errors": [],
+    "expectedErrors": [],
+    "overflow": [],
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "finalUrl": "http://localhost:5173/super-admin/plans",
+    "heading": "Tariflar"
+  },
+  {
+    "route": "/super-admin/plans",
+    "role": "super_admin",
+    "pageName": "super-admin/plans",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/super_admin-super-admin-plans.png",
+      "mobile": "screenshots/mobile/super_admin-super-admin-plans.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/super-admin/plans",
+    "heading": "Tariflar"
+  },
+  {
+    "route": "/super-admin/saas-analytics",
+    "role": "super_admin",
+    "pageName": "super-admin/saas-analytics",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/super_admin-super-admin-saas-analytics.png",
+      "mobile": "screenshots/mobile/super_admin-super-admin-saas-analytics.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/super-admin/saas-analytics",
+    "heading": "SaaS analitika"
+  },
+  {
+    "route": "/super-admin/subscriptions",
+    "role": "super_admin",
+    "pageName": "super-admin/subscriptions",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/super_admin-super-admin-subscriptions.png",
+      "mobile": "screenshots/mobile/super_admin-super-admin-subscriptions.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/super-admin/subscriptions",
+    "heading": "Obunalar"
+  },
+  {
+    "route": "/super-admin/tenants",
+    "role": "super_admin",
+    "pageName": "super-admin/tenants",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/super_admin-super-admin-tenants.png",
+      "mobile": "screenshots/mobile/super_admin-super-admin-tenants.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/super-admin/tenants",
+    "heading": "O\u2018quv markazlari"
+  },
+  {
+    "route": "/super-admin/tenants/:id",
+    "role": "super_admin",
+    "pageName": "super-admin/tenants/:id",
+    "reviewed": false,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "state": "default",
+    "screenshots": {
+      "desktop": "screenshots/desktop/super_admin-super-admin-tenants-id.png",
+      "mobile": "screenshots/mobile/super_admin-super-admin-tenants-id.png"
+    },
+    "errors": [],
+    "overflow": [],
+    "finalUrl": "http://localhost:5173/super-admin/tenants/6aecdafaaad7c149dda2ae3d",
+    "heading": "Kelajak Academy \u00b7 Sinov"
+  }
+]
