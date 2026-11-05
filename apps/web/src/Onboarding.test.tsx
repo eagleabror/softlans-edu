@@ -48,9 +48,8 @@ afterEach(() => vi.unstubAllGlobals());
 it("resumes persisted step, exposes progress and missing teacher recovery", async () => {
   mock();
   show();
-  expect(
-    await screen.findByRole("heading", { name: "Birinchi guruh" }),
-  ).toHaveFocus();
+  const heading = await screen.findByRole("heading", { name: "Birinchi guruh" });
+  await waitFor(() => expect(heading).toHaveFocus());
   expect(
     screen.getByRole("progressbar", { name: "Bosqichlar" }),
   ).toHaveAttribute("value", "3");
