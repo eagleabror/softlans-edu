@@ -5,9 +5,11 @@ import { planDailyReports } from "./daily-reports.js";
 import { planNotifications, processNotification } from "./notifications.js";
 import { NotificationProcessorState } from "./notification-models.js";
 import { telegramConfigured } from "./telegram.js";
+import { planSaasReminders } from "./saas-reminders.js";
 type Stage =
   | "planning_guardians"
   | "planning_owners"
+  | "planning_saas"
   | "delivery"
   | "completed"
   | "failed";
@@ -16,6 +18,7 @@ export async function runNotificationAutomation(
   overrides: Partial<{
     guardians: () => Promise<unknown>;
     owners: () => Promise<unknown>;
+    saas: () => Promise<unknown>;
     process: () => Promise<boolean>;
     pause: () => Promise<unknown>;
     now: () => number;
@@ -25,6 +28,7 @@ export async function runNotificationAutomation(
   const tasks = {
     guardians: () => planNotifications(),
     owners: () => planDailyReports(),
+    saas: () => planSaasReminders(),
     process: () => processNotification(config),
     pause: () => delay(1200),
     now: Date.now,
@@ -39,7 +43,7 @@ export async function runNotificationAutomation(
         runId,
         lastStartedAt: new Date(tasks.now()),
         lastHeartbeatAt: new Date(tasks.now()),
-        stage: "planning_guardians",
+        stage: "planning_saas",
       },
     },
     { upsert: true },
@@ -66,14 +70,22 @@ export async function runNotificationAutomation(
     stage: "started",
     telegramConfigured: telegramConfigured(config),
   });
-  if (!telegramConfigured(config)) {
-    await heartbeat("failed");
+  // SaaS in-app reminders do not depend on Telegram credentials or a running worker.
+  await heartbeat("planning_saas");
+  try {
+    await tasks.saas();
+  } catch {
+    success = false;
     tasks.log({
       event: "notification_processor",
-      stage: "failed",
-      code: "TELEGRAM_NOT_CONFIGURED",
+      stage: "planning_saas",
+      code: "PLANNING_FAILED",
     });
-    return false;
+  }
+  if (!telegramConfigured(config)) {
+    await heartbeat(success ? "completed" : "failed");
+    tasks.log({ event: "notification_processor", stage: success ? "completed" : "failed" });
+    return success;
   }
   // A failed report snapshot must not block unrelated guardian attendance deliveries.
   for (const [stage, plan] of [

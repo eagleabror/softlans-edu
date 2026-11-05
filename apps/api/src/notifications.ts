@@ -1,4 +1,5 @@
 import { ownerEligibility } from "./daily-reports.js";
+import { saasReminderEligibility } from "./saas-reminders.js";
 import { TelegramIntegration } from "./telegram-models.js";
 import { randomUUID } from "node:crypto";
 import { Api, GrammyError } from "grammy";
@@ -335,8 +336,10 @@ export async function processNotification(
           ...(code ? { $push: { attemptsLog: { at: new Date(), code } } } : {}),
         },
       );
-    const owner = job.kind === "owner_daily" || job.kind === "owner_test";
-    const ownerState = owner ? await ownerEligibility(job, now) : null;
+    const owner = job.kind === "owner_daily" || job.kind === "owner_test" || job.kind === "saas_expiry";
+    const ownerState = job.kind === "saas_expiry"
+      ? await saasReminderEligibility(job, now)
+      : owner ? await ownerEligibility(job, now) : null;
     const g = owner
       ? null
       : await GuardianLink.findOne({

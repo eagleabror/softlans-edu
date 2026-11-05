@@ -1,3 +1,4 @@
+import { assertQuota } from "./saas-entitlements.js";
 import { LessonSession } from "./attendance-models.js";
 import { Router, type Request } from "express";
 import mongoose, { type ClientSession } from "mongoose";
@@ -266,6 +267,7 @@ leadsRouter.post("/:id/convert", async (req, res) => {
       throw conflict(
         "Avval mijoz bilan bog‘laning yoki sinov darsini yakunlang.",
       );
+    await assertQuota(scope(req).tenantId, "student", input.existingStudentId || (input.student?.status ?? "active") !== "active" ? 0 : 1, session);
     let student;
     if (input.existingStudentId) {
       student = await Student.findOne({

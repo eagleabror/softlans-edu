@@ -233,15 +233,16 @@ it("validates secret length and rejects reuse of existing credentials without ex
     }
   }
 });
-it("refuses scheduling if Telegram configuration is unavailable", async () => {
+it("accepts in-app SaaS scheduling even when Telegram configuration is unavailable", async () => {
   expect(
     (
       await post(
         createApp(parseConfig({ ...env, TELEGRAM_BOT_TOKEN: undefined })),
       )
     ).status,
-  ).toBe(503);
-  expect(mocks.run).not.toHaveBeenCalled();
+  ).toBe(202);
+  await released();
+  expect(mocks.run).toHaveBeenCalledOnce();
 });
 it("runs the existing durable processor for an actual pending job via the HTTP trigger", async () => {
   const real = await vi.importActual<

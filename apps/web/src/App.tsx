@@ -1,3 +1,4 @@
+import { TenantSubscription, SubscriptionBanner } from "./Saas";
 import { SuperAdminLayout } from "./SuperAdmin";
 import {
   LeadsList,
@@ -594,6 +595,12 @@ function Shell() {
               </NavLink>
             </>
           )}
+          {session.user.role === "business_owner" && (
+            <NavLink to="/settings/subscription" onClick={() => setOpen(false)}>
+              <Layers size={19} />
+              Sozlamalar · Obuna va tariflar
+            </NavLink>
+          )}
           <NavLink to="/account" onClick={() => setOpen(false)}>
             <Settings2 size={19} />
             Hisobim
@@ -657,6 +664,7 @@ function Shell() {
           </span>
         </header>
         <main className="page-content">
+          {session.tenant && <SubscriptionBanner owner={session.user.role === "business_owner"} />}
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route
@@ -853,6 +861,7 @@ function Shell() {
             {session.user.role === "business_owner" && (
               <Route path="/daily-reports" element={<DailyReports />} />
             )}
+            <Route path="/settings/subscription" element={session.user.role === "business_owner" ? <TenantSubscription /> : <section className="panel"><h1>Obunani faqat markaz egasi boshqaradi.</h1><Link className="button light" to="/account">Hisobimga qaytish</Link></section>} />
             <Route path="/account" element={<Account />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

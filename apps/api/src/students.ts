@@ -1,3 +1,4 @@
+import { assertQuota } from "./saas-entitlements.js";
 import { lockBilling } from "./billing-lock.js";
 import { Router } from "express";
 import mongoose from "mongoose";
@@ -39,6 +40,7 @@ studentsRouter.post("/", async (req, res) => {
   const actor = principal(req);
   const student = await mongoose.connection.transaction(async (session) => {
     await lockBilling(tenantScope(actor).tenantId, session);
+    await assertQuota(tenantScope(actor).tenantId, "student", (input.status ?? "active") === "active" ? 1 : 0, session);
     const [created] = await Student.create(
       [
         {
@@ -117,6 +119,8 @@ for (const statusOnly of [false, true]) {
           _id: req.params.id,
           ...tenantScope(principal(req)),
         }).session(session);
+        await assertQuota(tenantScope(principal(req)).tenantId, "student",
+          current && "status" in input && input.status === "active" && current.status !== "active" ? 1 : 0, session);
         const archive =
           "status" in input &&
           input.status === "archived" &&

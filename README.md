@@ -166,3 +166,7 @@ The Sites hosting runtime uses Workers and cannot run this required Node/Express
 ### Telegram (Phase 5.1)
 
 See [Telegram integration setup and operations](docs/telegram-phase-5.1.md) for backend environment variables, BotFather, Render HTTPS webhook registration, delivery retry operation, security policy and the manual acceptance checklist. Telegram is optional and disabled until configured.
+
+## 6.3.2 — SaaS obunalar
+
+Tariflar, 14 kunlik trial, qo‘lda SaaS to‘lov tasdiqlash, tenant limitlari va analitika uchun [o‘zbekcha foydalanish va migration yo‘riqnomasi](docs/phase-6-3-2-subscriptions.md).

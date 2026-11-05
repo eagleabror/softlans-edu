@@ -1,3 +1,4 @@
+import { SaasPlans, SaasSubscriptions, SaasPayments, SaasAnalytics } from "./SaasAdmin";
 import {
   useEffect,
   useRef,
@@ -586,6 +587,7 @@ export function SuperAdminTenantDetail() {
               >
                 Markaz audit tarixi
               </Link>
+              <Link className="button light" to={`${root}/subscriptions?tenantId=${detail.tenant.id}`}>Obunani boshqarish</Link>
             </div>
           </section>
           {confirm && (
@@ -925,6 +927,10 @@ export function SuperAdminLayout({
             <Building2 size={20} aria-hidden="true" />
             O‘quv markazlari
           </NavLink>
+          <NavLink to={`${root}/plans`}><Layers size={20} aria-hidden="true" />Tariflar</NavLink>
+          <NavLink to={`${root}/subscriptions`}><Building2 size={20} aria-hidden="true" />Obunalar</NavLink>
+          <NavLink to={`${root}/payment-requests`}><ShieldCheck size={20} aria-hidden="true" />To‘lov so‘rovlari</NavLink>
+          <NavLink to={`${root}/saas-analytics`}><ChartNoAxesCombined size={20} aria-hidden="true" />SaaS analitika</NavLink>
           <NavLink to={`${root}/audit`}>
             <History size={20} aria-hidden="true" />
             Audit tarixi
@@ -963,6 +969,10 @@ export function SuperAdminLayout({
               path={`${root}/tenants/:id`}
               element={<SuperAdminTenantDetail />}
             />
+            <Route path={`${root}/plans`} element={<SaasPlans />} />
+            <Route path={`${root}/subscriptions`} element={<SaasSubscriptions />} />
+            <Route path={`${root}/payment-requests`} element={<SaasPayments />} />
+            <Route path={`${root}/saas-analytics`} element={<SaasAnalytics />} />
             <Route path={`${root}/audit`} element={<SuperAdminAudit />} />
             <Route path="*" element={<Navigate to={root} replace />} />
           </Routes>
