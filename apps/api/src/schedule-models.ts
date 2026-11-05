@@ -14,7 +14,7 @@ const classroomSchema = new Schema(
       type: Number,
       min: 1,
       max: 10000,
-      validate: Number.isSafeInteger,
+      validate: (value: number | null) => value == null || Number.isSafeInteger(value),
     },
     status: {
       type: String,
