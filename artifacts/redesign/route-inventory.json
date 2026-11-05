@@ -1,0 +1,1562 @@
+[
+  {
+    "route": "/",
+    "role": "business_owner",
+    "pageName": "dashboard",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-dashboard.png",
+      "mobile": "screenshots/mobile/business_owner-dashboard.png"
+    }
+  },
+  {
+    "route": "/",
+    "role": "admin",
+    "pageName": "dashboard",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-dashboard.png",
+      "mobile": "screenshots/mobile/admin-dashboard.png"
+    }
+  },
+  {
+    "route": "/",
+    "role": "teacher",
+    "pageName": "dashboard",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-dashboard.png",
+      "mobile": "screenshots/mobile/teacher-dashboard.png"
+    }
+  },
+  {
+    "route": "/onboarding",
+    "role": "business_owner",
+    "pageName": "onboarding",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-onboarding.png",
+      "mobile": "screenshots/mobile/business_owner-onboarding.png"
+    }
+  },
+  {
+    "route": "/leads",
+    "role": "business_owner",
+    "pageName": "leads",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-leads.png",
+      "mobile": "screenshots/mobile/business_owner-leads.png"
+    }
+  },
+  {
+    "route": "/leads",
+    "role": "admin",
+    "pageName": "leads",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-leads.png",
+      "mobile": "screenshots/mobile/admin-leads.png"
+    }
+  },
+  {
+    "route": "/leads/pipeline",
+    "role": "business_owner",
+    "pageName": "leads/pipeline",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-leads-pipeline.png",
+      "mobile": "screenshots/mobile/business_owner-leads-pipeline.png"
+    }
+  },
+  {
+    "route": "/leads/pipeline",
+    "role": "admin",
+    "pageName": "leads/pipeline",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-leads-pipeline.png",
+      "mobile": "screenshots/mobile/admin-leads-pipeline.png"
+    }
+  },
+  {
+    "route": "/leads/new",
+    "role": "business_owner",
+    "pageName": "leads/new",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-leads-new.png",
+      "mobile": "screenshots/mobile/business_owner-leads-new.png"
+    }
+  },
+  {
+    "route": "/leads/new",
+    "role": "admin",
+    "pageName": "leads/new",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-leads-new.png",
+      "mobile": "screenshots/mobile/admin-leads-new.png"
+    }
+  },
+  {
+    "route": "/leads/:id/edit",
+    "role": "business_owner",
+    "pageName": "leads/:id/edit",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-leads-id-edit.png",
+      "mobile": "screenshots/mobile/business_owner-leads-id-edit.png"
+    }
+  },
+  {
+    "route": "/leads/:id/edit",
+    "role": "admin",
+    "pageName": "leads/:id/edit",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-leads-id-edit.png",
+      "mobile": "screenshots/mobile/admin-leads-id-edit.png"
+    }
+  },
+  {
+    "route": "/leads/:id",
+    "role": "business_owner",
+    "pageName": "leads/:id",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-leads-id.png",
+      "mobile": "screenshots/mobile/business_owner-leads-id.png"
+    }
+  },
+  {
+    "route": "/leads/:id",
+    "role": "admin",
+    "pageName": "leads/:id",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-leads-id.png",
+      "mobile": "screenshots/mobile/admin-leads-id.png"
+    }
+  },
+  {
+    "route": "/leads/analytics",
+    "role": "business_owner",
+    "pageName": "leads/analytics",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-leads-analytics.png",
+      "mobile": "screenshots/mobile/business_owner-leads-analytics.png"
+    }
+  },
+  {
+    "route": "/leads/analytics",
+    "role": "admin",
+    "pageName": "leads/analytics",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-leads-analytics.png",
+      "mobile": "screenshots/mobile/admin-leads-analytics.png"
+    }
+  },
+  {
+    "route": "/trial-lessons",
+    "role": "business_owner",
+    "pageName": "trial-lessons",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-trial-lessons.png",
+      "mobile": "screenshots/mobile/business_owner-trial-lessons.png"
+    }
+  },
+  {
+    "route": "/trial-lessons",
+    "role": "admin",
+    "pageName": "trial-lessons",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-trial-lessons.png",
+      "mobile": "screenshots/mobile/admin-trial-lessons.png"
+    }
+  },
+  {
+    "route": "/follow-ups",
+    "role": "business_owner",
+    "pageName": "follow-ups",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-follow-ups.png",
+      "mobile": "screenshots/mobile/business_owner-follow-ups.png"
+    }
+  },
+  {
+    "route": "/follow-ups",
+    "role": "admin",
+    "pageName": "follow-ups",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-follow-ups.png",
+      "mobile": "screenshots/mobile/admin-follow-ups.png"
+    }
+  },
+  {
+    "route": "/payroll",
+    "role": "business_owner",
+    "pageName": "payroll",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-payroll.png",
+      "mobile": "screenshots/mobile/business_owner-payroll.png"
+    }
+  },
+  {
+    "route": "/payroll",
+    "role": "teacher",
+    "pageName": "payroll",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-payroll.png",
+      "mobile": "screenshots/mobile/teacher-payroll.png"
+    }
+  },
+  {
+    "route": "/payroll/:id",
+    "role": "business_owner",
+    "pageName": "payroll/:id",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-payroll-id.png",
+      "mobile": "screenshots/mobile/business_owner-payroll-id.png"
+    }
+  },
+  {
+    "route": "/payroll/:id",
+    "role": "teacher",
+    "pageName": "payroll/:id",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-payroll-id.png",
+      "mobile": "screenshots/mobile/teacher-payroll-id.png"
+    }
+  },
+  {
+    "route": "/payroll/settings",
+    "role": "business_owner",
+    "pageName": "payroll/settings",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-payroll-settings.png",
+      "mobile": "screenshots/mobile/business_owner-payroll-settings.png"
+    }
+  },
+  {
+    "route": "/attendance",
+    "role": "business_owner",
+    "pageName": "attendance",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-attendance.png",
+      "mobile": "screenshots/mobile/business_owner-attendance.png"
+    }
+  },
+  {
+    "route": "/attendance",
+    "role": "admin",
+    "pageName": "attendance",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-attendance.png",
+      "mobile": "screenshots/mobile/admin-attendance.png"
+    }
+  },
+  {
+    "route": "/attendance",
+    "role": "teacher",
+    "pageName": "attendance",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-attendance.png",
+      "mobile": "screenshots/mobile/teacher-attendance.png"
+    }
+  },
+  {
+    "route": "/attendance/today",
+    "role": "business_owner",
+    "pageName": "attendance/today",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-attendance-today.png",
+      "mobile": "screenshots/mobile/business_owner-attendance-today.png"
+    }
+  },
+  {
+    "route": "/attendance/today",
+    "role": "admin",
+    "pageName": "attendance/today",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-attendance-today.png",
+      "mobile": "screenshots/mobile/admin-attendance-today.png"
+    }
+  },
+  {
+    "route": "/attendance/today",
+    "role": "teacher",
+    "pageName": "attendance/today",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-attendance-today.png",
+      "mobile": "screenshots/mobile/teacher-attendance-today.png"
+    }
+  },
+  {
+    "route": "/attendance/history",
+    "role": "business_owner",
+    "pageName": "attendance/history",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-attendance-history.png",
+      "mobile": "screenshots/mobile/business_owner-attendance-history.png"
+    }
+  },
+  {
+    "route": "/attendance/history",
+    "role": "admin",
+    "pageName": "attendance/history",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-attendance-history.png",
+      "mobile": "screenshots/mobile/admin-attendance-history.png"
+    }
+  },
+  {
+    "route": "/attendance/history",
+    "role": "teacher",
+    "pageName": "attendance/history",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-attendance-history.png",
+      "mobile": "screenshots/mobile/teacher-attendance-history.png"
+    }
+  },
+  {
+    "route": "/attendance/groups/:groupId",
+    "role": "business_owner",
+    "pageName": "attendance/groups/:groupId",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-attendance-groups-groupId.png",
+      "mobile": "screenshots/mobile/business_owner-attendance-groups-groupId.png"
+    }
+  },
+  {
+    "route": "/attendance/groups/:groupId",
+    "role": "admin",
+    "pageName": "attendance/groups/:groupId",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-attendance-groups-groupId.png",
+      "mobile": "screenshots/mobile/admin-attendance-groups-groupId.png"
+    }
+  },
+  {
+    "route": "/attendance/groups/:groupId",
+    "role": "teacher",
+    "pageName": "attendance/groups/:groupId",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-attendance-groups-groupId.png",
+      "mobile": "screenshots/mobile/teacher-attendance-groups-groupId.png"
+    }
+  },
+  {
+    "route": "/attendance/students/:studentId",
+    "role": "business_owner",
+    "pageName": "attendance/students/:studentId",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-attendance-students-studentId.png",
+      "mobile": "screenshots/mobile/business_owner-attendance-students-studentId.png"
+    }
+  },
+  {
+    "route": "/attendance/students/:studentId",
+    "role": "admin",
+    "pageName": "attendance/students/:studentId",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-attendance-students-studentId.png",
+      "mobile": "screenshots/mobile/admin-attendance-students-studentId.png"
+    }
+  },
+  {
+    "route": "/attendance/students/:studentId",
+    "role": "teacher",
+    "pageName": "attendance/students/:studentId",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-attendance-students-studentId.png",
+      "mobile": "screenshots/mobile/teacher-attendance-students-studentId.png"
+    }
+  },
+  {
+    "route": "/attendance/sessions/:id",
+    "role": "business_owner",
+    "pageName": "attendance/sessions/:id",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-attendance-sessions-id.png",
+      "mobile": "screenshots/mobile/business_owner-attendance-sessions-id.png"
+    }
+  },
+  {
+    "route": "/attendance/sessions/:id",
+    "role": "admin",
+    "pageName": "attendance/sessions/:id",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-attendance-sessions-id.png",
+      "mobile": "screenshots/mobile/admin-attendance-sessions-id.png"
+    }
+  },
+  {
+    "route": "/attendance/sessions/:id",
+    "role": "teacher",
+    "pageName": "attendance/sessions/:id",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-attendance-sessions-id.png",
+      "mobile": "screenshots/mobile/teacher-attendance-sessions-id.png"
+    }
+  },
+  {
+    "route": "/reports",
+    "role": "business_owner",
+    "pageName": "reports",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-reports.png",
+      "mobile": "screenshots/mobile/business_owner-reports.png"
+    }
+  },
+  {
+    "route": "/reports",
+    "role": "admin",
+    "pageName": "reports",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-reports.png",
+      "mobile": "screenshots/mobile/admin-reports.png"
+    }
+  },
+  {
+    "route": "/debts",
+    "role": "business_owner",
+    "pageName": "debts",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-debts.png",
+      "mobile": "screenshots/mobile/business_owner-debts.png"
+    }
+  },
+  {
+    "route": "/debts",
+    "role": "admin",
+    "pageName": "debts",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-debts.png",
+      "mobile": "screenshots/mobile/admin-debts.png"
+    }
+  },
+  {
+    "route": "/debts/overdue",
+    "role": "business_owner",
+    "pageName": "debts/overdue",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-debts-overdue.png",
+      "mobile": "screenshots/mobile/business_owner-debts-overdue.png"
+    }
+  },
+  {
+    "route": "/debts/overdue",
+    "role": "admin",
+    "pageName": "debts/overdue",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-debts-overdue.png",
+      "mobile": "screenshots/mobile/admin-debts-overdue.png"
+    }
+  },
+  {
+    "route": "/debts/groups",
+    "role": "business_owner",
+    "pageName": "debts/groups",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-debts-groups.png",
+      "mobile": "screenshots/mobile/business_owner-debts-groups.png"
+    }
+  },
+  {
+    "route": "/debts/groups",
+    "role": "admin",
+    "pageName": "debts/groups",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-debts-groups.png",
+      "mobile": "screenshots/mobile/admin-debts-groups.png"
+    }
+  },
+  {
+    "route": "/debts/students/:id",
+    "role": "business_owner",
+    "pageName": "debts/students/:id",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-debts-students-id.png",
+      "mobile": "screenshots/mobile/business_owner-debts-students-id.png"
+    }
+  },
+  {
+    "route": "/debts/students/:id",
+    "role": "admin",
+    "pageName": "debts/students/:id",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-debts-students-id.png",
+      "mobile": "screenshots/mobile/admin-debts-students-id.png"
+    }
+  },
+  {
+    "route": "/billing",
+    "role": "business_owner",
+    "pageName": "billing",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-billing.png",
+      "mobile": "screenshots/mobile/business_owner-billing.png"
+    }
+  },
+  {
+    "route": "/billing",
+    "role": "admin",
+    "pageName": "billing",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-billing.png",
+      "mobile": "screenshots/mobile/admin-billing.png"
+    }
+  },
+  {
+    "route": "/billing/history",
+    "role": "business_owner",
+    "pageName": "billing/history",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-billing-history.png",
+      "mobile": "screenshots/mobile/business_owner-billing-history.png"
+    }
+  },
+  {
+    "route": "/billing/history",
+    "role": "admin",
+    "pageName": "billing/history",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-billing-history.png",
+      "mobile": "screenshots/mobile/admin-billing-history.png"
+    }
+  },
+  {
+    "route": "/students/:id/finance",
+    "role": "business_owner",
+    "pageName": "students/:id/finance",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-students-id-finance.png",
+      "mobile": "screenshots/mobile/business_owner-students-id-finance.png"
+    }
+  },
+  {
+    "route": "/students/:id/finance",
+    "role": "admin",
+    "pageName": "students/:id/finance",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-students-id-finance.png",
+      "mobile": "screenshots/mobile/admin-students-id-finance.png"
+    }
+  },
+  {
+    "route": "/students/:id/finance/history",
+    "role": "business_owner",
+    "pageName": "students/:id/finance/history",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-students-id-finance-history.png",
+      "mobile": "screenshots/mobile/business_owner-students-id-finance-history.png"
+    }
+  },
+  {
+    "route": "/students/:id/finance/history",
+    "role": "admin",
+    "pageName": "students/:id/finance/history",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-students-id-finance-history.png",
+      "mobile": "screenshots/mobile/admin-students-id-finance-history.png"
+    }
+  },
+  {
+    "route": "/team",
+    "role": "business_owner",
+    "pageName": "team",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-team.png",
+      "mobile": "screenshots/mobile/business_owner-team.png"
+    }
+  },
+  {
+    "route": "/team",
+    "role": "admin",
+    "pageName": "team",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-team.png",
+      "mobile": "screenshots/mobile/admin-team.png"
+    }
+  },
+  {
+    "route": "/students",
+    "role": "business_owner",
+    "pageName": "students",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-students.png",
+      "mobile": "screenshots/mobile/business_owner-students.png"
+    }
+  },
+  {
+    "route": "/students",
+    "role": "admin",
+    "pageName": "students",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-students.png",
+      "mobile": "screenshots/mobile/admin-students.png"
+    }
+  },
+  {
+    "route": "/students/import",
+    "role": "business_owner",
+    "pageName": "students/import",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-students-import.png",
+      "mobile": "screenshots/mobile/business_owner-students-import.png"
+    }
+  },
+  {
+    "route": "/students/import",
+    "role": "admin",
+    "pageName": "students/import",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-students-import.png",
+      "mobile": "screenshots/mobile/admin-students-import.png"
+    }
+  },
+  {
+    "route": "/students/new",
+    "role": "business_owner",
+    "pageName": "students/new",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-students-new.png",
+      "mobile": "screenshots/mobile/business_owner-students-new.png"
+    }
+  },
+  {
+    "route": "/students/new",
+    "role": "admin",
+    "pageName": "students/new",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-students-new.png",
+      "mobile": "screenshots/mobile/admin-students-new.png"
+    }
+  },
+  {
+    "route": "/students/:id",
+    "role": "business_owner",
+    "pageName": "students/:id",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-students-id.png",
+      "mobile": "screenshots/mobile/business_owner-students-id.png"
+    }
+  },
+  {
+    "route": "/students/:id",
+    "role": "admin",
+    "pageName": "students/:id",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-students-id.png",
+      "mobile": "screenshots/mobile/admin-students-id.png"
+    }
+  },
+  {
+    "route": "/students/:id/edit",
+    "role": "business_owner",
+    "pageName": "students/:id/edit",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-students-id-edit.png",
+      "mobile": "screenshots/mobile/business_owner-students-id-edit.png"
+    }
+  },
+  {
+    "route": "/students/:id/edit",
+    "role": "admin",
+    "pageName": "students/:id/edit",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-students-id-edit.png",
+      "mobile": "screenshots/mobile/admin-students-id-edit.png"
+    }
+  },
+  {
+    "route": "/groups",
+    "role": "business_owner",
+    "pageName": "groups",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-groups.png",
+      "mobile": "screenshots/mobile/business_owner-groups.png"
+    }
+  },
+  {
+    "route": "/groups",
+    "role": "admin",
+    "pageName": "groups",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-groups.png",
+      "mobile": "screenshots/mobile/admin-groups.png"
+    }
+  },
+  {
+    "route": "/groups",
+    "role": "teacher",
+    "pageName": "groups",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-groups.png",
+      "mobile": "screenshots/mobile/teacher-groups.png"
+    }
+  },
+  {
+    "route": "/groups/:id",
+    "role": "business_owner",
+    "pageName": "groups/:id",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-groups-id.png",
+      "mobile": "screenshots/mobile/business_owner-groups-id.png"
+    }
+  },
+  {
+    "route": "/groups/:id",
+    "role": "admin",
+    "pageName": "groups/:id",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-groups-id.png",
+      "mobile": "screenshots/mobile/admin-groups-id.png"
+    }
+  },
+  {
+    "route": "/groups/:id",
+    "role": "teacher",
+    "pageName": "groups/:id",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-groups-id.png",
+      "mobile": "screenshots/mobile/teacher-groups-id.png"
+    }
+  },
+  {
+    "route": "/groups/new",
+    "role": "business_owner",
+    "pageName": "groups/new",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-groups-new.png",
+      "mobile": "screenshots/mobile/business_owner-groups-new.png"
+    }
+  },
+  {
+    "route": "/groups/new",
+    "role": "admin",
+    "pageName": "groups/new",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-groups-new.png",
+      "mobile": "screenshots/mobile/admin-groups-new.png"
+    }
+  },
+  {
+    "route": "/groups/:id/edit",
+    "role": "business_owner",
+    "pageName": "groups/:id/edit",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-groups-id-edit.png",
+      "mobile": "screenshots/mobile/business_owner-groups-id-edit.png"
+    }
+  },
+  {
+    "route": "/groups/:id/edit",
+    "role": "admin",
+    "pageName": "groups/:id/edit",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-groups-id-edit.png",
+      "mobile": "screenshots/mobile/admin-groups-id-edit.png"
+    }
+  },
+  {
+    "route": "/center",
+    "role": "business_owner",
+    "pageName": "center",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-center.png",
+      "mobile": "screenshots/mobile/business_owner-center.png"
+    }
+  },
+  {
+    "route": "/center",
+    "role": "admin",
+    "pageName": "center",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-center.png",
+      "mobile": "screenshots/mobile/admin-center.png"
+    }
+  },
+  {
+    "route": "/center",
+    "role": "teacher",
+    "pageName": "center",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-center.png",
+      "mobile": "screenshots/mobile/teacher-center.png"
+    }
+  },
+  {
+    "route": "/schedules",
+    "role": "business_owner",
+    "pageName": "schedules",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-schedules.png",
+      "mobile": "screenshots/mobile/business_owner-schedules.png"
+    }
+  },
+  {
+    "route": "/schedules",
+    "role": "admin",
+    "pageName": "schedules",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-schedules.png",
+      "mobile": "screenshots/mobile/admin-schedules.png"
+    }
+  },
+  {
+    "route": "/schedules",
+    "role": "teacher",
+    "pageName": "schedules",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-schedules.png",
+      "mobile": "screenshots/mobile/teacher-schedules.png"
+    }
+  },
+  {
+    "route": "/schedules/weekly",
+    "role": "business_owner",
+    "pageName": "schedules/weekly",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-schedules-weekly.png",
+      "mobile": "screenshots/mobile/business_owner-schedules-weekly.png"
+    }
+  },
+  {
+    "route": "/schedules/weekly",
+    "role": "admin",
+    "pageName": "schedules/weekly",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-schedules-weekly.png",
+      "mobile": "screenshots/mobile/admin-schedules-weekly.png"
+    }
+  },
+  {
+    "route": "/schedules/weekly",
+    "role": "teacher",
+    "pageName": "schedules/weekly",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-schedules-weekly.png",
+      "mobile": "screenshots/mobile/teacher-schedules-weekly.png"
+    }
+  },
+  {
+    "route": "/schedules/new",
+    "role": "business_owner",
+    "pageName": "schedules/new",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-schedules-new.png",
+      "mobile": "screenshots/mobile/business_owner-schedules-new.png"
+    }
+  },
+  {
+    "route": "/schedules/new",
+    "role": "admin",
+    "pageName": "schedules/new",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-schedules-new.png",
+      "mobile": "screenshots/mobile/admin-schedules-new.png"
+    }
+  },
+  {
+    "route": "/schedules/:id/edit",
+    "role": "business_owner",
+    "pageName": "schedules/:id/edit",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-schedules-id-edit.png",
+      "mobile": "screenshots/mobile/business_owner-schedules-id-edit.png"
+    }
+  },
+  {
+    "route": "/schedules/:id/edit",
+    "role": "admin",
+    "pageName": "schedules/:id/edit",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-schedules-id-edit.png",
+      "mobile": "screenshots/mobile/admin-schedules-id-edit.png"
+    }
+  },
+  {
+    "route": "/classrooms",
+    "role": "business_owner",
+    "pageName": "classrooms",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-classrooms.png",
+      "mobile": "screenshots/mobile/business_owner-classrooms.png"
+    }
+  },
+  {
+    "route": "/classrooms",
+    "role": "admin",
+    "pageName": "classrooms",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-classrooms.png",
+      "mobile": "screenshots/mobile/admin-classrooms.png"
+    }
+  },
+  {
+    "route": "/notifications",
+    "role": "business_owner",
+    "pageName": "notifications",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-notifications.png",
+      "mobile": "screenshots/mobile/business_owner-notifications.png"
+    }
+  },
+  {
+    "route": "/notifications",
+    "role": "admin",
+    "pageName": "notifications",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-notifications.png",
+      "mobile": "screenshots/mobile/admin-notifications.png"
+    }
+  },
+  {
+    "route": "/settings/telegram",
+    "role": "business_owner",
+    "pageName": "settings/telegram",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-settings-telegram.png",
+      "mobile": "screenshots/mobile/business_owner-settings-telegram.png"
+    }
+  },
+  {
+    "route": "/settings/telegram",
+    "role": "admin",
+    "pageName": "settings/telegram",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-settings-telegram.png",
+      "mobile": "screenshots/mobile/admin-settings-telegram.png"
+    }
+  },
+  {
+    "route": "/settings/telegram",
+    "role": "teacher",
+    "pageName": "settings/telegram",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-settings-telegram.png",
+      "mobile": "screenshots/mobile/teacher-settings-telegram.png"
+    }
+  },
+  {
+    "route": "/daily-reports",
+    "role": "business_owner",
+    "pageName": "daily-reports",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-daily-reports.png",
+      "mobile": "screenshots/mobile/business_owner-daily-reports.png"
+    }
+  },
+  {
+    "route": "/settings/subscription",
+    "role": "business_owner",
+    "pageName": "settings/subscription",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-settings-subscription.png",
+      "mobile": "screenshots/mobile/business_owner-settings-subscription.png"
+    }
+  },
+  {
+    "route": "/settings/subscription",
+    "role": "admin",
+    "pageName": "settings/subscription",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-settings-subscription.png",
+      "mobile": "screenshots/mobile/admin-settings-subscription.png"
+    }
+  },
+  {
+    "route": "/settings/subscription",
+    "role": "teacher",
+    "pageName": "settings/subscription",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-settings-subscription.png",
+      "mobile": "screenshots/mobile/teacher-settings-subscription.png"
+    }
+  },
+  {
+    "route": "/account",
+    "role": "business_owner",
+    "pageName": "account",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/business_owner-account.png",
+      "mobile": "screenshots/mobile/business_owner-account.png"
+    }
+  },
+  {
+    "route": "/account",
+    "role": "admin",
+    "pageName": "account",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/admin-account.png",
+      "mobile": "screenshots/mobile/admin-account.png"
+    }
+  },
+  {
+    "route": "/account",
+    "role": "teacher",
+    "pageName": "account",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/teacher-account.png",
+      "mobile": "screenshots/mobile/teacher-account.png"
+    }
+  },
+  {
+    "route": "/login",
+    "role": "anonymous",
+    "pageName": "login",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/anonymous-login.png",
+      "mobile": "screenshots/mobile/anonymous-login.png"
+    }
+  },
+  {
+    "route": "/register",
+    "role": "anonymous",
+    "pageName": "register",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/anonymous-register.png",
+      "mobile": "screenshots/mobile/anonymous-register.png"
+    }
+  },
+  {
+    "route": "/super-admin",
+    "role": "super_admin",
+    "pageName": "super-admin",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/super_admin-super-admin.png",
+      "mobile": "screenshots/mobile/super_admin-super-admin.png"
+    }
+  },
+  {
+    "route": "/super-admin/tenants",
+    "role": "super_admin",
+    "pageName": "super-admin/tenants",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/super_admin-super-admin-tenants.png",
+      "mobile": "screenshots/mobile/super_admin-super-admin-tenants.png"
+    }
+  },
+  {
+    "route": "/super-admin/tenants/:id",
+    "role": "super_admin",
+    "pageName": "super-admin/tenants/:id",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/super_admin-super-admin-tenants-id.png",
+      "mobile": "screenshots/mobile/super_admin-super-admin-tenants-id.png"
+    }
+  },
+  {
+    "route": "/super-admin/plans",
+    "role": "super_admin",
+    "pageName": "super-admin/plans",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/super_admin-super-admin-plans.png",
+      "mobile": "screenshots/mobile/super_admin-super-admin-plans.png"
+    }
+  },
+  {
+    "route": "/super-admin/subscriptions",
+    "role": "super_admin",
+    "pageName": "super-admin/subscriptions",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/super_admin-super-admin-subscriptions.png",
+      "mobile": "screenshots/mobile/super_admin-super-admin-subscriptions.png"
+    }
+  },
+  {
+    "route": "/super-admin/payment-requests",
+    "role": "super_admin",
+    "pageName": "super-admin/payment-requests",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/super_admin-super-admin-payment-requests.png",
+      "mobile": "screenshots/mobile/super_admin-super-admin-payment-requests.png"
+    }
+  },
+  {
+    "route": "/super-admin/saas-analytics",
+    "role": "super_admin",
+    "pageName": "super-admin/saas-analytics",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/super_admin-super-admin-saas-analytics.png",
+      "mobile": "screenshots/mobile/super_admin-super-admin-saas-analytics.png"
+    }
+  },
+  {
+    "route": "/super-admin/audit",
+    "role": "super_admin",
+    "pageName": "super-admin/audit",
+    "reviewed": true,
+    "screenshotStatus": "captured",
+    "browserTestStatus": "passed",
+    "limitations": [],
+    "screenshots": {
+      "desktop": "screenshots/desktop/super_admin-super-admin-audit.png",
+      "mobile": "screenshots/mobile/super_admin-super-admin-audit.png"
+    }
+  }
+]

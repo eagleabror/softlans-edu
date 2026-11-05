@@ -1,0 +1,44 @@
+{
+  "checks": [
+    {
+      "command": "npm test",
+      "status": "passed"
+    },
+    {
+      "command": "npm run typecheck",
+      "status": "passed"
+    },
+    {
+      "command": "npm run build",
+      "status": "passed"
+    },
+    {
+      "command": "npm audit --audit-level=high",
+      "status": "passed"
+    },
+    {
+      "command": "npm audit --omit=dev --audit-level=high",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed"
+    }
+  ],
+  "apiTests": 398,
+  "webTests": 100,
+  "browserSmokeChecks": 14,
+  "routeRoleCombinations": 120,
+  "screenStates": 140,
+  "screenshots": 280,
+  "missingScreenshots": 0,
+  "browserFailures": 0,
+  "pageOverflowFailures": 0,
+  "knownIssues": [
+    "Vite reports a JavaScript chunk above 500 kB."
+  ],
+  "limitations": [
+    "Figma-inspired adaptation, not a pixel-equivalence or accessibility certification.",
+    "Real external Telegram delivery and bank transfers were not performed; isolated fixtures and the existing integration tests were used."
+  ]
+}

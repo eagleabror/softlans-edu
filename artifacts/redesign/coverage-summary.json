@@ -1,0 +1,10 @@
+{
+  "routeRoleCombinations": 120,
+  "screenStates": 140,
+  "screenshots": 280,
+  "missingScreenshots": 0,
+  "browserFailures": 0,
+  "pageOverflowFailures": 0,
+  "desktopWidth": 1440,
+  "mobileWidth": 390
+}

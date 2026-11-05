@@ -1,3 +1,6 @@
+import { DashboardStudents } from "./DashboardStudents";
+import { PageHeading, Stat } from "./ui";
+import { DashboardAnalytics } from "./DashboardAnalytics";
 import { Onboarding, SetupChecklist } from "./Onboarding";
 import { Registration } from "./Registration";
 import { TenantSubscription, SubscriptionBanner } from "./Saas";
@@ -390,6 +393,7 @@ function AuthPage({
 function Shell() {
   const { session, setSession } = useAuth();
   const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [mobile, setMobile] = useState(
     () => window.matchMedia?.("(max-width: 700px)").matches ?? false,
   );
@@ -455,7 +459,8 @@ function Shell() {
     }
   }
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${collapsed ? "sidebar-collapsed" : ""}`}>
+      <a className="skip-content" href="#main-content">Asosiy mazmunga o‘tish</a>
       {open && (
         <button
           className="sidebar-overlay"
@@ -498,112 +503,112 @@ function Shell() {
         </div>
         <span className="nav-label">ASOSIY MENYU</span>
         <nav aria-label="Asosiy menyu">
-          <NavLink to="/" end onClick={() => setOpen(false)}>
+          <NavLink to="/" aria-label="Bosh sahifa" end onClick={() => setOpen(false)}>
             <LayoutDashboard size={19} />
             Bosh sahifa
           </NavLink>
           {canManage && (
-            <NavLink to="/billing" onClick={() => setOpen(false)}>
+            <NavLink to="/billing" aria-label="To‘lovlar" onClick={() => setOpen(false)}>
               <Layers size={19} />
               To‘lovlar
             </NavLink>
           )}
           {canManage && (
-            <NavLink to="/reports" onClick={() => setOpen(false)}>
+            <NavLink to="/reports" aria-label="Moliyaviy hisobotlar" onClick={() => setOpen(false)}>
               <Layers size={19} />
               Moliyaviy hisobotlar
             </NavLink>
           )}
           {canManage && (
-            <NavLink to="/debts" onClick={() => setOpen(false)}>
+            <NavLink to="/debts" aria-label="Qarzdorlar" onClick={() => setOpen(false)}>
               <Layers size={19} />
               Qarzdorlar
             </NavLink>
           )}
           {canManage && (
-            <NavLink to="/team" onClick={() => setOpen(false)}>
+            <NavLink to="/team" aria-label="Jamoa" onClick={() => setOpen(false)}>
               <Users size={19} />
               Jamoa
             </NavLink>
           )}
           {canManage && (
-            <NavLink to="/leads" onClick={() => setOpen(false)}>
+            <NavLink to="/leads" aria-label="Lead CRM" onClick={() => setOpen(false)}>
               <Users size={19} />
               Lead CRM
             </NavLink>
           )}
           {canManage && (
-            <NavLink to="/students" onClick={() => setOpen(false)}>
+            <NavLink to="/students" aria-label="O‘quvchilar" onClick={() => setOpen(false)}>
               <GraduationCap size={19} />
               O‘quvchilar
             </NavLink>
           )}
           {session.tenant && (
-            <NavLink to="/groups" onClick={() => setOpen(false)}>
+            <NavLink to="/groups" aria-label="Guruhlar" onClick={() => setOpen(false)}>
               <Users size={19} />
               Guruhlar
             </NavLink>
           )}
           {session.tenant && (
-            <NavLink to="/center" onClick={() => setOpen(false)}>
+            <NavLink to="/center" aria-label="Markaz ma’lumotlari" onClick={() => setOpen(false)}>
               <Building2 size={19} />
               Markaz ma’lumotlari
             </NavLink>
           )}
           {session.tenant && (
-            <NavLink to="/attendance" onClick={() => setOpen(false)}>
+            <NavLink to="/attendance" aria-label="Davomat" onClick={() => setOpen(false)}>
               <CheckCheck size={19} />
               Davomat
             </NavLink>
           )}
           {session.tenant && (
-            <NavLink to="/schedules" onClick={() => setOpen(false)}>
+            <NavLink to="/schedules" aria-label="Dars jadvali" onClick={() => setOpen(false)}>
               <Layers size={19} />
               Dars jadvali
             </NavLink>
           )}
           {session.tenant && (
-            <NavLink to="/schedules/weekly" onClick={() => setOpen(false)}>
+            <NavLink to="/schedules/weekly" aria-label="Haftalik kalendar" onClick={() => setOpen(false)}>
               <Layers size={19} />
               Haftalik kalendar
             </NavLink>
           )}
           {canManage && (
-            <NavLink to="/classrooms" onClick={() => setOpen(false)}>
+            <NavLink to="/classrooms" aria-label="Xonalar" onClick={() => setOpen(false)}>
               <Building2 size={19} />
               Xonalar
             </NavLink>
           )}
           {["business_owner", "teacher"].includes(session.user.role) && (
-            <NavLink to="/payroll" onClick={() => setOpen(false)}>
+            <NavLink to="/payroll" aria-label="O‘qituvchilar maoshi" onClick={() => setOpen(false)}>
               <Users size={18} /> O‘qituvchilar maoshi
             </NavLink>
           )}
           {session.user.role === "business_owner" && (
-            <NavLink to="/daily-reports" onClick={() => setOpen(false)}>
+            <NavLink to="/daily-reports" aria-label="Kunlik hisobotlar" onClick={() => setOpen(false)}>
               Kunlik hisobotlar
             </NavLink>
           )}
           {session.tenant && (
             <>
               {canManage && (
-                <NavLink to="/notifications" onClick={() => setOpen(false)}>
+                <NavLink to="/notifications" aria-label="Telegram xabarnomalari" onClick={() => setOpen(false)}>
                   Telegram xabarnomalari
                 </NavLink>
               )}
-              <NavLink to="/settings/telegram" onClick={() => setOpen(false)}>
+              <NavLink to="/settings/telegram" aria-label="Sozlamalar · Telegram" onClick={() => setOpen(false)}>
                 <Settings2 size={19} />
                 Sozlamalar · Telegram
               </NavLink>
             </>
           )}
           {session.user.role === "business_owner" && (
-            <NavLink to="/settings/subscription" onClick={() => setOpen(false)}>
+            <NavLink to="/settings/subscription" aria-label="Obuna" onClick={() => setOpen(false)}>
               <Layers size={19} />
               Sozlamalar · Obuna va tariflar
             </NavLink>
           )}
-          <NavLink to="/account" onClick={() => setOpen(false)}>
+          <NavLink to="/account" aria-label="Hisobim" onClick={() => setOpen(false)}>
             <Settings2 size={19} />
             Hisobim
           </NavLink>
@@ -643,6 +648,9 @@ function Shell() {
       <div className="app-main" inert={mobile && open}>
         <header className="topbar">
           <div className="topbar-left">
+            <button type="button" className="desktop-collapse icon-button" aria-controls="app-sidebar" aria-expanded={!collapsed} aria-label={collapsed ? "Menyuni kengaytirish" : "Menyuni yig‘ish"} onClick={() => setCollapsed(!collapsed)}>
+              {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+            </button>
             <button
               ref={menuButton}
               className="mobile-menu icon-button"
@@ -665,7 +673,7 @@ function Shell() {
             <ShieldCheck size={16} />
           </span>
         </header>
-        <main className="page-content">
+        <main id="main-content" className="page-content" tabIndex={-1}>
           {session.tenant && <SubscriptionBanner owner={session.user.role === "business_owner"} />}
           <Routes>
             <Route path="/" element={<Dashboard />} />
@@ -885,28 +893,6 @@ function Shell() {
     </div>
   );
 }
-function PageHeading({
-  eyebrow,
-  title,
-  description,
-  children,
-}: {
-  eyebrow: string;
-  title: string;
-  description: string;
-  children?: ReactNode;
-}) {
-  return (
-    <div className="page-heading">
-      <div>
-        <span className="form-eyebrow">{eyebrow}</span>
-        <h1>{title}</h1>
-        <p className="muted">{description}</p>
-      </div>
-      {children}
-    </div>
-  );
-}
 function Dashboard() {
   const { session } = useAuth();
   const [data, setData] = useState<DashboardView | null>(null);
@@ -939,44 +925,6 @@ function Dashboard() {
         <span className="date-chip">{date}</span>
       </PageHeading>
       {session.user.role === "business_owner" && <SetupChecklist />}
-      <section className="welcome-banner">
-        <div>
-          <span className="welcome-label">
-            <span className="status-dot" /> SIZNING ISH MAYDONINGIZ
-          </span>
-          <h2>
-            {platform
-              ? "Ta’lim uchun mustahkam poydevor."
-              : "Tartibli jamoa. Katta imkoniyatlar."}
-          </h2>
-          <p>
-            {platform
-              ? "Markazlar va foydalanuvchilar haqidagi umumiy ma’lumotlar."
-              : "Jamoangizni birlashtiring va ta’limga ko‘proq vaqt ajrating."}
-          </p>
-          {owner ? (
-            <Link className="button light" to="/team">
-              Jamoani boshqarish <ArrowUpRight size={17} />
-            </Link>
-          ) : (
-            <Link className="button light" to="/account">
-              Hisobimni ko‘rish <ArrowUpRight size={17} />
-            </Link>
-          )}
-        </div>
-        <div className="banner-art" aria-hidden="true">
-          <div className="banner-ring" />
-          <div className="banner-ring ring-small" />
-          <div className="banner-block block-one">
-            <BookOpen size={36} strokeWidth={1.3} />
-          </div>
-          <div className="banner-block block-two">
-            <GraduationCap size={46} strokeWidth={1.2} />
-          </div>
-          <span className="banner-star">✦</span>
-          <span className="banner-dot" />
-        </div>
-      </section>
       {error ? (
         <Notice>
           {error}{" "}
@@ -989,6 +937,16 @@ function Dashboard() {
           <Spinner /> Ma’lumotlar yuklanmoqda…
         </div>
       ) : (
+        <div className="stats-grid dashboard-primary-stats">
+          <Stat title="Faol o‘quvchilar" value={data.students?.active} icon={<GraduationCap size={24} />} note="Ta’limni davom ettirayotganlar" />
+          <Stat title="Faol guruhlar" value={data.groups?.active} icon={<Users size={24} />} note="Amaldagi guruhlar" />
+          <Stat title="Bugungi darslar" value={data.scheduling?.todayLessons} icon={<BookOpen size={24} />} note="Asia/Tashkent · bugun" />
+          {owner && <Stat title="Oylik tushum" value={data.financial ? new Intl.NumberFormat('uz-UZ', {notation:'compact'}).format(data.financial.receivedAmount) + ' UZS' : null} icon={<Layers size={24} />} note={data.financial?.month ?? 'Joriy oy'} />}
+        </div>
+      )}
+      {data && <DashboardAnalytics financial={owner && !!data.financial} attendance={data.attendance} />}
+      {owner && data?.students && <DashboardStudents />}
+      {data && <details className="dashboard-details panel"><summary>Barcha ko‘rsatkichlar · jamoa, o‘quvchilar va moliya</summary>
         <div className="stats-grid">
           <Stat
             title={platform ? "Faol markazlar" : "Jamoa a’zolari"}
@@ -1023,7 +981,6 @@ function Dashboard() {
             }
           />
         </div>
-      )}
       {owner && data?.students && (
         <div className="stats-grid student-stats">
           <Stat
@@ -1105,6 +1062,7 @@ function Dashboard() {
           <LeadKpis data={data.leads} />
         </section>
       )}
+      </details>}
       <div className="dashboard-grid">
         <section className="panel quick-panel">
           <div className="section-heading">
@@ -1167,30 +1125,6 @@ function Dashboard() {
         </section>
       </div>
     </>
-  );
-}
-function Stat({
-  title,
-  value,
-  icon,
-  note,
-}: {
-  title: string;
-  value?: number | string | null;
-  icon: ReactNode;
-  note: string;
-}) {
-  return (
-    <section className="stat-card">
-      <div className="stat-top">
-        <span>{title}</span>
-        <span className="stat-icon">{icon}</span>
-      </div>
-      <strong className={typeof value === "string" ? "stat-text" : ""}>
-        {value == null ? "—" : value.toLocaleString("uz-UZ")}
-      </strong>
-      <p>{note}</p>
-    </section>
   );
 }
 function QuickLink({

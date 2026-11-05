@@ -1,0 +1,42 @@
+import { MongoMemoryReplSet } from 'mongodb-memory-server';
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import { writeFileSync } from 'node:fs';
+import { createApp } from '../../apps/api/src/app.js';
+import { parseConfig } from '../../apps/api/src/config.js';
+import { connectDatabase } from '../../apps/api/src/db.js';
+import { Tenant, User, Student, ensureIndexes } from '../../apps/api/src/models.js';
+import { Group, Membership } from '../../apps/api/src/group-models.js';
+import { Classroom, Schedule } from '../../apps/api/src/schedule-models.js';
+import { LessonSession, AttendanceRecord } from '../../apps/api/src/attendance-models.js';
+import { Lead, TrialLesson, FollowUp } from '../../apps/api/src/lead-models.js';
+import { Charge, Payment } from '../../apps/api/src/billing-models.js';
+import { Payroll } from '../../apps/api/src/payroll-models.js';
+import { ensureSaasDefaults, createInitialTrial } from '../../apps/api/src/saas-service.js';
+import { issueToken } from '../../apps/api/src/security.js';
+// No configurable URI: this harness can only start a newly allocated disposable database.
+const repl=await MongoMemoryReplSet.create({replSet:{count:1},binary:{version:'7.0.24'}});
+const config=parseConfig({NODE_ENV:'test',TRUST_PROXY_HOPS:'1',PORT:'4000',APP_ORIGIN:'http://localhost:5173',MONGODB_URI:repl.getUri('redesign_disposable'),JWT_SECRET:'isolated-redesign-only-'.repeat(4)});
+await connectDatabase(config.MONGODB_URI);await ensureIndexes();await ensureSaasDefaults();
+const tenant=await Tenant.create({name:'Kelajak Academy · Sinov',onboarding:{status:'completed',completedSteps:['center','teacher','group','students','telegram','completion'],currentStep:'completion'}});
+const hash=await bcrypt.hash('Fictional-demo-2026!',10);const users:any={};
+for(const role of ['business_owner','admin','teacher','super_admin']) { users[role]=await User.create({name:({business_owner:'Aziz Sinov',admin:'Madina Sinov',teacher:'Sardor Sinov',super_admin:'Platforma Sinov'} as any)[role],email:`${role}@redesign.test`,role,tenantId:role==='super_admin'?null:tenant._id,passwordHash:hash}); }
+await createInitialTrial(tenant._id,users.business_owner._id);
+const t=tenant._id, o=users.business_owner._id, teacher=users.teacher._id;
+const students=await Student.create(['Malika','Javohir','Sevinch','Temur','Nigora','Behruz'].map((firstName,i)=>({tenantId:t,firstName,lastName:'Sinov',status:i===4?'paused':'active',createdBy:o,notes:'Faqat vizual tekshiruv uchun sun’iy yozuv.'})));
+const group=await Group.create({tenantId:t,name:'Ingliz tili · A1',courseName:'Ingliz tili',teacherId:teacher,capacity:16,monthlyFee:500000,startDate:new Date('2026-01-01'),activeMemberCount:6});
+await Membership.create(students.map(s=>({tenantId:t,groupId:group._id,studentId:s._id})));
+const room=await Classroom.create({tenantId:t,name:'Birinchi xona',nameKey:'birinchi xona',capacity:20});
+const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tashkent',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());const month=today.slice(0,7);
+const schedule=await Schedule.create({tenantId:t,groupId:group._id,teacherId:teacher,classroomId:room._id,dayOfWeek:new Date(today).getUTCDay()||7,startTime:'14:00',endTime:'15:30'});
+const lesson=await LessonSession.create({tenantId:t,groupId:group._id,scheduleId:schedule._id,teacherId:teacher,lessonDate:today,startTime:'14:00',endTime:'15:30',groupName:group.name,roster:students.map(s=>s._id),status:'completed'});
+await AttendanceRecord.create(students.map((s,i)=>({tenantId:t,sessionId:lesson._id,studentId:s._id,status:i===1?'absent':i===2?'late':'present',markedBy:teacher,markedAt:new Date()})));
+for(let i=0;i<6;i++){const d=new Date();d.setUTCMonth(d.getUTCMonth()-i);const m=d.toISOString().slice(0,7);const charge=await Charge.create({tenantId:t,generatedBy:o,payrollTeacherId:teacher,studentId:students[i]!._id,groupId:group._id,billingMonth:m,originalAmount:500000,finalAmount:500000,paidAmount:300000,dueDate:new Date(`${m}-05`)});await Payment.create({tenantId:t,studentId:students[i]!._id,chargeId:charge._id,amount:300000,method:'cash',paidAt:d,recordedBy:o,idempotencyKey:`demo-${i}`,fingerprint:`demo-${i}`});}
+const lead=await Lead.create({tenantId:t,fullName:'Dilnoza Sinov',interestedCourse:'Ingliz tili',source:'website',status:'contacted',createdBy:o,assignedTo:users.admin._id});
+await TrialLesson.create({tenantId:t,leadId:lead._id,groupId:group._id,teacherId:teacher,trialDate:today,startTime:'16:00',endTime:'17:00',createdBy:o});
+await FollowUp.create({tenantId:t,leadId:lead._id,assignedTo:users.admin._id,dueAt:new Date(),title:'Sinov darsini tasdiqlash',createdBy:o});
+const payroll=await Payroll.create({tenantId:t,teacherId:teacher,payrollMonth:month,status:"approved",approvedBy:o,approvedAt:new Date(),calculationBasis:{lines:[],grossSalary:900000},grossSalary:900000,finalSalary:900000,calculatedAt:new Date(),createdBy:o});
+const cookies=Object.fromEntries(Object.entries(users).map(([role,u])=>[role,issueToken(u as any,config)]));
+writeFileSync('/tmp/softlans-redesign-fixtures.json',JSON.stringify({cookies,ids:{student:students[0]!._id,group:group._id,schedule:schedule._id,session:lesson._id,lead:lead._id,payroll:payroll._id,tenant:t}}));
+const app=createApp(config);const server=app.listen(4000,'0.0.0.0',()=>console.log('Disposable redesign API ready'));
+for(const sig of ['SIGTERM','SIGINT'])process.on(sig,()=>{server.close();void mongoose.disconnect().then(()=>repl.stop()).then(()=>process.exit(0));});

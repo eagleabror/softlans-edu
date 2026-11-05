@@ -549,3 +549,10 @@ it("serializes independent groups competing for a teacher or classroom", async (
   ]);
   expect(roomResults.map((r) => r.status).sort()).toEqual([201, 409]);
 });
+
+it("accepts an unspecified classroom capacity from the existing form", async () => {
+ const result = await post("/classrooms", { name: "Optional capacity room", capacity: null, description: "", status: "active" });
+ expect(result.status).toBe(201);
+ expect(result.body.classroom.capacity).toBeNull();
+ expect((await post("/classrooms", { name: "Invalid capacity room", capacity: 0 })).status).toBe(400);
+});

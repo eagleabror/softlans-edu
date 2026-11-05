@@ -17,6 +17,8 @@ import {
 } from "react-router-dom";
 import {
   Building2,
+  Menu,
+  X,
   ChartNoAxesCombined,
   ChevronLeft,
   ChevronRight,
@@ -319,7 +321,7 @@ function GrowthChart({ growth }: { growth: PlatformStatisticsView["growth"] }) {
               x2="880"
               y1={base - f * 150}
               y2={base - f * 150}
-              stroke="#dfe5d8"
+              stroke="var(--color-line)"
             />
           </g>
         ))}
@@ -331,7 +333,7 @@ function GrowthChart({ growth }: { growth: PlatformStatisticsView["growth"] }) {
             width={Math.max(2, step - 6)}
             height={(item.count / max) * 150}
             rx="3"
-            fill="#526b43"
+            fill="var(--color-brand)"
           >
             <title>
               {item.date}: {item.count} ta
@@ -888,6 +890,34 @@ export function SuperAdminLayout({
   session: SessionView;
   onLogout: () => void;
 }) {
+  const [collapsed, setCollapsed] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
+  const [mobile, setMobile] = useState(() => window.matchMedia?.('(max-width: 700px)').matches ?? false);
+  const navRef = useRef<HTMLElement>(null);
+  const opener = useRef<HTMLButtonElement>(null);
+  const close = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const media = window.matchMedia?.('(max-width: 700px)');
+    if (!media) return;
+    const sync = () => { setMobile(media.matches); setNavOpen(false); };
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, []);
+  useEffect(() => {
+    if (!mobile || !navOpen) return;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden'; close.current?.focus();
+    const keydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setNavOpen(false);
+      if (event.key !== 'Tab') return;
+      const items = navRef.current?.querySelectorAll<HTMLElement>('a[href],button:not([disabled])');
+      const first = items?.[0], last = items?.[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
+    document.addEventListener('keydown', keydown);
+    return () => { document.body.style.overflow = overflow; document.removeEventListener('keydown', keydown); opener.current?.focus(); };
+  }, [mobile, navOpen]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   async function logout() {
@@ -906,11 +936,13 @@ export function SuperAdminLayout({
   if (session.user.role !== "super_admin" || session.tenant !== null)
     return <Navigate to="/" replace />;
   return (
-    <div className="platform-shell">
+    <div className={`platform-shell ${collapsed ? "platform-collapsed" : ""}`}>
       <a className="platform-skip" href="#platform-content">
         Asosiy mazmunga o‘tish
       </a>
-      <aside className="platform-sidebar">
+      {mobile && navOpen && <button className="sidebar-overlay" aria-label="Menyuni yopish" tabIndex={-1} onClick={() => setNavOpen(false)} />}
+      <aside id="platform-sidebar" ref={navRef} className={`platform-sidebar ${navOpen ? 'platform-nav-open' : ''}`} inert={mobile && !navOpen} role={mobile && navOpen ? 'dialog' : undefined} aria-modal={mobile && navOpen ? true : undefined} aria-label="Platforma menyu paneli" onClick={event => { if ((event.target as HTMLElement).closest('a')) setNavOpen(false); }}>
+        <button ref={close} className="icon-button mobile-close" aria-label="Menyuni yopish" onClick={() => setNavOpen(false)}><X size={20} /></button>
         <Link to={root} className="platform-brand">
           <Layers size={27} aria-hidden="true" />
           <span>
@@ -919,19 +951,19 @@ export function SuperAdminLayout({
           </span>
         </Link>
         <nav aria-label="Platforma menyusi">
-          <NavLink to={root} end>
+          <NavLink aria-label="Dashboard" to={root} end>
             <LayoutDashboard size={20} aria-hidden="true" />
             Dashboard
           </NavLink>
-          <NavLink to={`${root}/tenants`}>
+          <NavLink aria-label="O‘quv markazlari" to={`${root}/tenants`}>
             <Building2 size={20} aria-hidden="true" />
             O‘quv markazlari
           </NavLink>
-          <NavLink to={`${root}/plans`}><Layers size={20} aria-hidden="true" />Tariflar</NavLink>
-          <NavLink to={`${root}/subscriptions`}><Building2 size={20} aria-hidden="true" />Obunalar</NavLink>
-          <NavLink to={`${root}/payment-requests`}><ShieldCheck size={20} aria-hidden="true" />To‘lov so‘rovlari</NavLink>
-          <NavLink to={`${root}/saas-analytics`}><ChartNoAxesCombined size={20} aria-hidden="true" />SaaS analitika</NavLink>
-          <NavLink to={`${root}/audit`}>
+          <NavLink aria-label="Tariflar" to={`${root}/plans`}><Layers size={20} aria-hidden="true" />Tariflar</NavLink>
+          <NavLink aria-label="Obunalar" to={`${root}/subscriptions`}><Building2 size={20} aria-hidden="true" />Obunalar</NavLink>
+          <NavLink aria-label="To‘lov so‘rovlari" to={`${root}/payment-requests`}><ShieldCheck size={20} aria-hidden="true" />To‘lov so‘rovlari</NavLink>
+          <NavLink aria-label="SaaS analitika" to={`${root}/saas-analytics`}><ChartNoAxesCombined size={20} aria-hidden="true" />SaaS analitika</NavLink>
+          <NavLink aria-label="Audit tarixi" to={`${root}/audit`}>
             <History size={20} aria-hidden="true" />
             Audit tarixi
           </NavLink>
@@ -953,9 +985,9 @@ export function SuperAdminLayout({
           </div>
         )}
       </aside>
-      <div className="platform-main">
+      <div className="platform-main" inert={mobile && navOpen}>
         <header className="platform-topbar">
-          <span>SoftLans Edu 2.0</span>
+          <div className="topbar-left"><button ref={opener} className="mobile-menu icon-button" aria-label="Menyuni ochish" aria-controls="platform-sidebar" aria-expanded={navOpen} onClick={() => setNavOpen(true)}><Menu size={22} /></button><button className="desktop-collapse icon-button" aria-label={collapsed ? 'Menyuni kengaytirish' : 'Menyuni yig‘ish'} aria-controls="platform-sidebar" aria-expanded={!collapsed} onClick={() => setCollapsed(!collapsed)}>{collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}</button><span>SoftLans Edu 2.0</span></div>
           <span>
             <ShieldCheck size={17} aria-hidden="true" />
             Platforma egasi
