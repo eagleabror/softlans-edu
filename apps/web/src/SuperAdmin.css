@@ -3,8 +3,8 @@
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);
   min-height: 100vh;
-  background: #f7f8f5;
-  color: #283c34;
+  background: var(--color-canvas);
+  color: var(--color-content);
   font-size: 14px;
   line-height: 1.6;
 }
@@ -13,7 +13,7 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  border-right: 1px solid #e7ebe2;
+  border-right: 1px solid var(--color-line);
   background: #fff;
   min-width: 0;
 }
@@ -21,7 +21,7 @@
   display: flex;
   gap: 12px;
   align-items: center;
-  color: #263e35;
+  color: var(--color-brand);
   font-size: 22px;
   font-weight: 650;
 }
@@ -30,7 +30,7 @@
 }
 .platform-brand small {
   display: block;
-  color: #526b43;
+  color: var(--color-muted);
   font-size: 12px;
   font-weight: 500;
 }
@@ -45,15 +45,15 @@
   padding: 12px;
   border-radius: 8px;
   min-height: 48px;
-  color: #526b43;
+  color: var(--color-muted);
   transition: background 0.2s;
 }
 .platform-sidebar nav a:hover {
-  background: #f1f5e9;
+  background: #f7f5ff;
 }
 .platform-sidebar nav a.active {
-  color: #263e35;
-  background: #d4e6ae;
+  color: var(--color-brand);
+  background: var(--color-accent);
   font-weight: 600;
 }
 .platform-identity {
@@ -61,7 +61,7 @@
   align-items: center;
   gap: 10px;
   padding-top: 24px;
-  border-top: 1px solid #e7ebe2;
+  border-top: 1px solid var(--color-line);
   margin-top: 16px;
   overflow-wrap: anywhere;
 }
@@ -70,7 +70,7 @@
   display: block;
 }
 .platform-identity span {
-  color: #526b43;
+  color: var(--color-muted);
   font-size: 12px;
 }
 .platform-identity > svg {
@@ -87,8 +87,8 @@
   gap: 8px;
   padding: 20px 32px;
   background: #fff;
-  border-bottom: 1px solid #e7ebe2;
-  color: #526b43;
+  border-bottom: 1px solid var(--color-line);
+  color: var(--color-muted);
 }
 .platform-topbar > span:last-child {
   display: flex;
@@ -120,13 +120,13 @@
 }
 .platform-shell .page-heading p,
 .platform-note {
-  color: #526b43;
+  color: var(--color-muted);
 }
 .platform-eyebrow {
   font-size: 12px;
   letter-spacing: 1px;
   font-weight: 600;
-  color: #526b43;
+  color: var(--color-muted);
 }
 .platform-shell .panel {
   padding: 24px;
@@ -142,12 +142,12 @@
   min-width: 0;
 }
 .platform-shell .stat-top {
-  color: #526b43;
+  color: var(--color-muted);
   font-size: 14px;
   align-items: flex-start;
 }
 .platform-shell .stat-icon {
-  color: #526b43;
+  color: var(--color-muted);
   flex-shrink: 0;
 }
 .platform-shell .stat-card > strong {
@@ -157,12 +157,12 @@
   font-variant-numeric: tabular-nums;
 }
 .platform-shell .stat-card p {
-  color: #526b43;
+  color: var(--color-muted);
   font-size: 12px;
   margin-top: 12px;
 }
 .platform-growth > p {
-  color: #526b43;
+  color: var(--color-muted);
   margin-top: 8px;
 }
 .platform-growth .section-heading {
@@ -170,7 +170,7 @@
 }
 .platform-growth .section-heading > span {
   font-size: 13px;
-  color: #526b43;
+  color: var(--color-muted);
 }
 .platform-chart {
   width: 100%;
@@ -179,7 +179,7 @@
   margin: 20px 0 12px;
 }
 .platform-shell summary {
-  color: #263e35;
+  color: var(--color-brand);
   cursor: pointer;
   padding: 12px 0;
   min-height: 44px;
@@ -198,7 +198,7 @@
   align-items: end;
   gap: 16px;
   padding: 24px;
-  border-bottom: 1px solid #e7ebe2;
+  border-bottom: 1px solid var(--color-line);
 }
 .platform-filters label {
   display: grid;
@@ -211,8 +211,8 @@
 .platform-dialog .plain-input {
   width: 100%;
   min-height: 44px;
-  border-color: #7b847f;
-  color: #283c34;
+  border-color: var(--color-muted);
+  color: var(--color-content);
   font: inherit;
 }
 .platform-shell .button,
@@ -223,7 +223,7 @@
 .platform-shell
   :is(a, button, input, select, summary, [tabindex]):focus-visible,
 .platform-dialog :is(button, textarea):focus-visible {
-  outline: 3px solid #526b43;
+  outline: 3px solid var(--color-muted);
   outline-offset: 3px;
 }
 .platform-shell button:disabled,
@@ -244,18 +244,18 @@
 .platform-shell td {
   padding: 14px 20px;
   font-size: 14px;
-  border-bottom: 1px solid #e7ebe2;
+  border-bottom: 1px solid var(--color-line);
   vertical-align: middle;
 }
 .platform-shell th {
-  color: #526b43;
+  color: var(--color-muted);
   font-weight: 600;
 }
 .platform-shell thead {
-  background: #fafbf7;
+  background: #f9faff;
 }
 .platform-shell tbody tr:hover {
-  background: #fafbf7;
+  background: #f9faff;
 }
 .platform-shell td {
   font-variant-numeric: tabular-nums;
@@ -266,7 +266,7 @@
   overflow-wrap: anywhere;
 }
 .platform-link {
-  color: #263e35;
+  color: var(--color-brand);
   text-decoration: underline;
   text-underline-offset: 4px;
   display: inline-flex;
@@ -277,8 +277,8 @@
   display: inline-block;
   padding: 4px 10px;
   border-radius: 20px;
-  color: #3f5835;
-  background: #edf2e5;
+  color: #227449;
+  background: #e8f8ef;
   font-size: 13px;
   font-weight: 600;
 }
@@ -293,7 +293,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 16px;
-  color: #526b43;
+  color: var(--color-muted);
 }
 .platform-pagination > div,
 .platform-actions {
@@ -311,7 +311,7 @@
 .platform-empty {
   padding: 48px 24px;
   text-align: center;
-  color: #526b43;
+  color: var(--color-muted);
 }
 .platform-empty > svg {
   margin: 0 auto 12px;
@@ -337,7 +337,7 @@
   min-height: 44px;
   margin-bottom: 12px;
   gap: 4px;
-  color: #526b43;
+  color: var(--color-muted);
 }
 .platform-details {
   margin-top: 16px;
@@ -348,10 +348,10 @@
   flex-wrap: wrap;
   gap: 8px 24px;
   padding: 12px 0;
-  border-bottom: 1px solid #e7ebe2;
+  border-bottom: 1px solid var(--color-line);
 }
 .platform-details dt {
-  color: #526b43;
+  color: var(--color-muted);
 }
 .platform-details dd {
   font-weight: 500;
@@ -366,8 +366,8 @@
   background: #804331;
 }
 .platform-success {
-  color: #3f5835;
-  background: #edf2e5;
+  color: #227449;
+  background: #e8f8ef;
   padding: 16px;
   border-radius: 8px;
   margin-bottom: 16px;
@@ -427,7 +427,7 @@
   left: 16px;
   padding: 12px 20px;
   color: #fff;
-  background: #263e35;
+  background: var(--color-brand);
   z-index: 100;
 }
 .platform-skip:focus {
@@ -452,7 +452,7 @@
     padding: 20px 16px;
     gap: 16px;
     border-right: 0;
-    border-bottom: 1px solid #e7ebe2;
+    border-bottom: 1px solid var(--color-line);
   }
   .platform-sidebar nav {
     display: flex;
@@ -523,6 +523,6 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
-  color: #526b43;
+  color: var(--color-muted);
   font-size: 12px;
 }

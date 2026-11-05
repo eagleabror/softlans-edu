@@ -450,7 +450,7 @@ export function FinancialReports() {
                 {
                   key: "payments",
                   name: "To‘lov sanasi bo‘yicha",
-                  color: "#263e35",
+                  color: "#5932ea",
                 },
               ]}
             />
@@ -458,11 +458,11 @@ export function FinancialReports() {
               title="Hisoblar va yig‘im"
               rows={data.monthly.map((r) => ({ ...r, label: r.month }))}
               series={[
-                { key: "billed", name: "Hisoblangan", color: "#899e66" },
+                { key: "billed", name: "Hisoblangan", color: "#c2aff4" },
                 {
                   key: "collected",
                   name: "Hisob oyiga yig‘ilgan",
-                  color: "#263e35",
+                  color: "#5932ea",
                 },
               ]}
             />
@@ -488,7 +488,7 @@ export function FinancialReports() {
                 {
                   key: "amount",
                   name: "Qabul qilingan to‘lovlar",
-                  color: "#263e35",
+                  color: "#5932ea",
                 },
               ]}
             />

@@ -95,7 +95,7 @@ describe("Uzbek authentication and role-aware navigation", () => {
         response(
           url.endsWith("/me")
             ? session
-            : {
+            : url.startsWith("/api/students?") ? { students: [], total: 0, page: 1, pageSize: 5 } : {
                 scope: "tenant",
                 students: { total: 17, active: 11, paused: 4, recent: 6 },
                 teamCount: 3,
@@ -114,10 +114,11 @@ describe("Uzbek authentication and role-aware navigation", () => {
     expect(
       screen.getByRole("link", { name: "Moliyaviy hisobotlar" }),
     ).toBeVisible();
+    await userEvent.click(await screen.findByText("Barcha ko‘rsatkichlar · jamoa, o‘quvchilar va moliya"));
     await waitFor(() => expect(screen.getByText("3")).toBeVisible());
     expect(screen.getByRole("link", { name: "O‘quvchilar" })).toBeVisible();
     for (const count of ["17", "11", "4", "6"])
-      expect(screen.getByText(count)).toBeVisible();
+      for (const element of screen.getAllByText(count)) expect(element).toBeVisible();
   });
   it("hides team navigation and team counts from teachers", async () => {
     vi.stubGlobal(
@@ -147,6 +148,7 @@ describe("Uzbek authentication and role-aware navigation", () => {
     expect(
       screen.queryByRole("link", { name: "Moliyaviy hisobotlar" }),
     ).not.toBeInTheDocument();
+    await userEvent.click(await screen.findByText("Barcha ko‘rsatkichlar · jamoa, o‘quvchilar va moliya"));
     expect(
       await screen.findByText("Jamoa ma’lumotlari rahbariyat uchun"),
     ).toBeVisible();
