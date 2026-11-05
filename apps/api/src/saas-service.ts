@@ -52,11 +52,11 @@ export function subscriptionView(s: InstanceType<typeof Subscription>, now = new
     pendingPlanId: s.pendingPlanId?.toString() ?? null,
     remainingDays: Math.max(0, Math.ceil(((s.status === "trialing" ? s.trialEnd ?? s.periodEnd : s.periodEnd).getTime() - now.getTime()) / DAY_MS)) };
 }
-export async function createInitialTrial(tenantId: Types.ObjectId, actorId: Types.ObjectId, session: ClientSession) {
+export async function createInitialTrial(tenantId: Types.ObjectId, actorId: Types.ObjectId, session: ClientSession, planId?: string) {
   await lockSubscription(tenantId, session);
   if (await TrialGrant.exists({ tenantId }).session(session))
     throw new AppError(409, "TRIAL_ALREADY_USED", "Bu markaz sinov muddatidan foydalangan.");
-  const plan = await Plan.findOne({ code: "starter", isActive: true }).session(session);
+  const plan = await Plan.findOneAndUpdate({ ...(planId ? { _id: planId } : { code: "starter" }), isActive: true }, { $inc: { selectionRevision: 1 } }, { session, new: true });
   if (!plan) throw new AppError(503, "TRIAL_PLAN_UNAVAILABLE", "Sinov tarifi sozlanmagan. Platforma ma’muriga murojaat qiling.");
   const now = new Date(), end = new Date(now.getTime() + 14 * DAY_MS);
   const [subscription] = await Subscription.create([{ tenantId, ...snapshotPlan(plan), status: "trialing", periodStart: now, periodEnd: end, trialStart: now, trialEnd: end }], { session });

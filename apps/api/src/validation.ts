@@ -14,6 +14,7 @@ export const registerSchema = z
     email: emailSchema,
     password: passwordSchema,
     centerName: z.string().trim().min(2).max(120),
+    planId: z.string().regex(/^[a-f\d]{24}$/i).optional(),
   })
   .strict();
 export const loginSchema = z

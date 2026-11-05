@@ -2866,3 +2866,15 @@ td {
   background: #263e35;
   color: white;
 }
+
+/* Registration uses the existing forest/lime controls and stacked mobile layout. */
+.registration-form fieldset { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 12px; }
+.registration-form fieldset > div:not(.saas-actions) { display: grid; gap: 8px; }
+.registration-form .registration-plan { display: block; padding: 16px; line-height: 1.7; cursor: pointer; border-color: #7b847f; }
+.registration-form .registration-plan:has(input:checked) { background: #edf2e5; border-color: #263e35; }
+.registration-form input[type="radio"] { accent-color: #263e35; width: 24px; height: 24px; vertical-align: middle; margin-right: 8px; }
+.registration-form ol { padding-left: 24px; line-height: 1.7; }
+.registration-form [aria-current="step"] { font-weight: 600; }
+.registration-form legend { margin-bottom: 12px; font-weight: 600; }
+.registration-form .saas-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.registration-form .saas-actions > button { flex: 1; }

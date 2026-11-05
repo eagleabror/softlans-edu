@@ -84,3 +84,32 @@ it("assigns unpaid safely, extends idempotently and excludes trial and expired f
  expect((await get(`${base}/analytics`)).body.mrrUZS).toBe(0);
 });
 it("clamps billing month at Tashkent calendar boundary",()=>{expect(addBillingMonths(new Date('2026-01-31T10:00:00Z'),1).toISOString()).toBe('2026-02-28T10:00:00.000Z');});
+
+it("registers chosen active plan atomically using database snapshot", async()=>{
+ const pro=(await Plan.findOne({code:'pro'}))!;
+ await Plan.updateOne({_id:pro._id},{$set:{monthlyPriceUZS:567000,studentLimit:123}});
+ const body={centerName:'Yangi markaz',name:'Rahbar Sinov',email:'new@example.test',password:'strong-password-123',planId:pro._id.toString()};
+ const plans=await request(app).get('/api/auth/registration-plans');expect(plans.status).toBe(200);
+ expect(plans.body.plans.find((p:any)=>p.id===pro._id.toString())).toMatchObject({monthlyPriceUZS:567000,studentLimit:123});
+ const r=await request(app).post('/api/auth/register').set('Origin',origin).send(body);expect(r.status).toBe(201);
+ const sub=(await Subscription.findOne({tenantId:r.body.tenant.id}))!;
+ expect(sub.planId.toString()).toBe(pro._id.toString());expect(sub.status).toBe('trialing');expect(sub.agreedPriceUZS).toBe(567000);expect(sub.studentLimit).toBe(123);
+ expect(sub.trialEnd!.getTime()-sub.trialStart!.getTime()).toBe(14*86400000);
+ const before=await Tenant.countDocuments();
+ expect((await request(app).post('/api/auth/register').set('Origin',origin).send(body)).status).toBe(409);
+ expect(await Tenant.countDocuments()).toBe(before);
+ expect(await TrialGrant.countDocuments()).toBe(1);
+});
+it("rejects disabled registration, inactive plans and tampered values without orphan tenants",async()=>{
+ const body={centerName:'Yangi',name:'Rahbar Sinov',email:'new@example.test',password:'strong-password-123',planId};
+ const before=await Tenant.countDocuments();
+ expect((await request(app).post('/api/auth/register').set('Origin',origin).send({...body,monthlyPriceUZS:1})).status).toBe(400);
+ await Plan.updateOne({_id:planId},{$set:{isActive:false}});
+ expect((await request(app).get('/api/auth/registration-plans')).body.plans.some((p:any)=>p.id===planId)).toBe(false);
+ expect((await request(app).post('/api/auth/register').set('Origin',origin).send(body)).status).toBe(503);
+ expect(await Tenant.countDocuments()).toBe(before);
+ const closed=createApp({...config,PUBLIC_REGISTRATION_ENABLED:false});
+ expect((await request(closed).get('/api/auth/registration-plans')).status).toBe(403);
+ expect((await request(closed).post('/api/auth/register').set('Origin',origin).send(body)).status).toBe(403);
+ expect(await Subscription.countDocuments()).toBe(0);
+});
