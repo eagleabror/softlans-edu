@@ -19,6 +19,9 @@ import {
   ChargeAdjustment,
 } from "./billing-models.js";
 import mongoose, { Schema, type InferSchemaType } from "mongoose";
+import { saasModels } from "./saas-models.js";
+import { SaasReminder } from "./saas-reminders-models.js";
+import { ensureSaasDefaults } from "./saas-service.js";
 import { Classroom, Schedule } from "./schedule-models.js";
 import { Group, Membership } from "./group-models.js";
 import { normalizeName, normalizePhone } from "./student-validation.js";
@@ -27,6 +30,7 @@ const tenantSchema = new Schema(
   {
     name: { type: String, required: true, trim: true, maxlength: 120 },
     billingRevision: { type: Number, default: 0, select: false },
+    subscriptionRevision: { type: Number, default: 0, select: false },
     schedulingRevision: { type: Number, default: 0, select: false },
     active: { type: Boolean, default: true, required: true },
     statusRevision: { type: Number, default: 0, min: 0, select: false },
@@ -155,6 +159,8 @@ export type UserRecord = InferSchemaType<typeof userSchema> & {
 };
 export async function ensureIndexes() {
   for (const model of [
+    ...saasModels,
+    SaasReminder,
     PlatformAudit,
     StudentImportLog,
     StudentImportSession,
@@ -191,4 +197,5 @@ export async function ensureIndexes() {
   await User.createCollection();
   await Tenant.createIndexes();
   await User.createIndexes();
+  await ensureSaasDefaults();
 }

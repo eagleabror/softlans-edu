@@ -5,6 +5,7 @@ import { Tenant, User, type UserRecord } from "./models.js";
 import { AppError } from "./errors.js";
 import type { Role } from "@softlans/contracts";
 import type { Types } from "mongoose";
+import { subscriptionEntitlement } from "./saas-entitlements.js";
 
 export interface Principal {
   userId: Types.ObjectId;
@@ -71,7 +72,6 @@ export const authenticate =
         role: user.role,
         user,
       };
-      next();
     } catch (error) {
       // DB failures must remain server failures instead of masquerading as bad credentials.
       if (error instanceof Error && /Mongo|Mongoose/.test(error.name)) {
@@ -79,7 +79,10 @@ export const authenticate =
         return;
       }
       next(new AppError(401, "UNAUTHENTICATED", "Hisobingizga kiring."));
+      return;
     }
+    // Subscription denial is distinct from authentication and administrative blocking.
+    await subscriptionEntitlement(req, _res, next);
   };
 export function principal(req: Express.Request): Principal {
   if (!req.principal)

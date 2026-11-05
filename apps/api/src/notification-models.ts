@@ -85,6 +85,7 @@ const job = new Schema(
         "test",
         "owner_daily",
         "owner_test",
+        "saas_expiry",
       ],
       required: true,
     },
@@ -143,6 +144,7 @@ const processorState = new Schema({
     enum: [
       "planning_guardians",
       "planning_owners",
+      "planning_saas",
       "delivery",
       "completed",
       "failed",

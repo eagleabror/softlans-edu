@@ -5,6 +5,8 @@ import {
   leadStatistics,
 } from "./leads.js";
 import { superAdminRouter } from "./super-admin.js";
+import { saasRouter, saasAdminRouter } from "./saas.js";
+import { createInitialTrial } from "./saas-service.js";
 import { studentImportsRouter } from "./student-imports.js";
 import { notificationScheduler } from "./notification-scheduler.js";
 import { dailyReportRouter } from "./daily-report-api.js";
@@ -167,6 +169,7 @@ export function createApp(
         ],
         { session },
       );
+      await createInitialTrial(tenant!._id, owner!._id, session);
       return owner!;
     });
     res.cookie(COOKIE_NAME, issueToken(user, config), cookieOptions(config));
@@ -227,6 +230,8 @@ export function createApp(
     notificationRouter(config),
   );
   app.use("/api/payroll", authenticate(config), payrollRouter);
+  app.use("/api/saas", authenticate(config), saasRouter);
+  app.use("/api/super-admin/saas", authenticate(config), saasAdminRouter);
   app.use("/api/super-admin", authenticate(config), superAdminRouter);
   app.use("/api/attendance", authenticate(config), attendanceRouter);
   app.use("/api/analytics", authenticate(config), analyticsRouter);

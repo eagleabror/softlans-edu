@@ -1,3 +1,4 @@
+import { assertQuota } from "./saas-entitlements.js";
 import express, { Router } from "express";
 import { fork } from "node:child_process";
 import { randomUUID } from "node:crypto";
@@ -400,6 +401,7 @@ studentImportsRouter.post("/:id/commit", async (req, res) => {
       await mongoose.connection.transaction(
         async (session) => {
           await lockBilling(tenantId, session);
+          await assertQuota(tenantId, "student", 0, session);
           // Reauthorize every batch: revocation, role changes and inactive tenant stop further writes.
           if (
             !(await User.exists({
@@ -450,6 +452,7 @@ studentImportsRouter.post("/:id/commit", async (req, res) => {
               skipped++;
               continue;
             }
+            await assertQuota(tenantId, "student", 1, session);
             await Student.create(
               [
                 {
@@ -493,7 +496,7 @@ studentImportsRouter.post("/:id/commit", async (req, res) => {
         },
       },
     );
-  } catch {
+  } catch (error) {
     log = await Log.findOne(scope);
     await Log.updateOne(
       { ...scope, status: "running" },
@@ -503,7 +506,9 @@ studentImportsRouter.post("/:id/commit", async (req, res) => {
           failedRows: log!.totalRows - log!.importedRows - log!.skippedRows,
           completedAt: new Date(),
           errorSummary:
-            "Import uzildi. Qolgan qatorlar yozilmadi; yozilganlar saqlandi.",
+            error instanceof AppError && ["PLAN_LIMIT_REACHED", "SUBSCRIPTION_READ_ONLY"].includes(error.code)
+              ? error.message
+              : "Import uzildi. Qolgan qatorlar yozilmadi; yozilganlar saqlandi.",
         },
       },
     );

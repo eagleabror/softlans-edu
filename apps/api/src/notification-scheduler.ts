@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { Config } from "./config.js";
 import { AppError } from "./errors.js";
-import { validSecret, telegramConfigured } from "./telegram.js";
+import { validSecret } from "./telegram.js";
 import { NotificationSchedulerLease } from "./notification-models.js";
 import { runNotificationAutomation } from "./notification-automation.js";
 const event = (status: string, code?: string) =>
@@ -47,12 +47,6 @@ export function notificationScheduler(config: Config) {
       z.object({})
         .strict()
         .parse(req.body ?? {});
-      if (!telegramConfigured(config))
-        throw new AppError(
-          503,
-          "TELEGRAM_UNAVAILABLE",
-          "Telegram is not configured.",
-        );
       // Persist admission pacing across restarts and multiple API instances.
       await NotificationSchedulerLease.updateOne(
         { _id: "http" },

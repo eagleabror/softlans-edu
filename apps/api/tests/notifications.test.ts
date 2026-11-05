@@ -771,10 +771,11 @@ it("one planner failure cannot prevent guardian delivery, and logs are safe", as
   );
   expect((await diagnostics()).body.processor.stage).toBe("failed");
 });
-it("processor records completion and rejects missing bot configuration visibly", async () => {
+it("processor completes in-app reminders without bot configuration and skips Telegram delivery", async () => {
   const { runNotificationAutomation } =
     await import("../src/notification-automation.js");
   const overrides = {
+    saas: vi.fn().mockResolvedValue(undefined),
     guardians: vi.fn().mockResolvedValue(undefined),
     owners: vi.fn().mockResolvedValue(undefined),
     process: vi.fn().mockResolvedValue(false),
@@ -787,10 +788,10 @@ it("processor records completion and rejects missing bot configuration visibly",
       { ...config, TELEGRAM_BOT_TOKEN: undefined },
       overrides,
     ),
-  ).toBe(false);
-  expect(overrides.log).toHaveBeenCalledWith(
-    expect.objectContaining({ code: "TELEGRAM_NOT_CONFIGURED" }),
-  );
+  ).toBe(true);
+  expect(overrides.saas).toHaveBeenCalledTimes(2);
+  expect(overrides.process).toHaveBeenCalledOnce();
+  expect(overrides.guardians).toHaveBeenCalledOnce();
 });
 it("absence and enabled late/excused alerts survive edits while correction-only notices remain configurable", () => {
   const s = { attendance: true, corrections: false, late: true, excused: true };

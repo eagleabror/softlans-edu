@@ -1,3 +1,4 @@
+import { assertQuota } from "./saas-entitlements.js";
 import { Charge } from "./billing-models.js";
 import { lockBilling } from "./billing-lock.js";
 import { lockScheduling } from "./schedule-lock.js";
@@ -125,9 +126,12 @@ groupsRouter.post("/", manage, async (req, res) => {
   const input = groupCreateSchema.parse(req.body),
     tenant = tenantScope(principal(req));
   await validateTeacher(input.teacherId, tenant.tenantId);
-  res
-    .status(201)
-    .json({ group: groupView(await Group.create({ ...input, ...tenant })) });
+  const group = await mongoose.connection.transaction(async (session) => {
+    await assertQuota(tenant.tenantId, "group", (input.status ?? "active") === "active" ? 1 : 0, session);
+    const [created] = await Group.create([{ ...input, ...tenant }], { session });
+    return created!;
+  });
+  res.status(201).json({ group: groupView(group) });
 });
 groupsRouter.use("/:id", (req, _res, next) => {
   if (!mongoose.isObjectIdOrHexString(req.params.id)) throw missing();
@@ -169,6 +173,8 @@ for (const mode of ["update", "archive", "teacher"] as const) {
         session,
       );
       if (!g) throw missing();
+      await assertQuota(tenant.tenantId, "group",
+        "status" in input && input.status === "active" && g.status !== "active" ? 1 : 0, session);
       if (
         "capacity" in input &&
         input.capacity !== undefined &&
