@@ -137,3 +137,13 @@ Brauzerda mobil o‘lchamlar va vizual accessibility tekshiruvi ushbu muhitda ba
 - `npm run typecheck` va `npm run build`: muvaffaqiyatli. Oxirgi UI idempotency o‘zgarishidan keyin web typecheck, build va tegishli 6 test qayta o‘tkazildi.
 - `npm audit --audit-level=high` va `npm audit --omit=dev --audit-level=high`: har ikkisida 0 zaiflik.
 - `git diff --check`: xatosiz. Production migration yoki deploy bajarilmadi.
+
+## Qo‘shimcha: birinchi ro‘yxatdan o‘tishda tarif tanlash
+
+Ro‘yxatdan o‘tish oynasi uch bosqichdan iborat: markaz nomi → faol tarifni tanlash → rahbar akkaunti. Muvaffaqiyatli yuborilgach tanlangan tarifda 14 kunlik trial yaratiladi va CRM dashboard ochiladi. Tarif narxi, faol o‘quvchi/guruh limitlari va imkoniyatlari MongoDB’dan olinadi.
+
+`GET /api/auth/registration-plans` autentifikatsiyasiz faqat faol tariflarning ochiq maydonlarini qaytaradi. `PUBLIC_REGISTRATION_ENABLED=false` bo‘lsa bu endpoint ham, `POST /api/auth/register` ham 403 qaytaradi. Ushbu qo‘shimcha konfiguratsiyani yoqmaydi va mavjud login oqimini o‘zgartirmaydi.
+
+Ro‘yxatdan o‘tish payload’iga `planId` qo‘shildi. Yangi forma tarif tanlashni majburiy qiladi; avvalgi API mijozlari uchun `planId` yuborilmasa faol Starter tarifi qo‘llanadi. Berilgan ID yaroqsiz yoki tarif faolsiz bo‘lsa yaratish bekor qilinadi. Narx va limit kabi ortiqcha maydonlar rad etiladi. Server tarifni tranzaksiya ichida qayta o‘qiydi va yozish orqali parallel faolsizlantirish/tahrirlash bilan serializatsiya qiladi. Tenant, rahbar, trial, bir martalik trial belgisi va audit bitta tranzaksiyada yaratiladi.
+
+Tarif tanlash pullik obunani faollashtirmaydi. Trial tugagach haqiqiy to‘lov qo‘lda tasdiqlanishi talab qilinadi. Mavjud markazlarga trial qayta berilmaydi.

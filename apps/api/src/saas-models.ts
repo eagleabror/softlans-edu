@@ -3,6 +3,7 @@ import mongoose, { Schema } from "mongoose";
 const integer = { type: Number, min: 0, validate: Number.isSafeInteger };
 const limit = { ...integer, default: null, validate: (v: unknown) => v == null || Number.isSafeInteger(v) };
 const planSchema = new Schema({
+  selectionRevision: { type: Number, default: 0, select: false },
   name: { type: String, required: true, maxlength: 100 },
   code: { type: String, required: true, match: /^[a-z0-9_-]+$/, maxlength: 40 },
   monthlyPriceUZS: { ...integer, required: true },

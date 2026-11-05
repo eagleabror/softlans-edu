@@ -1,3 +1,4 @@
+import { Plan } from "./saas-models.js";
 import {
   leadsRouter,
   trialsRouter,
@@ -143,6 +144,12 @@ export function createApp(
       .json({ ready: mongoose.connection.readyState === 1 }),
   );
 
+  app.get("/api/auth/registration-plans", limiter(60, 60_000), async (_req, res) => {
+    if (!config.PUBLIC_REGISTRATION_ENABLED)
+      throw new AppError(403, "REGISTRATION_DISABLED", "Yangi hisob ochish vaqtincha yopilgan.");
+    const plans = await Plan.find({ isActive: true }).sort({ monthlyPriceUZS: 1, _id: 1 }).select("name code monthlyPriceUZS studentLimit groupLimit features").lean();
+    res.json({ plans: plans.map(p => ({ id: p._id.toString(), name: p.name, code: p.code, monthlyPriceUZS: p.monthlyPriceUZS, studentLimit: p.studentLimit ?? null, groupLimit: p.groupLimit ?? null, features: p.features })) });
+  });
   app.post("/api/auth/register", limiter(5, 60 * 60_000), async (req, res) => {
     if (!config.PUBLIC_REGISTRATION_ENABLED)
       throw new AppError(
@@ -169,7 +176,7 @@ export function createApp(
         ],
         { session },
       );
-      await createInitialTrial(tenant!._id, owner!._id, session);
+      await createInitialTrial(tenant!._id, owner!._id, session, input.planId);
       return owner!;
     });
     res.cookie(COOKIE_NAME, issueToken(user, config), cookieOptions(config));

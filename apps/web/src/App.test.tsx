@@ -46,7 +46,9 @@ describe("Uzbek authentication and role-aware navigation", () => {
   });
   it("submits registration without a client-supplied tenant ID or role", async () => {
     const fetchMock = vi.fn((url: string) =>
-      url.endsWith("/register")
+      url.endsWith("/registration-plans")
+        ? response({ plans: [{ id: "507f1f77bcf86cd799439011", name: "Standard", code: "standard", monthlyPriceUZS: 299000, studentLimit: 300, groupLimit: 30, features: [] }] })
+        : url.endsWith("/register")
         ? response({ error: { message: "Sinov javobi" } }, 409)
         : response({}, 401),
     );
@@ -56,6 +58,9 @@ describe("Uzbek authentication and role-aware navigation", () => {
       await screen.findByLabelText("O‘quv markazi nomi"),
       "Kelajak",
     );
+    await userEvent.click(screen.getByRole("button", { name: "Davom etish" }));
+    await userEvent.click(screen.getByRole("radio"));
+    await userEvent.click(screen.getByRole("button", { name: "Davom etish" }));
     await userEvent.type(
       screen.getByLabelText("Ism va familiya"),
       "Aziz Karimov",
@@ -66,7 +71,7 @@ describe("Uzbek authentication and role-aware navigation", () => {
     );
     await userEvent.type(screen.getByLabelText("Parol"), "long-test-password");
     await userEvent.click(
-      screen.getByRole("button", { name: "Markaz hisobini yaratish" }),
+      screen.getByRole("button", { name: "14 kunlik bepul sinovni boshlash" }),
     );
     expect(await screen.findByRole("alert")).toHaveTextContent("Sinov javobi");
     const options = (
@@ -76,6 +81,7 @@ describe("Uzbek authentication and role-aware navigation", () => {
     )[1];
     expect(JSON.parse(options.body as string)).toEqual({
       centerName: "Kelajak",
+      planId: "507f1f77bcf86cd799439011",
       name: "Aziz Karimov",
       email: "aziz@example.test",
       password: "long-test-password",

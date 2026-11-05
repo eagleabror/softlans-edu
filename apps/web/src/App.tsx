@@ -1,3 +1,4 @@
+import { Registration } from "./Registration";
 import { TenantSubscription, SubscriptionBanner } from "./Saas";
 import { SuperAdminLayout } from "./SuperAdmin";
 import {
@@ -297,7 +298,7 @@ function AuthPage({
               ? "Markazingiz uchun hisob oching va jamoangizni birlashtiring."
               : "Hisobingizga kiring va markazingiz ishini davom ettiring."}
           </p>
-          <form onSubmit={submit} className="auth-form">
+          {register ? <Registration onSession={s => { onSession(s); navigate("/"); }} /> : <form onSubmit={submit} className="auth-form">
             {register && (
               <>
                 <label htmlFor="centerName">O‘quv markazi nomi</label>
@@ -357,7 +358,7 @@ function AuthPage({
                 </>
               )}
             </button>
-          </form>
+          </form>}
           <div className="secure-note">
             <ShieldCheck size={16} />
             <span>
