@@ -130,3 +130,10 @@ Avtomatik DB testlari alohida vaqtinchalik MongoDB replica setda bajariladi; pro
 - Rate limitlarning mavjud in-process qismi instansiyalar o‘rtasida umumiy emas; moliyaviy idempotency, quota va scheduler dedup himoyalari MongoDB’da umumiy saqlanadi.
 
 Brauzerda mobil o‘lchamlar va vizual accessibility tekshiruvi ushbu muhitda bajarilmadi; React Testing Library testlari vizual tekshiruv o‘rnini bosmaydi.
+
+## Yakuniy tekshiruv — 2026-11-05
+
+- `npm test`: API 25 faylda 387/387, UI 17 faylda 89/89; jami 476 test o‘tdi. Mavjud CRM regressiya testlari ham shu to‘plamga kiradi.
+- `npm run typecheck` va `npm run build`: muvaffaqiyatli. Oxirgi UI idempotency o‘zgarishidan keyin web typecheck, build va tegishli 6 test qayta o‘tkazildi.
+- `npm audit --audit-level=high` va `npm audit --omit=dev --audit-level=high`: har ikkisida 0 zaiflik.
+- `git diff --check`: xatosiz. Production migration yoki deploy bajarilmadi.
