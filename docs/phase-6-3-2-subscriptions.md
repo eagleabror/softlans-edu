@@ -147,3 +147,5 @@ Ro‘yxatdan o‘tish oynasi uch bosqichdan iborat: markaz nomi → faol tarifni
 Ro‘yxatdan o‘tish payload’iga `planId` qo‘shildi. Yangi forma tarif tanlashni majburiy qiladi; avvalgi API mijozlari uchun `planId` yuborilmasa faol Starter tarifi qo‘llanadi. Berilgan ID yaroqsiz yoki tarif faolsiz bo‘lsa yaratish bekor qilinadi. Narx va limit kabi ortiqcha maydonlar rad etiladi. Server tarifni tranzaksiya ichida qayta o‘qiydi va yozish orqali parallel faolsizlantirish/tahrirlash bilan serializatsiya qiladi. Tenant, rahbar, trial, bir martalik trial belgisi va audit bitta tranzaksiyada yaratiladi.
 
 Tarif tanlash pullik obunani faollashtirmaydi. Trial tugagach haqiqiy to‘lov qo‘lda tasdiqlanishi talab qilinadi. Mavjud markazlarga trial qayta berilmaydi.
+
+Tarif tanlash qo‘shimchasidan keyingi tekshiruv: `npm test` — API 389/389, UI 89/89, jami 478/478 test o‘tdi. Umumiy TypeScript tekshiruvi va production build muvaffaqiyatli; oxirgi UI uslub o‘zgarishidan keyin web production build qayta o‘tkazildi.
