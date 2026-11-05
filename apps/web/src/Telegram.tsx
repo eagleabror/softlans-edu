@@ -6,7 +6,7 @@ type Connection = {
   linkedAt: string | null;
   notificationPreferences: { enabled: boolean };
 };
-export function TelegramSettings() {
+export function TelegramSettings({ embedded = false }: { embedded?: boolean }) {
   const [state, setState] = useState<Connection | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -41,7 +41,7 @@ export function TelegramSettings() {
       <div className="page-heading">
         <div>
           <p>Sozlamalar</p>
-          <h1>Telegram</h1>
+          {embedded ? <h3>Telegram hisobini ulash</h3> : <h1>Telegram</h1>}
           <p>Shaxsiy hisobingizni SoftLans Edu botiga ulang.</p>
         </div>
       </div>

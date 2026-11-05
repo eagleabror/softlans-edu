@@ -268,7 +268,13 @@ function TeacherSelector({
     </div>
   );
 }
-export function GroupForm({ edit = false }: { edit?: boolean }) {
+export function GroupForm({
+  edit = false,
+  onSaved,
+}: {
+  edit?: boolean;
+  onSaved?: () => void;
+}) {
   const { id } = useParams(),
     navigate = useNavigate();
   const [form, setForm] = useState<GroupInput>({
@@ -319,7 +325,8 @@ export function GroupForm({ edit = false }: { edit?: boolean }) {
         edit ? `/groups/${id}` : "/groups",
         { method: edit ? "PATCH" : "POST", body: JSON.stringify(form) },
       );
-      navigate(`/groups/${group.id}`);
+      if (onSaved) onSaved();
+      else navigate(`/groups/${group.id}`);
     } catch (e) {
       setError(e instanceof HttpError ? e.message : "Saqlashda xatolik.");
     } finally {
@@ -328,7 +335,11 @@ export function GroupForm({ edit = false }: { edit?: boolean }) {
   }
   return (
     <>
-      <Heading title={edit ? "Guruhni tahrirlash" : "Guruh yaratish"} />
+      {onSaved ? (
+        <h3>Guruh yaratish</h3>
+      ) : (
+        <Heading title={edit ? "Guruhni tahrirlash" : "Guruh yaratish"} />
+      )}
       <Notice error={error} />
       {loading ? (
         <p role="status">Yuklanmoqda…</p>

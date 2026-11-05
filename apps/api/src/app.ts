@@ -1,3 +1,4 @@
+import { onboardingRouter } from "./onboarding.js";
 import { Plan } from "./saas-models.js";
 import {
   leadsRouter,
@@ -161,7 +162,7 @@ export function createApp(
     const passwordHash = await bcrypt.hash(input.password, 12);
     // Transactions require a replica set, including development and CI.
     const user = await mongoose.connection.transaction(async (session) => {
-      const [tenant] = await Tenant.create([{ name: input.centerName }], {
+      const [tenant] = await Tenant.create([{ name: input.centerName, onboarding: {} }], {
         session,
       });
       const [owner] = await User.create(
@@ -236,6 +237,7 @@ export function createApp(
     authenticate(config),
     notificationRouter(config),
   );
+  app.use("/api/onboarding", authenticate(config), onboardingRouter);
   app.use("/api/payroll", authenticate(config), payrollRouter);
   app.use("/api/saas", authenticate(config), saasRouter);
   app.use("/api/super-admin/saas", authenticate(config), saasAdminRouter);
