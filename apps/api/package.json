@@ -17,7 +17,8 @@
     "telegram:dispatch": "tsx src/scripts/telegram-dispatch.ts",
     "telegram:automation": "node dist/apps/api/src/scripts/telegram-automation.js",
     "telegram:automation:dev": "tsx src/scripts/telegram-automation.ts",
-    "test:recovery": "DR_DRILL_CONFIRM=synthetic-only vitest run tests/recovery.test.ts"
+    "test:recovery": "DR_DRILL_CONFIRM=synthetic-only vitest run tests/recovery.test.ts",
+    "mfa:readiness": "tsx src/scripts/mfa-readiness.ts"
   },
   "dependencies": {
     "@softlans/contracts": "*",
@@ -33,6 +34,8 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.2",
+    "otpauth": "^9.6.0",
+    "qrcode": "^1.5.4",
     "yauzl": "^3.4.0",
     "zod": "^4.6.7"
   },
@@ -42,6 +45,7 @@
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.18.12",
+    "@types/qrcode": "^1.5.6",
     "@types/supertest": "^6.0.3",
     "@types/yauzl": "^3.4.0",
     "mongodb-memory-server": "^10.2.3",

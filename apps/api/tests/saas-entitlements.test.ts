@@ -9,7 +9,7 @@ import { ensureIndexes, Student, Tenant, User } from "../src/models.js";
 import { Group } from "../src/group-models.js";
 import { Lead } from "../src/lead-models.js";
 import { Subscription, Plan } from "../src/saas-models.js";
-import { issueToken } from "../src/security.js";
+import { createSession } from "../src/security.js";
 import { StudentImportLog, StudentImportSession } from "../src/import-models.js";
 
 const origin = "http://localhost:5173";
@@ -26,7 +26,7 @@ const patch = (path: string, body: object) => request(app).patch(path)
 async function actor(tenant: mongoose.Types.ObjectId, role: "business_owner" | "teacher") {
   const user = await User.create({ tenantId: tenant, role, name: "Sinov",
     email: `${new mongoose.Types.ObjectId()}@example.test`, passwordHash: "unused" });
-  return { id: user._id, cookie: `softlans_session=${issueToken(user, config)}` };
+  return { id: user._id, cookie: `softlans_session=${await createSession(user, config)}` };
 }
 async function subscribe(overrides: object = {}) {
   const plan = await Plan.create({ name: "Sinov", code: `test-${new mongoose.Types.ObjectId()}`,

@@ -14,7 +14,7 @@ import { Tenant, User } from "../src/models.js";
 import { Group, Membership } from "../src/group-models.js";
 import { createApp } from "../src/app.js";
 import { parseConfig } from "../src/config.js";
-import { issueToken } from "../src/security.js";
+import { createSession } from "../src/security.js";
 const config = parseConfig({
   NODE_ENV: "test",
   APP_ORIGIN: "http://localhost:5173",
@@ -261,7 +261,7 @@ it("enforces RBAC and tenant isolation on every endpoint, exports safe CSV witho
       email: `${oid()}@test.uz`,
       passwordHash: "unused",
     });
-    return `softlans_session=${issueToken(u, config)}`;
+    return `softlans_session=${await createSession(u, config)}`;
   };
   const owner = await cookie("business_owner", tenant),
     admin = await cookie("admin", tenant),

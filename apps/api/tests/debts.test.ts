@@ -14,7 +14,7 @@ import {
   PaymentReversal,
   ChargeAdjustment,
 } from "../src/billing-models.js";
-import { issueToken } from "../src/security.js";
+import { createSession } from "../src/security.js";
 import {
   debtSummary,
   daysOverdue,
@@ -51,7 +51,7 @@ async function actor(
     email: `${new mongoose.Types.ObjectId()}@example.test`,
     passwordHash: "unused",
   });
-  return `softlans_session=${issueToken(u, config)}`;
+  return `softlans_session=${await createSession(u, config)}`;
 }
 const get = (path: string, cookie = owner) =>
   request(app).get(`/api${path}`).set("Cookie", cookie);

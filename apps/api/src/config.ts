@@ -39,12 +39,21 @@ const schema = z
     }).optional(),
     PASSWORD_EMAIL_API_KEY: z.string().min(32).regex(/^[^\r\n]+$/).optional(),
     PASSWORD_EMAIL_FROM: z.string().email().optional(),
+    MFA_ENCRYPTION_KEY: z.string().regex(/^[a-fA-F0-9]{64}$/).optional(),
+    SUPER_ADMIN_MFA_ENFORCED: booleanFlag.default(false),
+    SESSION_LEGACY_ISSUED_BEFORE: z.string().datetime().optional(),
     JWT_SECRET: z.string().min(48),
     TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
     DEMO_MODE: booleanFlag.default(false),
     PUBLIC_REGISTRATION_ENABLED: booleanFlag.optional(),
   })
   .superRefine((value, ctx) => {
+    if (value.SUPER_ADMIN_MFA_ENFORCED && !value.MFA_ENCRYPTION_KEY)
+      ctx.addIssue({ code: "custom", path: ["MFA_ENCRYPTION_KEY"], message: "MFA key required for enforcement" });
+    if (value.MFA_ENCRYPTION_KEY === value.JWT_SECRET)
+      ctx.addIssue({ code: "custom", path: ["MFA_ENCRYPTION_KEY"], message: "Use a separate encryption key" });
+    if (value.SESSION_LEGACY_ISSUED_BEFORE && Date.parse(value.SESSION_LEGACY_ISSUED_BEFORE) > Date.now())
+      ctx.addIssue({ code: "custom", path: ["SESSION_LEGACY_ISSUED_BEFORE"], message: "Migration cutoff must not be in the future" });
     if (value.PASSWORD_RECOVERY_ENABLED &&
       (!value.PASSWORD_EMAIL_DELIVERY_VERIFIED || !value.PASSWORD_EMAIL_ENDPOINT ||
        !value.PASSWORD_EMAIL_API_KEY || !value.PASSWORD_EMAIL_FROM)) {

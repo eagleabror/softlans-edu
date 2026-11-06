@@ -16,7 +16,7 @@ import {
   SalaryPayoutReversal,
   PayrollAudit,
 } from "../src/payroll-models.js";
-import { issueToken } from "../src/security.js";
+import { createSession } from "../src/security.js";
 import { percentageSalary } from "../src/payroll-calculation.js";
 import { monthBounds } from "../src/billing-validation.js";
 const origin = "http://localhost:5173";
@@ -50,7 +50,7 @@ async function actor(
   });
   return {
     id: user.id as string,
-    cookie: "softlans_session=" + issueToken(user, config),
+    cookie: "softlans_session=" + await createSession(user, config),
   };
 }
 const get = (path: string, cookie = owner) =>

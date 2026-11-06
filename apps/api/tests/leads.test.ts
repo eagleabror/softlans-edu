@@ -9,7 +9,7 @@ import {
 } from "vitest";
 import { randomBytes } from "node:crypto";
 import mongoose from "mongoose";
-import jwt from "jsonwebtoken";
+import { createSession } from "../src/security.js";
 import request from "supertest";
 import { MongoMemoryReplSet } from "mongodb-memory-server";
 import { createApp } from "../src/app.js";
@@ -61,12 +61,7 @@ async function actor(
     email: `${new mongoose.Types.ObjectId()}@example.test`,
     passwordHash: "unused-test-hash",
   });
-  const token = jwt.sign({ version: 0 }, secret, {
-    subject: user.id,
-    expiresIn: "1h",
-    issuer: "softlans-api",
-    audience: "softlans-web",
-  });
+  const token = await createSession(user, parseConfig({ NODE_ENV: "test", APP_ORIGIN: origin, MONGODB_URI: repl.getUri(), JWT_SECRET: secret }));
   return { cookie: `softlans_session=${token}`, id: user._id };
 }
 function create(c = owner, body: object = input) {

@@ -7,7 +7,7 @@ import { createApp } from "../src/app.js";
 import { parseConfig } from "../src/config.js";
 import { connectDatabase } from "../src/db.js";
 import { ensureIndexes, Student, Tenant, User } from "../src/models.js";
-import { issueToken } from "../src/security.js";
+import { createSession } from "../src/security.js";
 import {
   StudentImportLog as Log,
   StudentImportSession as Session,
@@ -40,7 +40,7 @@ async function actor(
     email: `${new mongoose.Types.ObjectId()}@example.test`,
     passwordHash: "unused",
   });
-  return `softlans_session=${issueToken(user, config)}`;
+  return `softlans_session=${await createSession(user, config)}`;
 }
 function post(path: string, body: object, cookie = owner) {
   return request(app)

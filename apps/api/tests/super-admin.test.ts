@@ -1,3 +1,4 @@
+import { createSession } from "../src/security.js";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { randomBytes } from "node:crypto";
 import mongoose from "mongoose";
@@ -29,17 +30,14 @@ let admin: string;
 let teacher: string;
 let platform: string;
 
-function token(id: mongoose.Types.ObjectId, extra: object = {}, version = 0) {
-  return `softlans_session=${jwt.sign({ version, ...extra }, secret, {
-    subject: id.toString(),
-    expiresIn: "1h",
-    issuer: "softlans-api",
-    audience: "softlans-web",
-  })}`;
+async function token(id: mongoose.Types.ObjectId, extra: object = {}, version = 0) {
+  const user = await User.findById(id).select("+sessionVersion");
+  const payload = jwt.decode(await createSession(user!, config)) as jwt.JwtPayload;
+  return `softlans_session=${jwt.sign({ ...payload, ...extra, version }, secret, { algorithm: "HS256" })}`;
 }
 async function actor(role: "business_owner" | "admin" | "teacher" | "super_admin", tenantId: mongoose.Types.ObjectId | null, email: string) {
   const user = await User.create({ role, tenantId, email, name: "Sinov hisobi", passwordHash });
-  return { id: user._id, cookie: token(user._id) };
+  return { id: user._id, cookie: await token(user._id) };
 }
 const get = (path: string, cookie = platform) => request(app).get(path).set("Cookie", cookie);
 const post = (path: string, body: object, cookie = platform) => request(app).post(path).set("Cookie", cookie).set("Origin", origin).send(body);
@@ -260,7 +258,7 @@ describe("server RBAC and isolation", () => {
   });
 
   it("uses the database role, not client JWT/header/query role declarations", async () => {
-    const forgedRole = token(ownerId, { role: "super_admin", tenantId: null });
+    const forgedRole = await token(ownerId, { role: "super_admin", tenantId: null });
     expect((await get(`${base}/stats?role=super_admin`, forgedRole).set("X-Role", "super_admin")).status).toBe(403);
     await User.updateOne({ _id: platformId }, { active: false });
     expect((await get(`${base}/stats`)).status).toBe(401);

@@ -1,0 +1,26 @@
+# MFA xavfsizlik skrinshotlari
+
+Faqat sintetik hisoblar va disposable lokal MongoDB ishlatildi. QR-kod, parol va tiklash kodlari niqoblangan.
+
+- [desktop · security-settings](desktop/security-settings.png)
+- [desktop · enable-2fa](desktop/enable-2fa.png)
+- [desktop · qr-enrollment](desktop/qr-enrollment.png)
+- [desktop · verify-authenticator](desktop/verify-authenticator.png)
+- [desktop · recovery-codes](desktop/recovery-codes.png)
+- [desktop · active-sessions](desktop/active-sessions.png)
+- [desktop · revoke-session-confirmation](desktop/revoke-session-confirmation.png)
+- [desktop · regenerate-recovery-codes](desktop/regenerate-recovery-codes.png)
+- [desktop · revoke-other-sessions](desktop/revoke-other-sessions.png)
+- [desktop · disable-2fa](desktop/disable-2fa.png)
+- [desktop · mfa-login-challenge](desktop/mfa-login-challenge.png)
+- [mobile · security-settings](mobile/security-settings.png)
+- [mobile · enable-2fa](mobile/enable-2fa.png)
+- [mobile · qr-enrollment](mobile/qr-enrollment.png)
+- [mobile · verify-authenticator](mobile/verify-authenticator.png)
+- [mobile · recovery-codes](mobile/recovery-codes.png)
+- [mobile · active-sessions](mobile/active-sessions.png)
+- [mobile · revoke-session-confirmation](mobile/revoke-session-confirmation.png)
+- [mobile · regenerate-recovery-codes](mobile/regenerate-recovery-codes.png)
+- [mobile · revoke-other-sessions](mobile/revoke-other-sessions.png)
+- [mobile · disable-2fa](mobile/disable-2fa.png)
+- [mobile · mfa-login-challenge](mobile/mfa-login-challenge.png)

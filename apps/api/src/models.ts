@@ -1,3 +1,4 @@
+import { securityModels } from "./security-models.js";
 import { onboardingSchema } from "./onboarding-model.js";
 import { leadModels } from "./lead-models.js";
 import { PlatformAudit } from "./super-admin-models.js";
@@ -74,6 +75,16 @@ const userSchema = new Schema(
     passwordResetHash: { type: String, select: false },
     passwordResetExpiresAt: { type: Date, select: false },
     passwordResetRequestedAt: { type: Date, select: false },
+    mfaEnabled: { type: Boolean, default: false, select: false },
+    mfaSecret: { type: String, select: false },
+    mfaPendingSecret: { type: String, select: false },
+    mfaPendingExpiresAt: { type: Date, select: false },
+    mfaLastStep: { type: Number, default: -1, select: false },
+    mfaRecoveryHashes: { type: [String], default: [], select: false },
+    mfaRevision: { type: Number, default: 0, select: false },
+    mfaAttemptCount: { type: Number, default: 0, select: false },
+    mfaWindowStart: { type: Date, select: false },
+    securityRevision: { type: Number, default: 0, select: false },
     sessionVersion: { type: Number, required: true, default: 0, select: false },
   },
   { timestamps: true, strict: "throw" },
@@ -170,6 +181,7 @@ export type UserRecord = InferSchemaType<typeof userSchema> & {
 };
 export async function ensureIndexes() {
   for (const model of [
+    ...securityModels,
     ...saasModels,
     SaasReminder,
     PlatformAudit,

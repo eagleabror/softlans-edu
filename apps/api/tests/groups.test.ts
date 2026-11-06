@@ -8,7 +8,7 @@ import { parseConfig } from "../src/config.js";
 import { connectDatabase } from "../src/db.js";
 import { ensureIndexes, Student, Tenant, User } from "../src/models.js";
 import { Group, Membership } from "../src/group-models.js";
-import { issueToken } from "../src/security.js";
+import { createSession } from "../src/security.js";
 const origin = "http://localhost:5173";
 const config = parseConfig({
   NODE_ENV: "test",
@@ -39,7 +39,7 @@ async function actor(
     email: `${new mongoose.Types.ObjectId()}@example.test`,
     passwordHash: "unused",
   });
-  return { id: u.id, cookie: `softlans_session=${issueToken(u, config)}` };
+  return { id: u.id, cookie: `softlans_session=${await createSession(u, config)}` };
 }
 function get(path: string, c = owner) {
   return request(app)

@@ -10,7 +10,7 @@ import { ensureIndexes, Tenant, User } from "../src/models.js";
 import { Group } from "../src/group-models.js";
 import { Classroom, Schedule } from "../src/schedule-models.js";
 import { scheduleStatistics } from "../src/schedules.js";
-import { issueToken } from "../src/security.js";
+import { createSession } from "../src/security.js";
 import {
   localDate,
   weekStart,
@@ -50,7 +50,7 @@ async function actor(
   });
   return {
     id: u.id as string,
-    cookie: `softlans_session=${issueToken(u, config)}`,
+    cookie: `softlans_session=${await createSession(u, config)}`,
   };
 }
 const get = (path: string, c = owner) =>

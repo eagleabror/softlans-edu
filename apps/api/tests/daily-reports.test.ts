@@ -32,7 +32,7 @@ import {
   dailySettingsInput,
 } from "../src/daily-reports.js";
 import { processNotification } from "../src/notifications.js";
-import { issueToken } from "../src/security.js";
+import { createSession } from "../src/security.js";
 const config = parseConfig({
   NODE_ENV: "test",
   APP_ORIGIN: "http://localhost:5173",
@@ -110,7 +110,7 @@ beforeEach(async () => {
     passwordHash: "hash",
   });
   userId = user._id;
-  cookie = `softlans_session=${issueToken(user, config)}`;
+  cookie = `softlans_session=${await createSession(user, config)}`;
 });
 it("defines half-open Tashkent day across UTC midnight", () => {
   expect(reportPeriod(new Date("2026-10-29T19:00:00Z")).date).toBe(
@@ -394,7 +394,7 @@ it.each(["admin", "teacher", "super_admin"])(
       role,
       passwordHash: "hash",
     });
-    const auth = `softlans_session=${issueToken(user, config)}`;
+    const auth = `softlans_session=${await createSession(user, config)}`;
     for (const path of [
       "/settings",
       "/preview",
@@ -429,7 +429,7 @@ it("isolates owners, redacts secrets, excludes reports from guardian history and
     (
       await get(
         `/history/${job._id}`,
-        `softlans_session=${issueToken(other, config)}`,
+        `softlans_session=${await createSession(other, config)}`,
       )
     ).status,
   ).toBe(404);
