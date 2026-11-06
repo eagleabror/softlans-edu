@@ -59,7 +59,9 @@ export const errorHandler: ErrorRequestHandler = (error, req, res, _next) => {
         event: "request_failed",
         requestId,
         method: req.method,
-        path: req.path,
+        // Concrete URLs may contain personal data or accidentally pasted secrets.
+        // Only log the server-defined route template, never URL/query/params.
+        route: typeof req.route?.path === "string" ? req.route.path : "unmatched",
       }),
     );
   res
