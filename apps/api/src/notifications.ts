@@ -290,15 +290,23 @@ export async function processNotification(
   config: Config,
   send?: SendTelegram,
   now = new Date(),
+  control?: { signal?: AbortSignal; ownsRun: () => Promise<boolean> },
 ) {
-  if (!telegramConfigured(config)) return false;
-  await NotificationJob.updateMany(
+  if (!telegramConfigured(config) || control?.signal?.aborted) return false;
+  const expired = await NotificationJob.updateMany(
     { status: "sending", leaseUntil: { $lte: now } },
     {
       $set: { status: "failed", errorCode: "UNKNOWN_OUTCOME" },
       $unset: { leaseId: 1, leaseUntil: 1 },
+      $push: { attemptsLog: { at: now, code: "UNKNOWN_OUTCOME" } },
     },
   );
+  if (expired.modifiedCount)
+    console.info(JSON.stringify({
+      event: "notification_delivery",
+      code: "STALE_LEASE_UNKNOWN_OUTCOME",
+      count: expired.modifiedCount,
+    }));
   await TelegramDispatch.updateOne(
     { _id: "bot" },
     { $setOnInsert: { availableAt: now } },
@@ -306,9 +314,10 @@ export async function processNotification(
   ).catch((e) => {
     if (e.code !== 11000) throw e;
   });
+  const permitId = randomUUID();
   const permit = await TelegramDispatch.findOneAndUpdate(
     { _id: "bot", availableAt: { $lte: now } },
-    { $set: { availableAt: new Date(now.getTime() + 60000) } },
+    { $set: { leaseId: permitId, availableAt: new Date(now.getTime() + 60000) } },
   );
   if (!permit) return false;
   const leaseId = randomUUID();
@@ -378,6 +387,14 @@ export async function processNotification(
       return true;
     }
     // Fence immediately before the external side effect; the API itself cannot be fenced.
+    if (
+      control?.signal?.aborted ||
+      (control && !(await control.ownsRun())) ||
+      control?.signal?.aborted
+    ) {
+      await finish({ status: "pending" });
+      return false;
+    }
     const claim = await NotificationJob.updateOne(
       {
         _id: job._id,
@@ -403,10 +420,14 @@ export async function processNotification(
             timeoutSeconds: 10,
           }).sendMessage(chat, message))
       )(owner ? ownerState!.chatId! : g!.chatId!, text);
-      await finish(
+      const completed = await finish(
         { status: "sent", sentAt: new Date(), errorCode: null },
         "SENT",
       );
+      console.info(JSON.stringify({
+        event: "notification_delivery",
+        code: completed.modifiedCount ? "SENT" : "OUTCOME_NOT_PERSISTED",
+      }));
     } catch (error) {
       const api = error instanceof GrammyError ? error : null;
       const code = api?.error_code;
@@ -415,6 +436,12 @@ export async function processNotification(
         job.attempts + 1 < 5;
       const delay = retryDelay(job.attempts + 1, api?.parameters.retry_after);
       const safeCode = code ? `TELEGRAM_${code}` : "UNKNOWN_OUTCOME";
+      console.info(JSON.stringify({
+        event: "notification_delivery",
+        code: safeCode,
+        retry,
+        attempt: job.attempts + 1,
+      }));
       await finish(
         {
           status: retry ? "pending" : "failed",
@@ -465,8 +492,8 @@ export async function processNotification(
     throw error;
   } finally {
     await TelegramDispatch.updateOne(
-      { _id: "bot" },
-      { $set: { availableAt: new Date(Date.now() + pacing) } },
+      { _id: "bot", leaseId: permitId },
+      { $set: { availableAt: new Date(Date.now() + pacing) }, $unset: { leaseId: 1 } },
     );
   }
 }

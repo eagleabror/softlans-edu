@@ -7,6 +7,7 @@ import { AppError } from "./errors.js";
 import { validSecret } from "./telegram.js";
 import { NotificationSchedulerLease } from "./notification-models.js";
 import { runNotificationAutomation } from "./notification-automation.js";
+import { BackgroundLifecycle } from "./background-lifecycle.js";
 const event = (status: string, code?: string) =>
   console.info(
     JSON.stringify({
@@ -15,7 +16,10 @@ const event = (status: string, code?: string) =>
       ...(code ? { code } : {}),
     }),
   );
-export function notificationScheduler(config: Config) {
+export function notificationScheduler(
+  config: Config,
+  lifecycle = new BackgroundLifecycle(),
+) {
   const router = Router();
   router.post(
     "/run",
@@ -43,6 +47,8 @@ export function notificationScheduler(config: Config) {
     }),
     express.json({ limit: "1kb", strict: true }),
     async (req, res) => {
+      if (lifecycle.stopping)
+        throw new AppError(503, "SHUTTING_DOWN", "Service is stopping.");
       z.object({}).strict().parse(req.query);
       z.object({})
         .strict()
@@ -77,16 +83,17 @@ export function notificationScheduler(config: Config) {
         res.status(202).json({ status: "already_running_or_rate_limited" });
         return;
       }
-      event("accepted");
       // Acknowledge promptly: external free schedulers typically time out at 30s.
       // The jobs remain durable if this web process restarts after acknowledgement.
-      res.status(202).json({ status: "accepted" });
-      void (async () => {
+      const admitted = lifecycle.start(async (signal) => {
         try {
-          const ok = await runNotificationAutomation(config);
-          event(ok ? "completed" : "failed", ok ? undefined : "BATCH_FAILED");
+          const ok = await runNotificationAutomation(config, { signal });
+          event(
+            signal.aborted ? "interrupted" : ok ? "completed" : "failed",
+            ok ? undefined : "BATCH_FAILED",
+          );
         } catch {
-          event("failed", "BATCH_FAILED");
+          event(signal.aborted ? "interrupted" : "failed", "BATCH_FAILED");
         } finally {
           try {
             await NotificationSchedulerLease.updateOne(
@@ -97,7 +104,16 @@ export function notificationScheduler(config: Config) {
             event("failed", "LEASE_RELEASE_FAILED");
           }
         }
-      })();
+      });
+      if (!admitted) {
+        await NotificationSchedulerLease.updateOne(
+          { _id: "http", leaseId },
+          { $set: { leaseUntil: new Date(0) }, $unset: { leaseId: 1 } },
+        );
+        throw new AppError(503, "SHUTTING_DOWN", "Service is stopping.");
+      }
+      event("accepted");
+      res.status(202).json({ status: "accepted" });
     },
   );
   return router;

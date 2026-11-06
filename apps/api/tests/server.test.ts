@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EventEmitter } from "node:events";
 import { randomBytes } from "node:crypto";
+vi.mock("../src/production-monitor.js", () => ({ startProductionMonitor: () => () => {} }));
 
 const mocks = vi.hoisted(() => ({
   createApp: vi.fn(),
@@ -25,7 +26,7 @@ vi.mock("mongoose", async (original) => {
   const module = await original<typeof import("mongoose")>();
   return {
     ...module,
-    default: { ...module.default, disconnect: mocks.disconnect },
+    default: { ...module.default, connection: module.default.connection, disconnect: mocks.disconnect },
   };
 });
 
@@ -79,6 +80,7 @@ afterEach(() => {
   }
   vi.unstubAllEnvs();
   vi.restoreAllMocks();
+  vi.useRealTimers();
 });
 function diagnostic() {
   expect(errors).toHaveBeenCalledTimes(1);
@@ -234,7 +236,7 @@ describe("server startup failure logging", () => {
       information,
     ].map((mock) => mock.mock.invocationCallOrder[0]);
     expect(calls).toEqual([...calls].sort((a, b) => a! - b!));
-    expect(information).toHaveBeenCalledWith("API listening on port 10000");
+    expect(information).toHaveBeenCalledWith(JSON.stringify({ event: "startup", status: "listening", port: 10000 }));
     expect(process.exitCode).toBe(exitCode);
     expect(server.listenerCount("error")).toBe(0);
     expect(mocks.registerWebhook).toHaveBeenCalledOnce();
@@ -265,4 +267,57 @@ describe("graceful shutdown", () => {
     ]);
     expect(errors).not.toHaveBeenCalled();
   });
+});
+
+it("waits for acknowledged background work before disconnecting MongoDB", async () => {
+  const exit = vi
+    .spyOn(process, "exit")
+    .mockImplementation(() => undefined as never);
+  Object.assign(server, { close: (done: () => void) => done() });
+  await import("../src/server.js");
+  const lifecycle = mocks.createApp.mock.calls[0]![1].lifecycle;
+  let finish!: () => void;
+  lifecycle.start(async (signal: AbortSignal) => {
+    await new Promise<void>((r) => {
+      finish = r;
+    });
+    expect(signal.aborted).toBe(true);
+  });
+  await Promise.resolve();
+  process
+    .listeners("SIGTERM")
+    .find((listener) => !listeners.SIGTERM!.includes(listener))!("SIGTERM");
+  expect(lifecycle.stopping).toBe(true);
+  expect(mocks.disconnect).not.toHaveBeenCalled();
+  expect(exit).not.toHaveBeenCalled();
+  finish();
+  await vi.waitFor(() => expect(exit).toHaveBeenCalledWith(0));
+});
+it("logs an interruption and exits unsuccessfully if background work exceeds the shutdown budget", async () => {
+  vi.useFakeTimers();
+  const exit = vi
+    .spyOn(process, "exit")
+    .mockImplementation(() => undefined as never);
+  Object.assign(server, { close: (done: () => void) => done() });
+  await import("../src/server.js");
+  const lifecycle = mocks.createApp.mock.calls[0]![1].lifecycle;
+  lifecycle.start(() => new Promise(() => {}));
+  await Promise.resolve();
+  process
+    .listeners("SIGTERM")
+    .find((listener) => !listeners.SIGTERM!.includes(listener))!("SIGTERM");
+  await vi.advanceTimersByTimeAsync(10000);
+  expect(exit).toHaveBeenCalledWith(1);
+  expect(mocks.disconnect).not.toHaveBeenCalled();
+  expect(errors).toHaveBeenCalledWith(
+    JSON.stringify({
+      event: "shutdown",
+      status: "interrupted",
+      code: "DRAIN_TIMEOUT",
+      activeJobs: 1,
+    }),
+  );
+  expect(information.mock.calls).not.toContainEqual([
+    JSON.stringify({ event: "shutdown", status: "completed" }),
+  ]);
 });

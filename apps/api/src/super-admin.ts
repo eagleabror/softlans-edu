@@ -14,6 +14,7 @@ import { AppError } from "./errors.js";
 import { Student, Tenant, User } from "./models.js";
 import { principal, requireRoles } from "./security.js";
 import { PlatformAudit } from "./super-admin-models.js";
+import { platformNotificationSnapshot } from "./notification-monitoring.js";
 
 const QUERY_MS = 3_000;
 const PAGE_SIZE = 20;
@@ -76,6 +77,13 @@ superAdminRouter.use(requireRoles("super_admin"), (req, _res, next) => {
     throw new AppError(403, "FORBIDDEN", "Platforma hisobi talab qilinadi.");
   next();
 }, platformLimiter(60));
+
+superAdminRouter.get("/notification-diagnostics", async (req, res) => {
+  z.object({}).strict().parse(req.query);
+  res.json(await platformNotificationSnapshot(
+    new Date(), req.app.get("notificationSchedulerStaleMs"),
+  ));
+});
 
 superAdminRouter.get("/stats", async (_req, res) => {
   const now = new Date();

@@ -15,6 +15,8 @@ import { saasRouter, saasAdminRouter } from "./saas.js";
 import { createInitialTrial } from "./saas-service.js";
 import { studentImportsRouter } from "./student-imports.js";
 import { notificationScheduler } from "./notification-scheduler.js";
+import { BackgroundLifecycle } from "./background-lifecycle.js";
+import { databaseReadiness } from "./readiness.js";
 import { dailyReportRouter } from "./daily-report-api.js";
 import { notificationRouter } from "./notification-api.js";
 import { telegramRouter, telegramWebhook } from "./telegram.js";
@@ -77,11 +79,21 @@ async function sessionView(user: UserRecord): Promise<SessionView> {
 }
 export function createApp(
   config: Config,
-  options: { frontendDist?: string; testPasswordEmail?: PasswordEmail } = {},
+  options: {
+    frontendDist?: string;
+    testPasswordEmail?: PasswordEmail;
+    lifecycle?: BackgroundLifecycle;
+  } = {},
 ) {
+  const lifecycle = options.lifecycle ?? new BackgroundLifecycle();
+  const databaseReady = databaseReadiness();
   const app = express();
   app.disable("x-powered-by");
   app.set("trust proxy", config.TRUST_PROXY_HOPS);
+  app.set(
+    "notificationSchedulerStaleMs",
+    config.MONITOR_SCHEDULER_STALE_SECONDS * 1000,
+  );
   app.use((_req, res, next) => {
     res.locals.requestId = randomUUID();
     res.setHeader("X-Request-ID", res.locals.requestId);
@@ -130,7 +142,7 @@ export function createApp(
     telegramWebhook(config),
   );
   // Machine-to-machine authentication is separate from CRM cookies and webhook secrets.
-  app.use("/api/internal/notifications", notificationScheduler(config));
+  app.use("/api/internal/notifications", notificationScheduler(config, lifecycle));
   app.use(protectWrites(config));
   app.use(
     "/api/student-imports",
@@ -143,11 +155,10 @@ export function createApp(
   app.use(express.json({ limit: "16kb", strict: true }));
   app.use(cookieParser());
   app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
-  app.get("/api/ready", (_req, res) =>
-    res
-      .status(mongoose.connection.readyState === 1 ? 200 : 503)
-      .json({ ready: mongoose.connection.readyState === 1 }),
-  );
+  app.get("/api/ready", async (_req, res) => {
+    const ready = !lifecycle.stopping && (await databaseReady());
+    res.status(ready ? 200 : 503).json({ ready });
+  });
 
   app.use("/api/auth", mfaSecurityRouter(config, sessionView));
   app.use("/api/auth", passwordSecurityRouter(config, options.testPasswordEmail));

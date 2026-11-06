@@ -300,3 +300,14 @@ it("runs the existing durable processor for an actual pending job via the HTTP t
   expect(r.text).not.toContain("12345");
   expect(r.text).not.toContain(secret);
 });
+it("rejects new triggers and readiness during shutdown without starting background work", async () => {
+  const { BackgroundLifecycle } =
+    await import("../src/background-lifecycle.js");
+  const lifecycle = new BackgroundLifecycle();
+  lifecycle.stop();
+  const app = createApp(config, { lifecycle });
+  expect((await post(app)).status).toBe(503);
+  expect((await request(app).get("/api/ready")).body).toEqual({ ready: false });
+  expect(mocks.run).not.toHaveBeenCalled();
+  expect(await NotificationSchedulerLease.countDocuments()).toBe(0);
+});

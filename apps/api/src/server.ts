@@ -7,22 +7,25 @@ import { openDatabaseConnection, verifyReplicaSet } from "./db.js";
 import { ensureIndexes } from "./models.js";
 import { startupDiagnostic, type StartupStage } from "./startup-diagnostics.js";
 import { registerTelegramWebhook } from "./telegram-webhook-registration.js";
+import { BackgroundLifecycle } from "./background-lifecycle.js";
+import { startProductionMonitor } from "./production-monitor.js";
 
 let stage: StartupStage = "configuration";
 try {
   const config = parseConfig(process.env);
+  const lifecycle = new BackgroundLifecycle();
   stage = "application";
   // tsc emits this module at apps/api/dist/apps/api/src/server.js.
-  const app = createApp(
-    config,
-    config.NODE_ENV === "production"
+  const app = createApp(config, {
+    lifecycle,
+    ...(config.NODE_ENV === "production"
       ? {
           frontendDist: fileURLToPath(
             new URL("../../../../../web/dist/", import.meta.url),
           ),
         }
-      : {},
-  );
+      : {}),
+  });
   stage = "mongodb_connection";
   await openDatabaseConnection(config.MONGODB_URI);
   stage = "replica_set";
@@ -38,17 +41,52 @@ try {
       resolve(pending);
     });
   });
-  console.info(`API listening on port ${config.PORT}`);
+  console.info(
+    JSON.stringify({
+      event: "startup",
+      status: "listening",
+      port: config.PORT,
+    }),
+  );
+  const stopMonitor = startProductionMonitor(config, lifecycle);
+  const dbEvents = [
+    "connected",
+    "disconnected",
+    "reconnected",
+    "error",
+  ] as const;
+  const handlers = dbEvents.map((status) => {
+    const handler = () =>
+      console.info(JSON.stringify({ event: "mongodb", status }));
+    mongoose.connection.on(status, handler);
+    return handler;
+  });
   let shuttingDown = false;
   const shutdown = () => {
     if (shuttingDown) return;
     shuttingDown = true;
+    lifecycle.stop();
+    stopMonitor();
     console.info(JSON.stringify({ event: "shutdown", status: "started" }));
-    const timeout = setTimeout(() => process.exit(1), 10_000).unref();
+    const timeout = setTimeout(() => {
+      console.error(
+        JSON.stringify({
+          event: "shutdown",
+          status: "interrupted",
+          code: "DRAIN_TIMEOUT",
+          activeJobs: lifecycle.activeCount,
+        }),
+      );
+      process.exit(1);
+    }, 10_000).unref();
     server.close((error) => {
       void (async () => {
         let failed = !!error;
         try {
+          await lifecycle.drain();
+          dbEvents.forEach((event, index) =>
+            mongoose.connection.off(event, handlers[index]!),
+          );
           await mongoose.disconnect();
         } catch {
           failed = true;
