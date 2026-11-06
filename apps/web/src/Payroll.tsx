@@ -1,4 +1,5 @@
 import { PayrollAutomation } from "./PayrollAutomation";
+import { CashAccountField } from "./CashAccountField";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, HttpError } from "./api";
@@ -993,6 +994,9 @@ export function PayrollDetail({ owner }: { owner: boolean }) {
                       String(f.get("paidAt")) + "+05:00",
                     ).toISOString(),
                     method: f.get("method"),
+                    ...(f.get("cashAccountId")
+          ? { cashAccountId: f.get("cashAccountId") }
+          : {}),
                     reference: f.get("reference"),
                     confirmed: true,
                   };
@@ -1031,6 +1035,7 @@ export function PayrollDetail({ owner }: { owner: boolean }) {
                     <option value="bank_transfer">Bank o‘tkazmasi</option>
                   </select>
                 </label>
+                <CashAccountField />
                 <label>
                   Hujjat raqami
                   <input name="reference" maxLength={200} />

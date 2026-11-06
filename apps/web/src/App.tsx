@@ -1,3 +1,4 @@
+import { Expenses } from "./Expenses";
 import { MfaLoginChallenge, SecuritySettings } from "./MfaSecurity";
 import { PasswordSecurity } from "./PasswordSecurity";
 import { DashboardStudents } from "./DashboardStudents";
@@ -525,6 +526,16 @@ function Shell() {
             </NavLink>
           )}
           {canManage && (
+            <NavLink to="/expenses" aria-label="Xarajatlar" onClick={() => setOpen(false)}>
+              <Layers size={19} />Xarajatlar
+            </NavLink>
+          )}
+          {session.user.role === "business_owner" && (
+            <NavLink to="/cash/accounts" aria-label="Kassa va bank hisoblari" onClick={() => setOpen(false)}>
+              <Layers size={19} />Kassa va bank hisoblari
+            </NavLink>
+          )}
+          {canManage && (
             <NavLink to="/reports" aria-label="Moliyaviy hisobotlar" onClick={() => setOpen(false)}>
               <Layers size={19} />
               Moliyaviy hisobotlar
@@ -688,6 +699,12 @@ function Shell() {
           {session.tenant && <SubscriptionBanner owner={session.user.role === "business_owner"} />}
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            {canManage && ["/expenses", "/expenses/new", "/expenses/:id"].map(path => (
+              <Route key={path} path={path} element={<Expenses owner={session.user.role === "business_owner"} />} />
+            ))}
+            {session.user.role === "business_owner" && [
+              "/expenses/categories", "/cash/accounts", "/cash/movements", "/cash/daily",
+            ].map(path => <Route key={path} path={path} element={<Expenses owner />} />)}
             {session.user.role === "business_owner" && (
               <Route path="/onboarding" element={
                 <Onboarding onCenterSaved={name => setSession({

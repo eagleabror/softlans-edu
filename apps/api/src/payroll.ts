@@ -1,5 +1,6 @@
 import { generatePayrollBatch } from "./payroll-automation.js";
 import { PayrollRun, PayrollRunItem } from "./payroll-automation-models.js";
+import { allocateCash, reverseAllocatedCash } from "./cash-service.js";
 import { Router, type Request } from "express";
 import mongoose, { type ClientSession } from "mongoose";
 import { createHash } from "node:crypto";
@@ -493,6 +494,7 @@ payrollRouter.post("/:id/payouts", owner, async (req, res) => {
   const q = z
     .object({
       amount: money.min(1),
+      cashAccountId: objectId.optional(),
       paidAt: z.iso.datetime({ offset: true }),
       method: z.enum(["cash", "bank_transfer"]),
       reference: z.string().trim().max(200).default(""),
@@ -537,8 +539,12 @@ payrollRouter.post("/:id/payouts", owner, async (req, res) => {
           recordedBy: principal(req).userId,
           fingerprint,
         },
-      ].map(({ confirmed: _c, ...data }) => data),
+      ].map(({ confirmed: _c, cashAccountId: _a, ...data }) => data),
       { session: tx },
+    );
+    await allocateCash(
+      scope(req).tenantId, principal(req).userId, q.cashAccountId, pay!.id,
+      q.amount, new Date(q.paidAt), q.method, "salary", tx,
     );
     p.paidAmount += q.amount;
     p.status = p.paidAmount === p.finalSalary ? "paid" : "partially_paid";
@@ -586,6 +592,10 @@ payrollRouter.post(
           },
         ],
         { session: tx },
+      );
+      await reverseAllocatedCash(
+        scope(req).tenantId, principal(req).userId, pay.id,
+        "salary", q.reason, tx,
       );
       p.paidAmount = await payoutTotal(req, p._id, tx);
       p.status =

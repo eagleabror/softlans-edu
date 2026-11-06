@@ -1,3 +1,4 @@
+import { allocateCash, reverseAllocatedCash } from "./cash-service.js";
 import { Router, type Request } from "express";
 import mongoose, { type ClientSession } from "mongoose";
 import { createHash } from "node:crypto";
@@ -282,6 +283,7 @@ billingRouter.post("/payments", async (req, res) => {
     .update(
       JSON.stringify({
         chargeId: input.chargeId.toLowerCase(),
+        cashAccountId: input.cashAccountId?.toLowerCase(),
         amount: input.amount,
         method: input.method,
         paidAt: new Date(input.paidAt).toISOString(),
@@ -336,6 +338,10 @@ billingRouter.post("/payments", async (req, res) => {
         ],
         { session },
       );
+      await allocateCash(
+        tenant.tenantId, actor.userId, input.cashAccountId, p!.id,
+        input.amount, new Date(input.paidAt), input.method, "payment", session,
+      );
       c.paidAmount += input.amount;
       await c.save({ session });
       return { payment: paymentView(p!), replayed: false };
@@ -384,6 +390,10 @@ billingRouter.post(
             },
           ],
           { session },
+        );
+        await reverseAllocatedCash(
+          tenant.tenantId, principal(req).userId, p.id,
+          "payment", input.reason, session,
         );
         c.paidAmount = await paidFor(c, session);
         await c.save({ session });

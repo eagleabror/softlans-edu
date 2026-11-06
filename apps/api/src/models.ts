@@ -1,4 +1,5 @@
 import { PayrollRun, PayrollRunItem } from "./payroll-automation-models.js";
+import { cashModels } from "./cash-models.js";
 import { securityModels } from "./security-models.js";
 import { onboardingSchema } from "./onboarding-model.js";
 import { leadModels } from "./lead-models.js";
@@ -183,6 +184,7 @@ export type UserRecord = InferSchemaType<typeof userSchema> & {
 export async function ensureIndexes() {
   for (const model of [
     ...securityModels,
+    ...cashModels,
     ...saasModels,
     SaasReminder,
     PlatformAudit,
