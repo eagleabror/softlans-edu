@@ -19,7 +19,8 @@
     "test:unit": "npm run test:unit -w @softlans/api",
     "test:integration": "npm run test:integration -w @softlans/api",
     "seed:dev": "npm run seed:dev -w @softlans/api",
-    "provision:super-admin": "npm run provision:super-admin -w @softlans/api"
+    "provision:super-admin": "npm run provision:super-admin -w @softlans/api",
+    "test:recovery": "npm run test:recovery -w @softlans/api"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
