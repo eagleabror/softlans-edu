@@ -9,14 +9,14 @@ import { connectDatabase } from "../src/db.js";
 import { ensureIndexes, Tenant, User } from "../src/models.js";
 import { Plan, Subscription, PaymentRequest, SaasAudit, TrialGrant, SaasSettings } from "../src/saas-models.js";
 import { ensureSaasDefaults, createInitialTrial, addBillingMonths } from "../src/saas-service.js";
-import { issueToken } from "../src/security.js";
+import { createSession } from "../src/security.js";
 const origin = "http://localhost:5173";
 const config = parseConfig({ NODE_ENV:"test",APP_ORIGIN:origin,MONGODB_URI:"mongodb://localhost/test",JWT_SECRET:"s".repeat(48) });
 let repl: MongoMemoryReplSet, app: ReturnType<typeof createApp>, tenant: mongoose.Types.ObjectId, uid: mongoose.Types.ObjectId;
 let owner: string, sa: string, admin: string, other: string, planId: string;
 async function actor(role: string, tenantId: mongoose.Types.ObjectId|null) {
  const u=await User.create({role,tenantId,name:"Sinov",email:`${randomUUID()}@example.test`,passwordHash:"unused"});
- return {id:u._id,cookie:`softlans_session=${issueToken(u,config)}`};
+ return {id:u._id,cookie:`softlans_session=${await createSession(u,config)}`};
 }
 const post=(path:string,body:object,cookie=sa)=>request(app).post(path).set("Cookie",cookie).set("Origin",origin).send(body);
 const get=(path:string,cookie=sa)=>request(app).get(path).set("Cookie",cookie);

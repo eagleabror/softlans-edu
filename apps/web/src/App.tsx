@@ -1,3 +1,4 @@
+import { MfaLoginChallenge, SecuritySettings } from "./MfaSecurity";
 import { PasswordSecurity } from "./PasswordSecurity";
 import { DashboardStudents } from "./DashboardStudents";
 import { PageHeading, Stat } from "./ui";
@@ -191,6 +192,7 @@ function AuthPage({
   passwordUpdated?: boolean;
   onSession: (s: SessionView) => void;
 }) {
+  const [challenge, setChallenge] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
@@ -203,10 +205,11 @@ function AuthPage({
     setError("");
     const data = Object.fromEntries(new FormData(event.currentTarget));
     try {
-      const result = await api<SessionView>(
+      const result = await api<SessionView | { mfaRequired: true }>(
         register ? "/auth/register" : "/auth/login",
         { method: "POST", body: JSON.stringify(data) },
       );
+      if ("mfaRequired" in result) { setChallenge(true); return; }
       onSession(result);
       navigate("/");
     } catch (e) {
@@ -215,6 +218,7 @@ function AuthPage({
       setBusy(false);
     }
   }
+  if (challenge) return <MfaLoginChallenge onCancel={() => setChallenge(false)} onSession={s => { onSession(s); navigate("/"); }} />;
   return (
     <main className="auth-page">
       <section className="auth-story">
@@ -888,6 +892,7 @@ function Shell() {
             )}
             <Route path="/settings/subscription" element={session.user.role === "business_owner" ? <TenantSubscription /> : <section className="panel"><h1>Obunani faqat markaz egasi boshqaradi.</h1><Link className="button light" to="/account">Hisobimga qaytish</Link></section>} />
             <Route path="/account" element={<Account />} />
+            <Route path="/account/security" element={<SecuritySettings onSignedOut={() => setSession(null)} />} />
             <Route path="/account/change-password" element={<><PageHeading eyebrow="SHAXSIY MAYDON" title="Hisob xavfsizligi" description="Parolingiz va hisobingizni himoyalang." /><PasswordSecurity mode="change" onSignedOut={onPasswordUpdated} /></>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
@@ -1466,6 +1471,7 @@ function Account() {
           <ShieldCheck size={17} /> Kirish huquqlaringiz serverda tekshiriladi.
         </div>
       </section>
+      <Link className="button primary" to="/account/security"><ShieldCheck size={18} aria-hidden="true" />Xavfsizlik sozlamalari</Link>
       <PasswordSecurity mode="change" onSignedOut={onPasswordUpdated} />
     </>
   );

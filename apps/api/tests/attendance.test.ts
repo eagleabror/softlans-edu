@@ -12,7 +12,7 @@ import { Schedule, Classroom } from "../src/schedule-models.js";
 import { LessonSession, AttendanceRecord } from "../src/attendance-models.js";
 import { attendanceTotals } from "../src/attendance-service.js";
 import { localDate, dayOfWeek, addDays } from "../src/schedule-time.js";
-import { issueToken } from "../src/security.js";
+import { createSession } from "../src/security.js";
 const origin = "http://localhost:5173";
 const config = parseConfig({
   NODE_ENV: "test",
@@ -46,7 +46,7 @@ async function actor(role: string, tenantId: mongoose.Types.ObjectId | null) {
   });
   return {
     id: u.id as string,
-    cookie: `softlans_session=${issueToken(u, config)}`,
+    cookie: `softlans_session=${await createSession(u, config)}`,
   };
 }
 const get = (path: string, cookie = owner) =>

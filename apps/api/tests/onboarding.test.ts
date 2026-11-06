@@ -10,7 +10,7 @@ import { ensureIndexes, Tenant, User, Student } from "../src/models.js";
 import { Group } from "../src/group-models.js";
 import { Subscription } from "../src/saas-models.js";
 import { ensureSaasDefaults, createInitialTrial } from "../src/saas-service.js";
-import { issueToken } from "../src/security.js";
+import { createSession } from "../src/security.js";
 const origin = "http://localhost:5173";
 const config = parseConfig({
   NODE_ENV: "test",
@@ -31,7 +31,7 @@ async function actor(role: string, tenantId: mongoose.Types.ObjectId | null) {
     email: `${randomUUID()}@example.test`,
     passwordHash: "unused",
   });
-  return { user, cookie: `softlans_session=${issueToken(user, config)}` };
+  return { user, cookie: `softlans_session=${await createSession(user, config)}` };
 }
 const get = (cookie = owner) =>
   request(app).get("/api/onboarding").set("Cookie", cookie);
@@ -106,7 +106,7 @@ it("persists progress across a revoked logout session and a fresh session", asyn
     .send({});
   expect((await get()).status).toBe(401);
   const user = await User.findById(uid).select("+sessionVersion");
-  owner = `softlans_session=${issueToken(user!, config)}`;
+  owner = `softlans_session=${await createSession(user!, config)}`;
   expect((await get()).body.state).toMatchObject({
     currentStep: "students",
     status: "in_progress",

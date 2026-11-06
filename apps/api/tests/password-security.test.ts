@@ -9,7 +9,7 @@ import { createApp } from "../src/app.js";
 import { parseConfig } from "../src/config.js";
 import { connectDatabase } from "../src/db.js";
 import { ensureIndexes, Tenant, User } from "../src/models.js";
-import { issueToken } from "../src/security.js";
+import { createSession } from "../src/security.js";
 import { hashResetToken, recoveryMessage } from "../src/password-security.js";
 import { configuredPasswordEmail, resetUrl } from "../src/password-email.js";
 import { TestPasswordEmail } from "./helpers/password-email.js";
@@ -38,7 +38,7 @@ async function recover() {
 }
 async function refresh() {
   app = createApp(config, { testPasswordEmail: mailbox });
-  cookie = `softlans_session=${issueToken(actor as any, config)}`;
+  cookie = `softlans_session=${await createSession(actor as any, config)}`;
 }
 beforeAll(async () => {
   // Always allocate a fresh local replica set. No external or production URI accepted.

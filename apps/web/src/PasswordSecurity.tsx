@@ -9,7 +9,7 @@ export function PasswordField({ name, label, error, disabled }: { name: string; 
   return <div className="password-field"><label htmlFor={name}>{label}</label>
     <div className="input-wrap"><LockKeyhole size={17} aria-hidden="true" />
       <input id={name} name={name} type={visible ? "text" : "password"} required disabled={disabled}
-        autoComplete={name === "currentPassword" ? "current-password" : "new-password"}
+        autoComplete={(name === "currentPassword" || name === "password") ? "current-password" : "new-password"}
         aria-invalid={!!error} aria-describedby={error ? `${name}-error` : name === "newPassword" ? "password-policy" : undefined} />
       <button type="button" className="icon-button" aria-label={`${label}: ${visible ? "yashirish" : "ko‘rsatish"}`}
         aria-pressed={visible} disabled={disabled} onClick={() => setVisible(v => !v)}>

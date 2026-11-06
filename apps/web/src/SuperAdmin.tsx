@@ -1,3 +1,4 @@
+import { SecuritySettings } from "./MfaSecurity";
 import { PasswordSecurity } from "./PasswordSecurity";
 import { SaasPlans, SaasSubscriptions, SaasPayments, SaasAnalytics } from "./SaasAdmin";
 import {
@@ -1010,7 +1011,8 @@ export function SuperAdminLayout({
             <Route path={`${root}/payment-requests`} element={<SaasPayments />} />
             <Route path={`${root}/saas-analytics`} element={<SaasAnalytics />} />
             <Route path={`${root}/audit`} element={<SuperAdminAudit />} />
-            <Route path="/account" element={<><h1>Hisob xavfsizligi</h1><PasswordSecurity mode="change" onSignedOut={onPasswordUpdated ?? onLogout} /></>} />
+            <Route path="/account" element={<><h1>Hisob xavfsizligi</h1><Link className="button primary" to="/account/security">Xavfsizlik sozlamalari</Link><PasswordSecurity mode="change" onSignedOut={onPasswordUpdated ?? onLogout} /></>} />
+            <Route path="/account/security" element={<SecuritySettings onSignedOut={onLogout} />} />
             <Route path="*" element={<Navigate to={root} replace />} />
           </Routes>
         </main>

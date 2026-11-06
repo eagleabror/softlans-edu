@@ -1,4 +1,7 @@
-import type { RequestHandler } from "express";
+import { randomBytes } from "node:crypto";
+import { DeviceSession } from "./security-models.js";
+import type { ClientSession } from "mongoose";
+import type { Request, RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import type { Config } from "./config.js";
 import { Tenant, User, type UserRecord } from "./models.js";
@@ -12,6 +15,7 @@ export interface Principal {
   tenantId: Types.ObjectId | null;
   role: Role;
   user: UserRecord;
+  sessionId?: string;
 }
 declare global {
   namespace Express {
@@ -29,14 +33,26 @@ export const cookieOptions = (config: Config) => ({
   path: "/api",
   maxAge: SESSION_MS,
 });
-export function issueToken(user: UserRecord, config: Config) {
-  return jwt.sign({ version: user.sessionVersion }, config.JWT_SECRET, {
+export function issueToken(user: UserRecord, config: Config, sid?: string, mfa = false) {
+  return jwt.sign({ version: user.sessionVersion, ...(sid ? { sid, mfa } : {}) }, config.JWT_SECRET, {
     algorithm: "HS256",
     subject: user._id.toString(),
     expiresIn: "1h",
     issuer: "softlans-api",
     audience: "softlans-web",
   });
+}
+/** Only coarse, allowlisted device labels; no raw UA, IP, or JWT is persisted. */
+export async function createSession(user: UserRecord, config: Config, req?: Request, mfa = false, transaction?: ClientSession) {
+  const ua = req?.get("user-agent") ?? "";
+  const platform = /Android/i.test(ua) ? "Android" : /iPhone|iPad/i.test(ua) ? "iOS" : /Windows/i.test(ua) ? "Windows" : /Macintosh/i.test(ua) ? "macOS" : /Linux/i.test(ua) ? "Linux" : "Qurilma";
+  const browser = /Edg\//.test(ua) ? "Edge" : /Firefox\//.test(ua) ? "Firefox" : /Chrome\//.test(ua) ? "Chrome" : /Safari\//.test(ua) ? "Safari" : "Brauzer";
+  const sid = randomBytes(32).toString("hex");
+  const now = new Date();
+  await DeviceSession.create([{ sid, userId: user._id, version: user.sessionVersion, mfa,
+    device: `${platform} · ${browser}`, createdAt: now, lastActivityAt: now,
+    expiresAt: new Date(now.getTime() + SESSION_MS) }], { session: transaction });
+  return issueToken(user, config, sid, mfa);
 }
 export const authenticate =
   (config: Config): RequestHandler =>
@@ -56,7 +72,7 @@ export const authenticate =
         !Number.isInteger(payload.version)
       )
         throw new Error();
-      const user = await User.findById(payload.sub).select("+sessionVersion");
+      const user = await User.findById(payload.sub).select("+sessionVersion +mfaEnabled");
       if (!user || !user.active || user.sessionVersion !== payload.version)
         throw new Error();
       if (user.role === "super_admin" ? user.tenantId !== null : !user.tenantId)
@@ -66,7 +82,24 @@ export const authenticate =
         !(await Tenant.exists({ _id: user.tenantId, active: true }))
       )
         throw new Error();
+      if ((user.mfaEnabled || (user.role === "super_admin" && config.SUPER_ADMIN_MFA_ENFORCED)) && payload.mfa !== true)
+        throw new Error();
+      let sessionId: string | undefined;
+      if (typeof payload.sid === "string" && /^[a-f0-9]{64}$/.test(payload.sid)) {
+        const session = await DeviceSession.findOne({ sid: payload.sid, userId: user._id,
+          version: user.sessionVersion, mfa: payload.mfa === true, revokedAt: { $exists: false }, expiresAt: { $gt: new Date() } });
+        if (!session) throw new Error();
+        sessionId = session.sid;
+        // Activity precision is deliberately limited to one minute.
+        await DeviceSession.updateOne({ _id: session._id, lastActivityAt: { $lt: new Date(Date.now() - 60_000) } },
+          { $set: { lastActivityAt: new Date() } });
+      } else {
+        const cutoff = config.SESSION_LEGACY_ISSUED_BEFORE ? Date.parse(config.SESSION_LEGACY_ISSUED_BEFORE) : 0;
+        if (payload.sid !== undefined || typeof payload.iat !== "number" || payload.iat * 1000 > cutoff || Date.now() > cutoff + SESSION_MS)
+          throw new Error();
+      }
       req.principal = {
+        sessionId,
         userId: user._id,
         tenantId: user.tenantId ?? null,
         role: user.role,

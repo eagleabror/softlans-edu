@@ -1,3 +1,5 @@
+import { mfaSecurityRouter, beginLoginChallenge, passwordSession } from "./mfa-security.js";
+import { DeviceSession } from "./security-models.js";
 import { passwordSecurityRouter } from "./password-security.js";
 import type { PasswordEmail } from "./password-email.js";
 import { onboardingRouter } from "./onboarding.js";
@@ -40,7 +42,7 @@ import {
   tenantScope,
   canCreateRole,
   protectWrites,
-  issueToken,
+  createSession,
   cookieOptions,
   COOKIE_NAME,
 } from "./security.js";
@@ -147,6 +149,7 @@ export function createApp(
       .json({ ready: mongoose.connection.readyState === 1 }),
   );
 
+  app.use("/api/auth", mfaSecurityRouter(config, sessionView));
   app.use("/api/auth", passwordSecurityRouter(config, options.testPasswordEmail));
 
   app.get("/api/auth/registration-plans", limiter(60, 60_000), async (_req, res) => {
@@ -184,13 +187,13 @@ export function createApp(
       await createInitialTrial(tenant!._id, owner!._id, session, input.planId);
       return owner!;
     });
-    res.cookie(COOKIE_NAME, issueToken(user, config), cookieOptions(config));
+    res.cookie(COOKIE_NAME, await createSession(user, config, req), cookieOptions(config));
     res.status(201).json(await sessionView(user));
   });
   app.post("/api/auth/login", limiter(15, 15 * 60_000), async (req, res) => {
     const input = loginSchema.parse(req.body);
     const user = await User.findOne({ email: input.email }).select(
-      "+passwordHash +sessionVersion",
+      "+passwordHash +sessionVersion +mfaEnabled +mfaRevision",
     );
     const valid = await bcrypt.compare(
       input.password,
@@ -210,18 +213,22 @@ export function createApp(
         "Email yoki parol noto‘g‘ri.",
       );
     }
-    res.cookie(COOKIE_NAME, issueToken(user, config), cookieOptions(config));
+    if (user.mfaEnabled) {
+      await beginLoginChallenge(user, config, res);
+      return;
+    }
+    if (user.role === "super_admin" && config.SUPER_ADMIN_MFA_ENFORCED)
+      throw new AppError(403, "MFA_ENROLLMENT_REQUIRED", "Ikki bosqichli himoyani operator yordamida faollashtiring.");
+    res.cookie(COOKIE_NAME, await passwordSession(user, config, req), cookieOptions(config));
     res.json(await sessionView(user));
   });
   app.get("/api/auth/me", authenticate(config), async (req, res) =>
     res.json(await sessionView(principal(req).user)),
   );
   app.post("/api/auth/logout", authenticate(config), async (req, res) => {
-    // Revoke all of this user's issued sessions, including stolen cookie copies.
-    await User.updateOne(
-      { _id: principal(req).userId },
-      { $inc: { sessionVersion: 1 } },
-    );
+    const actor = principal(req);
+    if (actor.sessionId) await DeviceSession.updateOne({ sid: actor.sessionId, userId: actor.userId }, { $set: { revokedAt: new Date() } });
+    else await User.updateOne({ _id: actor.userId }, { $inc: { sessionVersion: 1 } });
     const { maxAge: _maxAge, ...clearOptions } = cookieOptions(config);
     res.clearCookie(COOKIE_NAME, clearOptions).status(204).end();
   });

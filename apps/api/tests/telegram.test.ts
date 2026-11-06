@@ -7,7 +7,7 @@ import { createApp } from "../src/app.js";
 import { parseConfig } from "../src/config.js";
 import { connectDatabase } from "../src/db.js";
 import { ensureIndexes, Tenant, User } from "../src/models.js";
-import { issueToken } from "../src/security.js";
+import { createSession } from "../src/security.js";
 import {
   TelegramIntegration as Integration,
   TelegramUpdate,
@@ -103,7 +103,7 @@ beforeEach(async () => {
     passwordHash: "unused",
   });
   userId = u._id;
-  cookie = `softlans_session=${issueToken(u, config)}`;
+  cookie = `softlans_session=${await createSession(u, config)}`;
   const tenant = await Tenant.create({ name: "Other" });
   const v = await User.create({
     tenantId: tenant._id,
@@ -112,7 +112,7 @@ beforeEach(async () => {
     email: "other@example.test",
     passwordHash: "unused",
   });
-  other = `softlans_session=${issueToken(v, config)}`;
+  other = `softlans_session=${await createSession(v, config)}`;
 });
 it("generates random URL-safe tokens and compares secrets safely", () => {
   const tokens = new Set(Array.from({ length: 100 }, newLinkToken));

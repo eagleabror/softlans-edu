@@ -18,7 +18,7 @@ import { Charge } from "../src/billing-models.js";
 import { LessonSession } from "../src/attendance-models.js";
 import { Group, Membership } from "../src/group-models.js";
 import { Schedule } from "../src/schedule-models.js";
-import { issueToken } from "../src/security.js";
+import { createSession } from "../src/security.js";
 import { hashToken } from "../src/telegram.js";
 import {
   processNotification,
@@ -124,7 +124,7 @@ beforeEach(async () => {
     passwordHash: "hash",
   });
   userId = user._id;
-  cookie = `softlans_session=${issueToken(user, config)}`;
+  cookie = `softlans_session=${await createSession(user, config)}`;
   studentId = (
     await Student.create({
       tenantId,
@@ -234,7 +234,7 @@ it("rejects tenant ID injection, cross-tenant students and RBAC violations", asy
       email: role + "@example.com",
       passwordHash: "hash",
     });
-    const auth = `softlans_session=${issueToken(u, config)}`;
+    const auth = `softlans_session=${await createSession(u, config)}`;
     expect((await post("/invitations", {}, auth)).status).toBe(403);
     expect((await post("/test", {}, auth)).status).toBe(403);
   }
@@ -726,7 +726,7 @@ it("diagnostics are owner-only, tenant scoped, validated and contain no recipien
       (
         await diagnostics(
           undefined,
-          `softlans_session=${issueToken(u, config)}`,
+          `softlans_session=${await createSession(u, config)}`,
         )
       ).status,
     ).toBe(403);

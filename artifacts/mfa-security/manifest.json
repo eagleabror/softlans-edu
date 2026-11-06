@@ -1,0 +1,126 @@
+{
+  "source": "Real local API + disposable synthetic MongoDB replica set",
+  "secretsMasked": true,
+  "reflowWidths": [
+    320,
+    375,
+    390,
+    700,
+    701,
+    768,
+    1024,
+    1440
+  ],
+  "entries": [
+    {
+      "device": "desktop",
+      "state": "security-settings",
+      "file": "desktop/security-settings.png"
+    },
+    {
+      "device": "desktop",
+      "state": "enable-2fa",
+      "file": "desktop/enable-2fa.png"
+    },
+    {
+      "device": "desktop",
+      "state": "qr-enrollment",
+      "file": "desktop/qr-enrollment.png"
+    },
+    {
+      "device": "desktop",
+      "state": "verify-authenticator",
+      "file": "desktop/verify-authenticator.png"
+    },
+    {
+      "device": "desktop",
+      "state": "recovery-codes",
+      "file": "desktop/recovery-codes.png"
+    },
+    {
+      "device": "desktop",
+      "state": "active-sessions",
+      "file": "desktop/active-sessions.png"
+    },
+    {
+      "device": "desktop",
+      "state": "revoke-session-confirmation",
+      "file": "desktop/revoke-session-confirmation.png"
+    },
+    {
+      "device": "desktop",
+      "state": "regenerate-recovery-codes",
+      "file": "desktop/regenerate-recovery-codes.png"
+    },
+    {
+      "device": "desktop",
+      "state": "revoke-other-sessions",
+      "file": "desktop/revoke-other-sessions.png"
+    },
+    {
+      "device": "desktop",
+      "state": "disable-2fa",
+      "file": "desktop/disable-2fa.png"
+    },
+    {
+      "device": "desktop",
+      "state": "mfa-login-challenge",
+      "file": "desktop/mfa-login-challenge.png"
+    },
+    {
+      "device": "mobile",
+      "state": "security-settings",
+      "file": "mobile/security-settings.png"
+    },
+    {
+      "device": "mobile",
+      "state": "enable-2fa",
+      "file": "mobile/enable-2fa.png"
+    },
+    {
+      "device": "mobile",
+      "state": "qr-enrollment",
+      "file": "mobile/qr-enrollment.png"
+    },
+    {
+      "device": "mobile",
+      "state": "verify-authenticator",
+      "file": "mobile/verify-authenticator.png"
+    },
+    {
+      "device": "mobile",
+      "state": "recovery-codes",
+      "file": "mobile/recovery-codes.png"
+    },
+    {
+      "device": "mobile",
+      "state": "active-sessions",
+      "file": "mobile/active-sessions.png"
+    },
+    {
+      "device": "mobile",
+      "state": "revoke-session-confirmation",
+      "file": "mobile/revoke-session-confirmation.png"
+    },
+    {
+      "device": "mobile",
+      "state": "regenerate-recovery-codes",
+      "file": "mobile/regenerate-recovery-codes.png"
+    },
+    {
+      "device": "mobile",
+      "state": "revoke-other-sessions",
+      "file": "mobile/revoke-other-sessions.png"
+    },
+    {
+      "device": "mobile",
+      "state": "disable-2fa",
+      "file": "mobile/disable-2fa.png"
+    },
+    {
+      "device": "mobile",
+      "state": "mfa-login-challenge",
+      "file": "mobile/mfa-login-challenge.png"
+    }
+  ]
+}
