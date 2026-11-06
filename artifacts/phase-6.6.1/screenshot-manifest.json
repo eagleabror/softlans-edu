@@ -1,0 +1,109 @@
+{
+  "capturedAt": "2026-11-06T16:19:30.502Z",
+  "source": "Real local API and built frontend; synthetic disposable data",
+  "entries": [
+    {
+      "device": "desktop",
+      "state": "enrollment-preview",
+      "file": "desktop/enrollment-preview.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        600,
+        601,
+        700,
+        701,
+        768,
+        1024,
+        1440
+      ]
+    },
+    {
+      "device": "desktop",
+      "state": "billing-calculation",
+      "file": "desktop/billing-calculation.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        600,
+        601,
+        700,
+        701,
+        768,
+        1024,
+        1440
+      ]
+    },
+    {
+      "device": "desktop",
+      "state": "manual-fallback",
+      "file": "desktop/manual-fallback.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        600,
+        601,
+        700,
+        701,
+        768,
+        1024,
+        1440
+      ]
+    },
+    {
+      "device": "mobile",
+      "state": "enrollment-preview",
+      "file": "mobile/enrollment-preview.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        600,
+        601,
+        700,
+        701,
+        768,
+        1024,
+        1440
+      ]
+    },
+    {
+      "device": "mobile",
+      "state": "billing-calculation",
+      "file": "mobile/billing-calculation.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        600,
+        601,
+        700,
+        701,
+        768,
+        1024,
+        1440
+      ]
+    },
+    {
+      "device": "mobile",
+      "state": "manual-fallback",
+      "file": "mobile/manual-fallback.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        600,
+        601,
+        700,
+        701,
+        768,
+        1024,
+        1440
+      ]
+    }
+  ],
+  "browserErrors": []
+}

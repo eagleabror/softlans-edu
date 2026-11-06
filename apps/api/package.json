@@ -18,7 +18,9 @@
     "telegram:automation": "node dist/apps/api/src/scripts/telegram-automation.js",
     "telegram:automation:dev": "tsx src/scripts/telegram-automation.ts",
     "test:recovery": "DR_DRILL_CONFIRM=synthetic-only vitest run tests/recovery.test.ts",
-    "mfa:readiness": "tsx src/scripts/mfa-readiness.ts"
+    "mfa:readiness": "tsx src/scripts/mfa-readiness.ts",
+    "billing:monthly": "node dist/apps/api/src/scripts/tuition-billing.js",
+    "billing:monthly:dev": "tsx src/scripts/tuition-billing.ts"
   },
   "dependencies": {
     "@softlans/contracts": "*",

@@ -8,7 +8,8 @@ import {
   PaymentReversal,
   ChargeAdjustment,
 } from "./billing-models.js";
-import { Group, Membership } from "./group-models.js";
+import { Group } from "./group-models.js";
+import { generateTuitionMonth } from "./tuition-service.js";
 import { Student } from "./models.js";
 import { principal, requireRoles, tenantScope } from "./security.js";
 import { AppError } from "./errors.js";
@@ -40,6 +41,8 @@ export function chargeView(c: InstanceType<typeof Charge>) {
     billingMonth: c.billingMonth,
     originalAmount: c.originalAmount,
     discountAmount: c.discountAmount,
+    prorationAmount: c.prorationAmount ?? 0,
+    calculation: c.toObject().calculation ?? null,
     finalAmount: c.finalAmount,
     paidAmount: c.paidAmount,
     remainingAmount,
@@ -108,82 +111,12 @@ billingRouter.post("/charges/generate", async (req, res) => {
     })
     .strict()
     .parse(req.body);
-  const tenant = scope(req),
-    { start, end } = monthBounds(input.month);
-  const result = await mongoose.connection.transaction(
-    async (session) => {
-      await lockBilling(tenant.tenantId, session);
-      const members = await Membership.find({
-        ...tenant,
-        status: "active",
-        enrolledAt: { $lt: end },
-      }).session(session);
-      let created = 0,
-        skipped = 0;
-      for (const m of members) {
-        const g = await Group.findOne({
-          ...tenant,
-          _id: m.groupId,
-          status: "active",
-          startDate: { $lt: end },
-        }).session(session);
-        const s = await Student.findOne({
-          ...tenant,
-          _id: m.studentId,
-          status: "active",
-          enrollmentDate: { $lt: end },
-        }).session(session);
-        if (!g || !s) {
-          skipped++;
-          continue;
-        }
-        const filter = {
-          ...tenant,
-          studentId: m.studentId,
-          groupId: m.groupId,
-          billingMonth: input.month,
-        };
-        const effective = Math.max(
-          start.getTime(),
-          m.enrolledAt.getTime(),
-          g.startDate.getTime(),
-          s.enrollmentDate.getTime(),
-        );
-        const dueDate = new Date(
-          Math.max(
-            new Date(
-              `${input.month}-${String(input.dueDay).padStart(2, "0")}T23:59:59.999+05:00`,
-            ).getTime(),
-            effective,
-          ),
-        );
-        const r = await Charge.updateOne(
-          filter,
-          {
-            $setOnInsert: {
-              ...filter,
-              generatedBy: principal(req).userId,
-              payrollTeacherId: g.teacherId,
-              originalAmount: g.monthlyFee,
-              discountAmount: 0,
-              finalAmount: g.monthlyFee,
-              paidAmount: 0,
-              dueDate,
-            },
-          },
-          { session, upsert: true, runValidators: true },
-        );
-        if (r.upsertedCount) created++;
-        else skipped++;
-      }
-      return {
-        created,
-        skipped,
-        month: input.month,
-        timezone: "Asia/Tashkent",
-      };
-    },
-    { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } },
+  const result = await generateTuitionMonth(
+    scope(req).tenantId,
+    principal(req).userId,
+    input.month,
+    "manual",
+    input.dueDay,
   );
   res.json(result);
 });
@@ -301,7 +234,12 @@ billingRouter.patch(
         }).session(session);
         if (!c) throw missing();
         c.paidAmount = await paidFor(c, session);
-        const finalAmount = input.originalAmount - input.discountAmount;
+        const finalAmount =
+          input.originalAmount -
+          (c.prorationAmount ?? 0) -
+          input.discountAmount;
+        if (finalAmount < 0)
+          throw conflict("Chegirma va proratsiya hisobdan oshmasin.");
         if (finalAmount < c.paidAmount || (input.cancelled && c.paidAmount > 0))
           throw conflict(
             "Avval to‘lovni qaytaring. Hisob to‘lovdan kam bo‘lmasin.",

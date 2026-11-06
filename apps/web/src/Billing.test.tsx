@@ -133,3 +133,51 @@ it("confirms bulk generation and shows loading/empty states", async () => {
     await screen.findByText("Amal muvaffaqiyatli bajarildi."),
   ).toBeInTheDocument();
 });
+it("opens immutable billing calculation in a readable dialog", async () => {
+  vi.mocked(api).mockImplementation(async (path) => {
+    if (path.startsWith("/groups")) return { groups: [], total: 0 };
+    if (path.startsWith("/billing/summary"))
+      return {
+        month: "2026-11",
+        billedAmount: 161538,
+        receivedAmount: 0,
+        outstandingAmount: 161538,
+        paymentCount: 0,
+      };
+    return {
+      charges: [
+        {
+          ...charge,
+          finalAmount: 161538,
+          prorationAmount: 138462,
+          calculation: {
+            month: "2026-11",
+            monthlyFee: 300000,
+            totalLessons: 13,
+            eligibleLessons: 7,
+            approximateLessonPrice: 300000 / 13,
+            calculatedAmount: 161538,
+            policy: "first_partial_month",
+            dueDate: "2026-11-16T04:00:00Z",
+          },
+        },
+      ],
+      total: 1,
+      pageSize: 20,
+    };
+  });
+  render(
+    <MemoryRouter>
+      <Billing owner />
+    </MemoryRouter>,
+  );
+  await userEvent.click(
+    await screen.findByRole("button", { name: "Darslar bo‘yicha hisob" }),
+  );
+  const dialog = screen.getByRole("dialog", { name: "Darslar bo‘yicha hisob" });
+  expect(within(dialog).getByText("Jami darslar")).toBeInTheDocument();
+  expect(within(dialog).getByText("13")).toBeInTheDocument();
+  expect(within(dialog).getByText("7")).toBeInTheDocument();
+  await userEvent.click(within(dialog).getByRole("button", { name: "Yopish" }));
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+});

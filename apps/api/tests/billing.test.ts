@@ -1,3 +1,4 @@
+import { Schedule } from "../src/schedule-models.js";
 import { beforeAll, afterAll, beforeEach, describe, it, expect } from "vitest";
 import { randomBytes, randomUUID } from "node:crypto";
 import mongoose from "mongoose";
@@ -96,6 +97,7 @@ afterAll(async () => {
 });
 beforeEach(async () => {
   await Promise.all([
+    Schedule.deleteMany({}),
     Charge.deleteMany({}),
     Payment.deleteMany({}),
     PaymentReversal.deleteMany({}),
@@ -140,6 +142,15 @@ beforeEach(async () => {
     studentId,
     enrolledAt: "2025-01-01",
   });
+  await Schedule.create({
+    tenantId: tenant,
+    groupId,
+    teacherId: u._id,
+    classroomId: new mongoose.Types.ObjectId(),
+    dayOfWeek: 1,
+    startTime: "10:00",
+    endTime: "11:00",
+  });
 });
 describe("monthly billing and immutable manual payments", () => {
   it("generates confirmed tenant-scoped repeatable bills, including concurrent generation and multiple groups", async () => {
@@ -154,6 +165,15 @@ describe("monthly billing and immutable manual payments", () => {
       capacity: 10,
       monthlyFee: 2000,
       startDate: "2025-01-01",
+    });
+    await Schedule.create({
+      tenantId: tenant,
+      groupId: g._id,
+      teacherId: g.teacherId,
+      classroomId: new mongoose.Types.ObjectId(),
+      dayOfWeek: 1,
+      startTime: "10:00",
+      endTime: "11:00",
     });
     await Membership.create({
       tenantId: tenant,
@@ -491,5 +511,283 @@ describe("monthly billing and immutable manual payments", () => {
     expect(
       (await get("/billing/charges?pageSize=1&page=2")).body.charges,
     ).toHaveLength(0);
+  });
+});
+
+describe("6.6.1 automatic tuition and financial safety", () => {
+  async function prepareNovember() {
+    await Schedule.deleteMany({});
+    await Group.updateOne({ _id: groupId }, { monthlyFee: 300000 });
+    await Membership.deleteMany({});
+    await Membership.create({
+      tenantId: tenant,
+      groupId,
+      studentId,
+      enrolledAt: "2026-11-16T09:00:00+05:00",
+    });
+    await Schedule.create(
+      [1, 3, 5].map((dayOfWeek) => ({
+        tenantId: tenant,
+        groupId,
+        teacherId: new mongoose.Types.ObjectId(),
+        classroomId: new mongoose.Types.ObjectId(),
+        dayOfWeek,
+        startTime: "10:00",
+        endTime: "11:00",
+      })),
+    );
+  }
+  it("serializes manual and scheduled generation, keeps discount separate, and preserves paid snapshots on schedule changes", async () => {
+    await prepareNovember();
+    const actor = (await User.findOne({
+      tenantId: tenant,
+      role: "business_owner",
+    }))!;
+    const { generateTuitionMonth } = await import("../src/tuition-service.js");
+    const results = await Promise.all([
+      generate("2026-11"),
+      generateTuitionMonth(tenant, actor._id, "2026-11", "scheduled"),
+    ]);
+    expect((results[0] as { status: number }).status).toBe(200);
+    expect(await Charge.countDocuments()).toBe(1);
+    let c = (await Charge.findOne())!;
+    expect(c.toObject()).toMatchObject({
+      originalAmount: 300000,
+      prorationAmount: 138462,
+      discountAmount: 0,
+      finalAmount: 161538,
+      calculation: {
+        monthlyFee: 300000,
+        totalLessons: 13,
+        eligibleLessons: 7,
+        calculatedAmount: 161538,
+        policyVersion: "lesson-tashkent-v1",
+      },
+    });
+    const snapshot = c.toObject().calculation;
+    expect(
+      (
+        await patch(`/billing/charges/${c.id}`, {
+          originalAmount: 300000,
+          discountAmount: 10000,
+          reason: "Qo‘lda chegirma",
+        })
+      ).status,
+    ).toBe(200);
+    c = (await Charge.findById(c._id))!;
+    expect(c.finalAmount).toBe(151538);
+    expect(
+      (await post("/billing/payments", payment(c.id, 151538))).status,
+    ).toBe(201);
+    const before = (await Charge.findById(c._id))!.toObject();
+    await Schedule.updateMany({}, { startTime: "15:00", status: "inactive" });
+    await Group.updateOne({ _id: groupId }, { monthlyFee: 900000 });
+    expect((await generate("2026-11")).body.created).toBe(0);
+    expect((await Charge.findById(c._id))!.toObject()).toEqual(before);
+    expect((await Charge.findById(c._id))!.toObject().calculation).toEqual(
+      snapshot,
+    );
+    expect(
+      (
+        await patch(`/billing/charges/${c.id}`, {
+          originalAmount: 300000,
+          discountAmount: 10001,
+          reason: "Kamaytirish",
+        })
+      ).status,
+    ).toBe(409);
+    // Nested document changes and query-level replacement cannot rewrite the quote.
+    const immutable = (await Charge.findById(c._id))!;
+    immutable.calculation!.eligibleLessons = 999;
+    await expect(immutable.save()).rejects.toThrow(
+      "Billing calculation cannot change",
+    );
+    await expect(
+      Charge.updateOne(
+        { _id: c._id },
+        { $set: { "calculation.eligibleLessons": 999 } },
+      ),
+    ).rejects.toThrow("Billing calculation cannot change");
+    expect((await Charge.findById(c._id))!.calculation!.eligibleLessons).toBe(
+      7,
+    );
+  });
+  it("creates the first charge atomically on enrollment and checks preview changes, RBAC and tenant isolation", async () => {
+    await Membership.deleteMany({});
+    const previewPath = `/groups/${groupId}/billing-preview?studentId=${studentId}`;
+    expect((await get(previewPath, teacher)).status).toBe(403);
+    expect((await get(previewPath, other)).status).toBe(404);
+    const preview = await get(previewPath);
+    expect(preview.status).toBe(200);
+    expect(preview.body.calculation.policyVersion).toBe("lesson-tashkent-v1");
+    await Group.updateOne({ _id: groupId }, { monthlyFee: 2000 });
+    const stale = await post(`/groups/${groupId}/members`, {
+      studentId,
+      billingPreviewKey: preview.body.previewKey,
+    });
+    expect(stale.status).toBe(409);
+    expect(await Membership.countDocuments()).toBe(0);
+    expect(await Charge.countDocuments()).toBe(0);
+    const fresh = await get(previewPath);
+    expect(
+      (
+        await post(`/groups/${groupId}/members`, {
+          studentId,
+          billingPreviewKey: fresh.body.previewKey,
+        })
+      ).status,
+    ).toBe(201);
+    expect(await Charge.countDocuments()).toBe(1);
+    expect((await Charge.findOne())!.generationSource).toBe("enrollment");
+    expect((await generate(currentBillingMonth())).body.created).toBe(0);
+    await post(`/groups/${groupId}/members/${studentId}/remove`, {});
+    expect(
+      (await post(`/groups/${groupId}/members`, { studentId })).status,
+    ).toBe(201);
+    expect(await Charge.countDocuments()).toBe(1);
+  });
+  it("does not rewrite legacy charges or approved payroll and calculates percentages from prorated net amounts", async () => {
+    await prepareNovember();
+    await generate("2026-11");
+    const c = (await Charge.findOne())!;
+    const { SalaryRule, Payroll } = await import("../src/payroll-models.js");
+    const { calculatePayroll } = await import("../src/payroll-calculation.js");
+    const g = (await Group.findById(groupId))!;
+    const actor = (await User.findOne({
+      tenantId: tenant,
+      role: "business_owner",
+    }))!;
+    await SalaryRule.create({
+      tenantId: tenant,
+      teacherId: g.teacherId,
+      salaryType: "billed",
+      percentage: 40,
+      effectiveFrom: "2026-01-01",
+      createdBy: actor._id,
+    });
+    expect(
+      (
+        await post(
+          "/billing/payments",
+          payment(c.id, 100000, { paidAt: "2026-11-01T10:00:00+05:00" }),
+        )
+      ).status,
+    ).toBe(201);
+    await SalaryRule.updateMany(
+      { tenantId: tenant },
+      { salaryType: "collected" },
+    );
+    const collected = await mongoose.connection.transaction((tx) =>
+      calculatePayroll(tenant, String(g.teacherId), "2026-11", tx),
+    );
+    expect(collected.grossSalary).toBe(40000);
+    expect(collected.lines[0]!.basisAmount).toBe(100000);
+    await SalaryRule.updateMany({ tenantId: tenant }, { salaryType: "billed" });
+    const basis = await mongoose.connection.transaction((tx) =>
+      calculatePayroll(tenant, String(g.teacherId), "2026-11", tx),
+    );
+    expect(basis.grossSalary).toBe(64615);
+    expect(basis.lines[0]!.basisAmount).toBe(161538);
+    const approved = await Payroll.create({
+      tenantId: tenant,
+      teacherId: g.teacherId,
+      payrollMonth: "2026-11",
+      status: "approved",
+      calculationBasis: basis,
+      grossSalary: basis.grossSalary,
+      finalSalary: basis.grossSalary,
+      calculatedAt: new Date(),
+      createdBy: actor._id,
+      approvedBy: actor._id,
+      approvedAt: new Date(),
+    });
+    const before = approved.toObject();
+    await Schedule.updateMany({}, { status: "inactive" });
+    await generate("2026-11");
+    expect((await Payroll.findById(approved._id))!.toObject()).toEqual(before);
+    // A pre-feature record has no calculation: generation must leave it untouched.
+    await Charge.deleteOne({ _id: c._id });
+    const legacy = await Charge.create({
+      tenantId: tenant,
+      studentId,
+      groupId,
+      billingMonth: "2026-11",
+      generatedBy: actor._id,
+      originalAmount: 300000,
+      finalAmount: 300000,
+      paidAmount: 300000,
+      dueDate: new Date("2026-11-10"),
+    });
+    const old = legacy.toObject();
+    await generate("2026-11");
+    expect((await Charge.findById(legacy._id))!.toObject()).toEqual(old);
+    await SalaryRule.deleteMany({ tenantId: tenant });
+    await Payroll.deleteMany({ tenantId: tenant });
+  });
+  it("keeps configured policies on unrelated group edits and honors opt-out", async () => {
+    expect(
+      (
+        await patch(`/groups/${groupId}`, {
+          billingPolicy: "full_month",
+          billingDueDay: 25,
+        })
+      ).status,
+    ).toBe(200);
+    expect(
+      (await patch(`/groups/${groupId}`, { description: "Siyosat saqlanadi" }))
+        .status,
+    ).toBe(200);
+    const g = (await Group.findById(groupId))!;
+    expect(g.billingPolicy).toBe("full_month");
+    expect(g.billingDueDay).toBe(25);
+    await Membership.deleteMany({});
+    const preview = await get(
+      `/groups/${groupId}/billing-preview?studentId=${studentId}`,
+    );
+    expect(preview.body.calculation).toMatchObject({
+      policy: "full_month",
+      calculatedAmount: 1000,
+    });
+  });
+  it("authenticates the scheduler separately and retries idempotently without caller-selected months/tenants", async () => {
+    const secret = randomBytes(48).toString("base64url");
+    const scheduledApp = createApp({
+      ...config,
+      BILLING_SCHEDULER_SECRET: secret,
+    });
+    const path = "/api/internal/billing/run";
+    expect((await request(app).post(path).send({})).status).toBe(503);
+    expect(
+      (await request(scheduledApp).post(path).set("Cookie", owner).send({}))
+        .status,
+    ).toBe(401);
+    expect(
+      (
+        await request(scheduledApp)
+          .post(path)
+          .set("Authorization", "Bearer wrong")
+          .send({})
+      ).status,
+    ).toBe(401);
+    expect(
+      (
+        await request(scheduledApp)
+          .post(path)
+          .set("Authorization", `Bearer ${secret}`)
+          .send({ month: "2020-01", tenantId: tenant })
+      ).status,
+    ).toBe(400);
+    const first = await request(scheduledApp)
+      .post(path)
+      .set("Authorization", `Bearer ${secret}`)
+      .send({});
+    expect(first.status).toBe(200);
+    expect(first.body.created).toBe(1);
+    const again = await request(scheduledApp)
+      .post(path)
+      .set("Authorization", `Bearer ${secret}`)
+      .send({});
+    expect(again.status).toBe(200);
+    expect(again.body.created).toBe(0);
   });
 });

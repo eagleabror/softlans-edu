@@ -1,3 +1,9 @@
+import {
+  createTuitionCharge,
+  tuitionCalculation,
+  previewKey,
+} from "./tuition-service.js";
+import { monthBounds, currentBillingMonth } from "./billing-validation.js";
 import { assertQuota } from "./saas-entitlements.js";
 import { Charge } from "./billing-models.js";
 import { lockBilling } from "./billing-lock.js";
@@ -25,6 +31,8 @@ export function groupView(g: GroupRecord) {
     teacherId: g.teacherId.toString(),
     capacity: g.capacity,
     monthlyFee: g.monthlyFee,
+    billingPolicy: g.billingPolicy,
+    billingDueDay: g.billingDueDay,
     status: g.status,
     startDate: g.startDate.toISOString().slice(0, 10),
     description: g.description ?? "",
@@ -127,8 +135,15 @@ groupsRouter.post("/", manage, async (req, res) => {
     tenant = tenantScope(principal(req));
   await validateTeacher(input.teacherId, tenant.tenantId);
   const group = await mongoose.connection.transaction(async (session) => {
-    await assertQuota(tenant.tenantId, "group", (input.status ?? "active") === "active" ? 1 : 0, session);
-    const [created] = await Group.create([{ ...input, ...tenant }], { session });
+    await assertQuota(
+      tenant.tenantId,
+      "group",
+      (input.status ?? "active") === "active" ? 1 : 0,
+      session,
+    );
+    const [created] = await Group.create([{ ...input, ...tenant }], {
+      session,
+    });
     return created!;
   });
   res.status(201).json({ group: groupView(group) });
@@ -173,8 +188,14 @@ for (const mode of ["update", "archive", "teacher"] as const) {
         session,
       );
       if (!g) throw missing();
-      await assertQuota(tenant.tenantId, "group",
-        "status" in input && input.status === "active" && g.status !== "active" ? 1 : 0, session);
+      await assertQuota(
+        tenant.tenantId,
+        "group",
+        "status" in input && input.status === "active" && g.status !== "active"
+          ? 1
+          : 0,
+        session,
+      );
       if (
         "capacity" in input &&
         input.capacity !== undefined &&
@@ -253,12 +274,64 @@ groupsRouter.get("/:id/members", async (req, res) => {
     pageSize: q.pageSize,
   });
 });
-groupsRouter.post("/:id/members", manage, async (req, res) => {
+groupsRouter.get("/:id/billing-preview", manage, async (req, res) => {
   const { studentId } = z
-      .object({ studentId: objectId })
+    .object({ studentId: objectId })
+    .strict()
+    .parse(req.query);
+  const tenant = tenantScope(principal(req)),
+    now = new Date(),
+    month = currentBillingMonth(now);
+  const preview = await mongoose.connection.transaction(async (tx) => {
+    await lockBilling(tenant.tenantId, tx);
+    const g = await Group.findOne({
+      ...tenant,
+      _id: req.params.id,
+      status: { $ne: "archived" },
+    }).session(tx);
+    const student = await Student.findOne({
+      ...tenant,
+      _id: studentId,
+      status: { $ne: "archived" },
+    }).session(tx);
+    if (!g || !student) throw missing();
+    const existing = await Charge.findOne({
+      ...tenant,
+      groupId: g._id,
+      studentId,
+      billingMonth: month,
+    }).session(tx);
+    const calculation = await tuitionCalculation(
+      g,
+      { studentId: student._id, enrolledAt: now },
+      month,
+      tx,
+    );
+    return {
+      calculation,
+      previewKey: previewKey(calculation),
+      existingCharge: !!existing,
+      automatic:
+        g.status === "active" &&
+        student.status === "active" &&
+        g.startDate < monthBounds(month).end,
+    };
+  });
+  res.json(preview);
+});
+groupsRouter.post("/:id/members", manage, async (req, res) => {
+  const { studentId, billingPreviewKey } = z
+      .object({
+        studentId: objectId,
+        billingPreviewKey: z
+          .string()
+          .regex(/^[a-f0-9]{64}$/)
+          .optional(),
+      })
       .strict()
       .parse(req.body),
     tenant = tenantScope(principal(req));
+  const enrolledAt = new Date();
   const member = await mongoose.connection.transaction(async (session) => {
     await lockBilling(tenant.tenantId, session);
     // Write the student too: concurrent archival must serialize with enrollment.
@@ -297,8 +370,24 @@ groupsRouter.post("/:id/members", manage, async (req, res) => {
       throw conflict("Guruh arxivlangan yoki sig‘im to‘lgan.");
     }
     const [m] = await Membership.create(
-      [{ ...tenant, groupId: g._id, studentId }],
+      [{ ...tenant, groupId: g._id, studentId, enrolledAt }],
       { session },
+    );
+    const month = currentBillingMonth(enrolledAt);
+    if (billingPreviewKey) {
+      const calculation = await tuitionCalculation(g, m!, month, session);
+      if (billingPreviewKey !== previewKey(calculation))
+        throw conflict(
+          "Hisoblash o‘zgardi. To‘lov ko‘rinishini yangilang va qayta tasdiqlang.",
+        );
+    }
+    await createTuitionCharge(
+      g,
+      m!,
+      month,
+      principal(req).userId,
+      session,
+      "enrollment",
     );
     return { id: m!._id.toString(), studentId, status: m!.status };
   });

@@ -1,0 +1,52 @@
+name: Monthly tuition billing
+on:
+  schedule:
+    # 00:05 Asia/Tashkent daily, also catches new active memberships on retries.
+    - cron: '5 19 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: tuition-billing
+  cancel-in-progress: false
+jobs:
+  generate:
+    # Opt-in only: this PR does not configure a deployment or production secrets.
+    if: ${{ vars.BILLING_SCHEDULER_URL != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Generate current-month tuition and follow tenant cursors
+        env:
+          BILLING_SCHEDULER_URL: ${{ vars.BILLING_SCHEDULER_URL }}
+          BILLING_SCHEDULER_SECRET: ${{ secrets.BILLING_SCHEDULER_SECRET }}
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          const url = new URL(process.env.BILLING_SCHEDULER_URL);
+          if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash ||
+              url.pathname !== '/api/internal/billing/run' || !process.env.BILLING_SCHEDULER_SECRET)
+            throw new Error('Billing scheduler configuration is invalid');
+          let after;
+          do {
+            let response;
+            for (let attempt = 0; attempt < 3; attempt++) {
+              response = await fetch(url, {
+                method: 'POST', redirect: 'error', signal: AbortSignal.timeout(60000),
+                headers: { Authorization: `Bearer ${process.env.BILLING_SCHEDULER_SECRET}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(after ? { after } : {})
+              });
+              if (response.ok || ![429, 500, 502, 503, 504].includes(response.status)) break;
+              await new Promise(resolve => setTimeout(resolve, 60000));
+            }
+            if (!response?.ok) throw new Error(`Billing scheduler HTTP ${response?.status}`);
+            const batch = await response.json();
+            console.log(JSON.stringify({ month: batch.month, created: batch.created, skipped: batch.skipped }));
+            after = batch.nextCursor;
+            if (after && !/^[a-f\d]{24}$/i.test(after)) throw new Error('Invalid billing cursor');
+            if (after) await new Promise(resolve => setTimeout(resolve, 6500));
+          } while (after);
+          JS

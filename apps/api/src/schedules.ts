@@ -281,8 +281,8 @@ for (const create of [true, false]) {
         ? new Schedule({ ...tenant, _id: rowId })
         : await Schedule.findOne({ ...tenant, _id: rowId }).session(session);
       if (!row) throw missing();
+      await lockBilling(tenant.tenantId, session);
       if (!create) {
-        await lockBilling(tenant.tenantId, session);
         await materializeSchedule(row, localDate(), session);
       }
       const assignmentChanged =
