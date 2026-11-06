@@ -1,0 +1,95 @@
+Phase 6.4.3.1 — final local verification, 2026-11-06
+Disposable databases only; no production provider or data.
+
+$ npm test
+
+> softlans-edu@0.1.0 test
+> npm run test --workspaces --if-present
+
+
+> @softlans/api@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /workspace/softlans-edu/apps/api
+
+
+ Test Files  29 passed (29)
+      Tests  436 passed | 1 skipped (437)
+   Start at  08:02:32
+   Duration  104.94s (tests 79%, import 21%)
+
+
+> @softlans/web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /workspace/softlans-edu/apps/web
+
+
+ Test Files  20 passed (20)
+      Tests  110 passed (110)
+   Start at  08:04:17
+   Duration  27.63s (tests 59%, environment 27%, import 8%, setup 6%, transform 1%)
+
+Environment  jsdom was created 20 times · 6.89s total, 27% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments
+
+
+$ npm run typecheck
+
+> softlans-edu@0.1.0 typecheck
+> npm run typecheck --workspaces --if-present
+
+
+> @softlans/api@0.1.0 typecheck
+> tsc --noEmit
+
+
+> @softlans/web@0.1.0 typecheck
+> tsc --noEmit
+
+
+$ npm run build
+
+> softlans-edu@0.1.0 build
+> npm run build --workspaces --if-present
+
+
+> @softlans/api@0.1.0 build
+> tsc -p tsconfig.json
+
+
+> @softlans/web@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 2208 modules transformed.
+[plugin vite:reporter]
+(!) /workspace/softlans-edu/apps/web/src/FinancialReports.tsx is dynamically imported by /workspace/softlans-edu/apps/web/src/App.tsx but also statically imported by /workspace/softlans-edu/apps/web/src/DashboardAnalytics.tsx, dynamic import will not move module into another chunk.
+
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.67 kB │ gzip:   0.40 kB
+dist/assets/index-BYKbfyUR.css   75.22 kB │ gzip:  16.20 kB
+dist/assets/index-BcGkZvGK.js   928.72 kB │ gzip: 264.94 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 4.61s
+
+$ npm audit --audit-level=high
+found 0 vulnerabilities
+
+$ npm audit --omit=dev --audit-level=high
+found 0 vulnerabilities
+
+$ git diff --check
+PASS (exit 0)
+
+$ node_modules/.bin/tsx scripts/password-security-capture.mts
+PASS: 22 Playwright screenshots; desktop/mobile flows and responsive checks.

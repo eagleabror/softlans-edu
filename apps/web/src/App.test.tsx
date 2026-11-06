@@ -232,3 +232,17 @@ it.each(["admin", "teacher"])("does not fetch or display owner setup for %s", as
   expect(screen.queryByRole("region", { name: "Markazni sozlash" })).not.toBeInTheDocument();
   expect(fetchMock.mock.calls.some(([url]) => url.includes("/onboarding"))).toBe(false);
 });
+
+
+it("keeps the password success notice when the authenticated shell switches to login", async () => {
+  const fetchMock = vi.fn((url: string) => url.endsWith("/change-password")
+    ? response({}, 204) : url.endsWith("/me") ? response(session) : response({}));
+  vi.stubGlobal("fetch", fetchMock);
+  renderApp("/account/change-password");
+  await userEvent.type(await screen.findByLabelText("Joriy parol"), "Current-password!");
+  await userEvent.type(screen.getByLabelText("Yangi parol", { exact: true }), "Changed-password!");
+  await userEvent.type(screen.getByLabelText("Yangi parolni tasdiqlang"), "Changed-password!");
+  await userEvent.click(screen.getByRole("button", { name: "Parolni yangilash" }));
+  expect(await screen.findByRole("status")).toHaveTextContent("Parolingiz yangilandi");
+  expect(screen.getByRole("button", { name: "Hisobga kirish" })).toBeVisible();
+});

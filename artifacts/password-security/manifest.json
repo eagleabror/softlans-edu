@@ -1,0 +1,169 @@
+{
+  "source": "Real local API, disposable MongoDB, test-only mailbox",
+  "entries": [
+    {
+      "device": "desktop",
+      "state": "change-password",
+      "file": "desktop-change-password.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "desktop",
+      "state": "change-validation",
+      "file": "desktop-change-validation.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "desktop",
+      "state": "change-success",
+      "file": "desktop-change-success.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "desktop",
+      "state": "forgot-password",
+      "file": "desktop-forgot-password.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "desktop",
+      "state": "forgot-validation",
+      "file": "desktop-forgot-validation.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "desktop",
+      "state": "forgot-requested",
+      "file": "desktop-forgot-requested.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "desktop",
+      "state": "reset-password",
+      "file": "desktop-reset-password.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "desktop",
+      "state": "reset-validation",
+      "file": "desktop-reset-validation.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "desktop",
+      "state": "reset-success",
+      "file": "desktop-reset-success.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "desktop",
+      "state": "reset-used-token",
+      "file": "desktop-reset-used-token.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "desktop",
+      "state": "forgot-disabled",
+      "file": "desktop-forgot-disabled.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "mobile",
+      "state": "change-password",
+      "file": "mobile-change-password.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "mobile",
+      "state": "change-validation",
+      "file": "mobile-change-validation.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "mobile",
+      "state": "change-success",
+      "file": "mobile-change-success.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "mobile",
+      "state": "forgot-password",
+      "file": "mobile-forgot-password.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "mobile",
+      "state": "forgot-validation",
+      "file": "mobile-forgot-validation.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "mobile",
+      "state": "forgot-requested",
+      "file": "mobile-forgot-requested.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "mobile",
+      "state": "reset-password",
+      "file": "mobile-reset-password.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "mobile",
+      "state": "reset-validation",
+      "file": "mobile-reset-validation.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "mobile",
+      "state": "reset-success",
+      "file": "mobile-reset-success.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "mobile",
+      "state": "reset-used-token",
+      "file": "mobile-reset-used-token.png",
+      "overflow": false,
+      "pageErrors": 0
+    },
+    {
+      "device": "mobile",
+      "state": "forgot-disabled",
+      "file": "mobile-forgot-disabled.png",
+      "overflow": false,
+      "pageErrors": 0
+    }
+  ],
+  "reflowWidths": [
+    320,
+    375,
+    390,
+    700,
+    701,
+    768,
+    1024,
+    1440
+  ]
+}

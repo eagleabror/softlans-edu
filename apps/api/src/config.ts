@@ -31,12 +31,26 @@ const schema = z
     TELEGRAM_BOT_TOKEN: z.string().optional(),
     TELEGRAM_BOT_USERNAME: z.string().optional(),
     TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
+    PASSWORD_RECOVERY_ENABLED: booleanFlag.default(false),
+    PASSWORD_EMAIL_DELIVERY_VERIFIED: booleanFlag.default(false),
+    PASSWORD_EMAIL_ENDPOINT: z.string().url().refine((v) => {
+      const u = new URL(v);
+      return u.protocol === "https:" && !u.username && !u.password && !u.search && !u.hash;
+    }).optional(),
+    PASSWORD_EMAIL_API_KEY: z.string().min(32).regex(/^[^\r\n]+$/).optional(),
+    PASSWORD_EMAIL_FROM: z.string().email().optional(),
     JWT_SECRET: z.string().min(48),
     TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
     DEMO_MODE: booleanFlag.default(false),
     PUBLIC_REGISTRATION_ENABLED: booleanFlag.optional(),
   })
   .superRefine((value, ctx) => {
+    if (value.PASSWORD_RECOVERY_ENABLED &&
+      (!value.PASSWORD_EMAIL_DELIVERY_VERIFIED || !value.PASSWORD_EMAIL_ENDPOINT ||
+       !value.PASSWORD_EMAIL_API_KEY || !value.PASSWORD_EMAIL_FROM)) {
+      ctx.addIssue({ code: "custom", path: ["PASSWORD_RECOVERY_ENABLED"],
+        message: "A configured and verified email provider is required" });
+    }
     if (
       value.NOTIFICATION_SCHEDULER_SECRET &&
       [
