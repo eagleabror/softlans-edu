@@ -63,10 +63,45 @@ export async function calculatePayroll(
           groups.find((g) => g._id.equals(c.groupId))?.teacherId,
       ) === teacherId,
   );
+  if (!rules.length)
+    throw new AppError(
+      409,
+      "NO_SALARY_RULE",
+      "Oy boshida amal qiluvchi maosh qoidasini kiriting.",
+    );
+  const scopes = new Set<string>();
+  for (const rule of rules) {
+    const key = String(rule.groupId ?? "default");
+    const valid =
+      rule.salaryType === "fixed"
+        ? Number.isSafeInteger(rule.fixedAmount) &&
+          rule.fixedAmount! >= 0 &&
+          rule.percentage == null
+        : ["billed", "collected"].includes(rule.salaryType) &&
+          rule.fixedAmount == null &&
+          rule.percentage != null &&
+          Number.isFinite(rule.percentage) &&
+          rule.percentage >= 0 &&
+          rule.percentage <= 100 &&
+          Math.abs(rule.percentage * 100 - Math.round(rule.percentage * 100)) <
+            1e-8;
+    if (
+      !valid ||
+      scopes.has(key) ||
+      (rule.groupId && !groups.some((g) => g._id.equals(rule.groupId!)))
+    )
+      throw new AppError(
+        409,
+        "INVALID_SALARY_SETTINGS",
+        "Maosh sozlamalari noto‘g‘ri yoki qoidalar bir-birini qoplaydi. Qoidalarni tekshiring.",
+      );
+    scopes.add(key);
+  }
   const defaults = rules.find((r) => !r.groupId);
   const lines: {
     ruleId: string;
     groupId: string | null;
+    groupName: string | null;
     salaryType: string;
     percentage: number | null;
     basisAmount: number;
@@ -87,6 +122,7 @@ export async function calculatePayroll(
     lines.push({
       ruleId: defaults.id,
       groupId: null,
+      groupName: null,
       salaryType: "fixed",
       percentage: null,
       basisAmount: defaults.fixedAmount!,
@@ -96,6 +132,14 @@ export async function calculatePayroll(
     });
   const groupIds = new Set([
     ...owned.map((c) => String(c.groupId)),
+    ...groups
+      .filter(
+        (g) =>
+          String(g.teacherId) === teacherId &&
+          g.status !== "archived" &&
+          g.startDate < end,
+      )
+      .map((g) => String(g._id)),
     ...rules
       .filter(
         (r) =>
@@ -109,7 +153,13 @@ export async function calculatePayroll(
   ]);
   for (const groupId of [...groupIds].sort()) {
     const rule = rules.find((r) => String(r.groupId) === groupId) ?? defaults;
-    if (!rule || (rule === defaults && rule.salaryType === "fixed")) continue;
+    if (!rule)
+      throw new AppError(
+        409,
+        "GROUP_SALARY_RULE_REQUIRED",
+        `${groups.find((g) => String(g._id) === groupId)?.name ?? groupId}: guruh uchun maosh qoidasini kiriting.`,
+      );
+    if (rule === defaults && rule.salaryType === "fixed") continue;
     const cs = owned.filter((c) => String(c.groupId) === groupId);
     const ps = payments.filter(
       (p) =>
@@ -129,6 +179,7 @@ export async function calculatePayroll(
     lines.push({
       ruleId: rule.id,
       groupId,
+      groupName: groups.find((g) => String(g._id) === groupId)?.name ?? groupId,
       salaryType: rule.salaryType,
       percentage: rule.percentage ?? null,
       basisAmount: basis,
@@ -140,11 +191,11 @@ export async function calculatePayroll(
       legacyAttribution: cs.some((c) => !c.payrollTeacherId),
     });
   }
-  if (!rules.length)
+  if (!lines.length && !defaults)
     throw new AppError(
       409,
-      "NO_SALARY_RULE",
-      "Oy boshida amal qiluvchi maosh qoidasini kiriting.",
+      "INVALID_SALARY_SETTINGS",
+      "O‘qituvchining guruhlari uchun amal qiluvchi maosh qoidasini kiriting.",
     );
   return {
     policyVersion: "tashkent-charge-owner-v1",

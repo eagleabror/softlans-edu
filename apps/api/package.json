@@ -19,6 +19,8 @@
     "telegram:automation:dev": "tsx src/scripts/telegram-automation.ts",
     "test:recovery": "DR_DRILL_CONFIRM=synthetic-only vitest run tests/recovery.test.ts",
     "mfa:readiness": "tsx src/scripts/mfa-readiness.ts",
+    "payroll:monthly": "node dist/apps/api/src/scripts/payroll-monthly.js",
+    "payroll:monthly:dev": "tsx src/scripts/payroll-monthly.ts",
     "billing:monthly": "node dist/apps/api/src/scripts/tuition-billing.js",
     "billing:monthly:dev": "tsx src/scripts/tuition-billing.ts"
   },

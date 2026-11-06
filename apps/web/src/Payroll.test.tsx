@@ -43,6 +43,8 @@ beforeEach(() => {
         total: 1,
       };
     if (path.startsWith("/groups")) return { groups: [], total: 0 };
+    if (path.startsWith("/payroll/automation/status"))
+      return { run: null, items: [], total: 0 };
     if (path.startsWith("/payroll/rules")) return { rules: [], total: 0 };
     if (path.startsWith("/payroll/summary"))
       return { approvedSalary: 1000, paidSalary: 400, outstandingSalary: 600 };

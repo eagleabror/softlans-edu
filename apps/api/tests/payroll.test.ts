@@ -1,3 +1,21 @@
+import {
+  PayrollRun,
+  PayrollRunItem,
+} from "../src/payroll-automation-models.js";
+import {
+  generatePayrollBatch,
+  previousPayrollMonth,
+  payrollDueAt,
+  runPayrollScheduler,
+} from "../src/payroll-automation.js";
+import {
+  NotificationJob,
+  NotificationSettings,
+} from "../src/notification-models.js";
+import { TelegramIntegration } from "../src/telegram-models.js";
+import { processNotification } from "../src/notifications.js";
+import { TelegramDispatch } from "../src/telegram-models.js";
+import { payrollReadyEligibility } from "../src/payroll-notifications.js";
 import { beforeAll, afterAll, beforeEach, it, expect } from "vitest";
 import { randomBytes, randomUUID } from "node:crypto";
 import mongoose from "mongoose";
@@ -21,6 +39,7 @@ import { percentageSalary } from "../src/payroll-calculation.js";
 import { monthBounds } from "../src/billing-validation.js";
 const origin = "http://localhost:5173";
 const config = parseConfig({
+  PAYROLL_SCHEDULER_SECRET: randomBytes(48).toString("base64url"),
   NODE_ENV: "test",
   APP_ORIGIN: origin,
   JWT_SECRET: randomBytes(48).toString("hex"),
@@ -50,7 +69,7 @@ async function actor(
   });
   return {
     id: user.id as string,
-    cookie: "softlans_session=" + await createSession(user, config),
+    cookie: "softlans_session=" + (await createSession(user, config)),
   };
 }
 const get = (path: string, cookie = owner) =>
@@ -144,6 +163,12 @@ afterAll(async () => {
 });
 beforeEach(async () => {
   for (const m of [
+    PayrollRun,
+    PayrollRunItem,
+    NotificationJob,
+    NotificationSettings,
+    TelegramIntegration,
+    TelegramDispatch,
     SalaryRule,
     Payroll,
     SalaryPayout,
@@ -472,4 +497,426 @@ it("identifies salary rule validation fields rather than hiding them in a generi
   expect(missingPercent.body.error.fields.percentage).toContain(
     "Foizni kiriting.",
   );
+});
+
+const auto = (month = "2025-02", cookie = owner, extra = {}) =>
+  post("/automation/run", { month, confirmed: true, ...extra }, cookie);
+it("uses Tashkent closing instants including leap years, year rollover and configurable grace", async () => {
+  expect(previousPayrollMonth(new Date("2025-12-31T19:00:00Z"))).toBe(
+    "2025-12",
+  );
+  expect(previousPayrollMonth(new Date("2024-02-29T19:00:00Z"))).toBe(
+    "2024-02",
+  );
+  expect(payrollDueAt("2024-02", config).toISOString()).toBe(
+    "2024-02-29T19:15:00.000Z",
+  );
+  expect(
+    payrollDueAt("2025-12", {
+      PAYROLL_CLOSE_DAY: 3,
+      PAYROLL_CLOSE_TIME: "08:45",
+    }).toISOString(),
+  ).toBe("2026-01-03T03:45:00.000Z");
+  expect(
+    (await runPayrollScheduler(config, {}, new Date("2025-02-28T19:14:59Z")))
+      .status,
+  ).toBe("not_due");
+  expect((await auto("2199-12")).body.error.code).toBe("PAYROLL_MONTH_OPEN");
+});
+it("automates actual prorated finalAmount with group overrides and late non-reversed collections", async () => {
+  await rule({ salaryType: "billed", percentage: 50 });
+  await charge({
+    originalAmount: 1000,
+    prorationAmount: 600,
+    discountAmount: 100,
+    finalAmount: 300,
+  });
+  const second = await Group.create({
+    tenantId: tenant,
+    teacherId,
+    name: "Ikkinchi",
+    courseName: "Kurs",
+    capacity: 10,
+    monthlyFee: 1000,
+    startDate: "2025-01-01",
+  });
+  await rule({ groupId: second.id, salaryType: "collected", percentage: 25 });
+  const old = await charge({ groupId: second._id, billingMonth: "2025-01" });
+  await pay(old._id, 400, "2025-01-31T19:00:00Z");
+  await pay(old._id, 900, "2025-02-28T19:00:00Z");
+  const reversed = await pay(old._id, 600);
+  await PaymentReversal.create({
+    tenantId: tenant,
+    paymentId: reversed._id,
+    recordedBy: teacherId,
+    reason: "Xato to‘lov",
+  });
+  expect((await auto()).status).toBe(200);
+  const p = await Payroll.findOne({ teacherId });
+  expect(p).toMatchObject({
+    grossSalary: 250,
+    finalSalary: 250,
+    status: "draft",
+    approvedAt: null,
+    paidAmount: 0,
+  });
+  expect(
+    p!.calculationBasis.lines.map((l: { salary: number }) => l.salary).sort(),
+  ).toEqual([100, 150]);
+  expect(
+    p!.calculationBasis.lines.map((l: { groupName: string }) => l.groupName),
+  ).toContain("Ikkinchi");
+  expect(await SalaryPayout.countDocuments()).toBe(0);
+  expect(
+    await PayrollRunItem.countDocuments({
+      status: "exception",
+      code: "NO_SALARY_RULE",
+    }),
+  ).toBe(1);
+});
+it("keeps adjustments, approvals, historical payouts and audit history unchanged across concurrent retries", async () => {
+  await rule({ salaryType: "fixed", percentage: null, fixedAmount: 1000 });
+  const d = await draft();
+  await post("/" + d.id + "/adjustments", {
+    revision: 0,
+    amount: -100,
+    reason: "Tuzatish sababi",
+  });
+  const before = (await Payroll.findById(d.id))!.toObject();
+  const results = await Promise.all([auto(), auto(), auto()]);
+  expect(results.map((r) => r.status)).toEqual([200, 200, 200]);
+  expect((await Payroll.findById(d.id))!.toObject()).toEqual(before);
+  await post("/" + d.id + "/approve", { confirmed: true, revision: 1 });
+  await post("/" + d.id + "/payouts", payout(400));
+  const approved = (await Payroll.findById(d.id))!.toObject();
+  const payments = await SalaryPayout.find().lean();
+  expect(approved).toMatchObject({
+    status: "partially_paid",
+    finalSalary: 900,
+    paidAmount: 400,
+  });
+  expect(payments).toHaveLength(1);
+  await auto();
+  expect((await Payroll.findById(d.id))!.toObject()).toEqual(approved);
+  expect(await SalaryPayout.find().lean()).toEqual(payments);
+  expect(await PayrollAudit.countDocuments({ action: "draft_created" })).toBe(
+    1,
+  );
+});
+it("creates exactly one automated draft under scheduler/manual concurrency and persists resumable exceptions", async () => {
+  await rule({ salaryType: "fixed", percentage: null, fixedAmount: 1000 });
+  const ownerDoc = await User.findOne({
+    tenantId: tenant,
+    role: "business_owner",
+  });
+  await Promise.all([
+    generatePayrollBatch(tenant, ownerDoc!._id, "2025-02", "scheduled"),
+    auto(),
+    post("/drafts", { teacherId, month: "2025-02", confirmed: true }),
+  ]);
+  expect(await Payroll.countDocuments({ teacherId })).toBe(1);
+  const status = await get("/automation/status?month=2025-02");
+  expect(status.body.run.status).toBe("exceptions");
+  expect(
+    status.body.items.find(
+      (i: { code: string }) => i.code === "NO_SALARY_RULE",
+    ),
+  ).toBeTruthy();
+  const missingTeacher = await User.findOne({
+    tenantId: tenant,
+    role: "teacher",
+    _id: { $ne: teacherId },
+  });
+  await rule({
+    teacherId: missingTeacher!.id,
+    salaryType: "fixed",
+    percentage: null,
+    fixedAmount: 800,
+  });
+  expect((await auto()).body.status).toBe("completed");
+  expect(
+    await PayrollRunItem.countDocuments({
+      tenantId: tenant,
+      status: "exception",
+    }),
+  ).toBe(0);
+  expect(await Payroll.countDocuments({ tenantId: tenant })).toBe(2);
+});
+it("surfaces uncovered groups and invalid/overlapping persisted rules instead of zero salary", async () => {
+  const second = await Group.create({
+    tenantId: tenant,
+    teacherId,
+    name: "Qoidasi yo‘q guruh",
+    courseName: "Kurs",
+    capacity: 10,
+    monthlyFee: 1000,
+    startDate: "2025-01-01",
+  });
+  await rule({ groupId, salaryType: "billed", percentage: 40 });
+  await auto();
+  expect(await Payroll.exists({ teacherId })).toBeNull();
+  expect((await PayrollRunItem.findOne({ teacherId }))!.message).toContain(
+    second.name,
+  );
+  const r = await SalaryRule.findOne({ teacherId });
+  await SalaryRule.collection.updateOne(
+    { _id: r!._id },
+    { $set: { percentage: null } },
+  );
+  await auto();
+  expect((await PayrollRunItem.findOne({ teacherId }))!.code).toBe(
+    "INVALID_SALARY_SETTINGS",
+  );
+});
+it("authenticates machine scheduler independently and keeps manual fallback tenant/RBAC/CSRF/MFA controls", async () => {
+  for (const cookie of [self, admin, platform])
+    expect((await auto("2025-02", cookie)).status).toBe(403);
+  expect((await get("/automation/status?month=2025-02", self)).status).toBe(
+    403,
+  );
+  expect(
+    (
+      await request(app)
+        .post("/api/payroll/automation/run")
+        .set("Cookie", owner)
+        .send({ month: "2025-02", confirmed: true })
+    ).status,
+  ).toBe(403);
+  expect(
+    (await auto("2025-02", owner, { tenantId: String(tenant) })).status,
+  ).toBe(400);
+  const path = "/api/internal/payroll/run";
+  expect(
+    (await request(app).post(path).set("Cookie", owner).send({})).status,
+  ).toBe(401);
+  expect(
+    (
+      await request(app)
+        .post(path)
+        .query({ secret: config.PAYROLL_SCHEDULER_SECRET })
+        .send({})
+    ).status,
+  ).toBe(401);
+  const trigger = (body: object) =>
+    request(app)
+      .post(path)
+      .set("Authorization", "Bearer " + config.PAYROLL_SCHEDULER_SECRET)
+      .send(body);
+  expect(
+    (await trigger({ month: "2025-02", tenantId: String(tenant) })).status,
+  ).toBe(400);
+  await rule({ salaryType: "fixed", fixedAmount: 1000, percentage: null });
+  const batch = await trigger({ month: "2025-02" });
+  expect(batch.status).toBe(200);
+  expect(batch.body.month).toBe("2025-02");
+  expect(
+    (await get("/automation/status?month=2025-02", other)).body.items,
+  ).toEqual([]);
+  const ownerDoc = await User.findOne({
+    tenantId: tenant,
+    role: "business_owner",
+  });
+  await User.updateOne({ _id: ownerDoc!._id }, { $set: { mfaEnabled: true } });
+  expect((await auto()).status).toBe(401);
+});
+it("follows bounded teacher cursors after restart without duplicates", async () => {
+  for (let n = 0; n < 11; n++) await actor("teacher", tenant);
+  const first = await auto();
+  expect(first.body.nextTeacher).toMatch(/^[a-f0-9]{24}$/);
+  expect(await PayrollRunItem.countDocuments({ tenantId: tenant })).toBe(10);
+  const last = await auto("2025-02", owner, {
+    afterTeacher: first.body.nextTeacher,
+  });
+  expect(last.body.nextTeacher).toBeNull();
+  expect(await PayrollRunItem.countDocuments({ tenantId: tenant })).toBe(13);
+  await auto();
+  expect(await PayrollRunItem.countDocuments({ tenantId: tenant })).toBe(13);
+});
+it("queues readiness once with consent and revalidates owner, tenant and disconnect before delivery", async () => {
+  const ownerDoc = await User.findOne({
+    tenantId: tenant,
+    role: "business_owner",
+  });
+  const teachers = await User.find({ tenantId: tenant, role: "teacher" });
+  for (const t of teachers)
+    await rule({
+      teacherId: t.id,
+      salaryType: "fixed",
+      percentage: null,
+      fixedAmount: 1000,
+    });
+  await auto();
+  expect(await NotificationJob.countDocuments({ kind: "payroll_ready" })).toBe(
+    0,
+  );
+  const integration = await TelegramIntegration.create({
+    tenantId: tenant,
+    userId: ownerDoc!._id,
+    status: "connected",
+    telegramUserId: "123",
+    chatId: "123",
+    notificationPreferences: { enabled: true },
+  });
+  await Promise.all([auto(), auto()]);
+  const jobs = await NotificationJob.find({ kind: "payroll_ready" }).select(
+    "+reportText",
+  );
+  expect(jobs).toHaveLength(1);
+  expect(jobs[0]!.reportText).toContain("2025-02");
+  const day = new Date("2026-11-01T10:00:00+05:00");
+  expect((await payrollReadyEligibility(jobs[0]!, day)).eligible).toBe(true);
+  expect(
+    (
+      await payrollReadyEligibility(
+        jobs[0]!,
+        new Date("2026-11-01T00:15:00+05:00"),
+      )
+    ).quiet,
+  ).toBe(true);
+  await TelegramIntegration.updateOne(
+    { _id: integration._id },
+    { $set: { "notificationPreferences.enabled": false } },
+  );
+  expect((await payrollReadyEligibility(jobs[0]!, day)).eligible).toBe(false);
+  await TelegramIntegration.updateOne(
+    { _id: integration._id },
+    { $set: { "notificationPreferences.enabled": true } },
+  );
+  await User.updateOne({ _id: ownerDoc!._id }, { active: false });
+  expect((await payrollReadyEligibility(jobs[0]!, day)).eligible).toBe(false);
+});
+it("rejects reused scheduler credentials and invalid closing configuration", () => {
+  for (const extra of [
+    { PAYROLL_SCHEDULER_SECRET: config.JWT_SECRET },
+    { PAYROLL_CLOSE_DAY: "29" },
+    { PAYROLL_CLOSE_TIME: "24:00" },
+  ])
+    expect(() =>
+      parseConfig({
+        NODE_ENV: "test",
+        APP_ORIGIN: origin,
+        JWT_SECRET: config.JWT_SECRET,
+        MONGODB_URI: "mongodb://localhost/test",
+        ...extra,
+      }),
+    ).toThrow();
+});
+
+it("supports historical payrolls without the new source field and freezes completed scheduler runs", async () => {
+  await rule({ salaryType: "fixed", percentage: null, fixedAmount: 1000 });
+  const d = await draft();
+  await Payroll.collection.updateOne(
+    { _id: new mongoose.Types.ObjectId(d.id) },
+    { $unset: { generationSource: 1 } },
+  );
+  expect(
+    (await post("/" + d.id + "/approve", { confirmed: true, revision: 0 }))
+      .status,
+  ).toBe(200);
+  const otherT = await User.findOne({
+    tenantId: tenant,
+    role: "teacher",
+    _id: { $ne: teacherId },
+  });
+  await rule({
+    teacherId: otherT!.id,
+    salaryType: "fixed",
+    percentage: null,
+    fixedAmount: 800,
+  });
+  await auto();
+  const audits = await PayrollAudit.countDocuments();
+  const result = await runPayrollScheduler(config, {
+    month: "2025-02",
+    cursor: { tenantId: String(tenant) },
+  });
+  expect(result.status).toBe("completed");
+  expect(result.created).toBe(0);
+  expect(await PayrollAudit.countDocuments()).toBe(audits);
+});
+it("records owner exceptions without blocking other tenants and ignores inactive teachers", async () => {
+  await User.updateMany(
+    { tenantId: tenant, role: "business_owner" },
+    { active: false },
+  );
+  const result = await runPayrollScheduler(config, { month: "2025-02" });
+  expect(result).toMatchObject({
+    status: "exceptions",
+    exceptions: 1,
+    code: "PAYROLL_OWNER_REQUIRED",
+  });
+  expect((await PayrollRun.findOne({ tenantId: tenant }))!.code).toBe(
+    "PAYROLL_OWNER_REQUIRED",
+  );
+  expect(result.nextCursor).toBeTruthy();
+  await User.updateMany(
+    { tenantId: tenant, role: "business_owner" },
+    { active: true },
+  );
+  await User.updateMany(
+    { tenantId: tenant, role: "teacher", _id: { $ne: teacherId } },
+    { active: false },
+  );
+  await rule({ salaryType: "fixed", percentage: null, fixedAmount: 1000 });
+  expect((await auto()).body.status).toBe("completed");
+  expect(await Payroll.countDocuments({ tenantId: tenant })).toBe(1);
+});
+
+it("retains a visible exclusion when a previously failing teacher leaves eligibility", async () => {
+  await rule({ salaryType: "fixed", percentage: null, fixedAmount: 1000 });
+  expect((await auto()).body.status).toBe("exceptions");
+  await User.updateMany(
+    { tenantId: tenant, role: "teacher", _id: { $ne: teacherId } },
+    { active: false },
+  );
+  expect((await auto()).body.status).toBe("completed");
+  expect(
+    await PayrollRunItem.countDocuments({
+      status: "excluded",
+      code: "TEACHER_INELIGIBLE",
+    }),
+  ).toBe(1);
+  expect(await Payroll.countDocuments()).toBe(1);
+});
+it("delivers payroll readiness through the existing notification processor with a synthetic sender", async () => {
+  const ownerDoc = await User.findOne({
+    tenantId: tenant,
+    role: "business_owner",
+  });
+  await TelegramIntegration.create({
+    tenantId: tenant,
+    userId: ownerDoc!._id,
+    status: "connected",
+    telegramUserId: "321",
+    chatId: "321",
+    notificationPreferences: { enabled: true },
+  });
+  for (const t of await User.find({ tenantId: tenant, role: "teacher" }))
+    await rule({
+      teacherId: t.id,
+      salaryType: "fixed",
+      percentage: null,
+      fixedAmount: 1000,
+    });
+  await auto();
+  await NotificationSettings.create({
+    tenantId: tenant,
+    quietStart: "00:00",
+    quietEnd: "00:00",
+  });
+  const sent: string[] = [];
+  const deliveryConfig = {
+    ...config,
+    TELEGRAM_BOT_TOKEN: "123456:synthetic-token-for-unit-tests",
+    TELEGRAM_BOT_USERNAME: "synthetic_bot",
+    TELEGRAM_WEBHOOK_SECRET: "synthetic-webhook-secret-for-tests-only-0000",
+  };
+  await processNotification(deliveryConfig, async (chat, text) => {
+    sent.push(chat + ":" + text);
+  });
+  expect(sent).toHaveLength(1);
+  expect(sent[0]).toContain("321:SoftLans Edu — 2025-02");
+  expect(
+    (await NotificationJob.findOne({ kind: "payroll_ready" }))!.status,
+  ).toBe("sent");
 });

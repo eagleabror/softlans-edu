@@ -1,0 +1,80 @@
+name: Monthly teacher payroll drafts
+on:
+  schedule:
+    # Polls the configured closing policy. Default due: 1st 00:15 Tashkent
+    # (19:15 UTC on the last calendar day of the payroll month).
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      month:
+        description: 'Closed payroll month YYYY-MM (empty = previous Tashkent month)'
+        required: false
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: payroll-monthly
+  cancel-in-progress: false
+jobs:
+  drafts:
+    # Opt-in only. This PR neither deploys nor configures production secrets.
+    if: ${{ vars.PAYROLL_SCHEDULER_URL != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Generate drafts and verify every committed batch
+        env:
+          PAYROLL_SCHEDULER_URL: ${{ vars.PAYROLL_SCHEDULER_URL }}
+          PAYROLL_SCHEDULER_SECRET: ${{ secrets.PAYROLL_SCHEDULER_SECRET }}
+          PAYROLL_MONTH: ${{ inputs.month }}
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          const url = new URL(process.env.PAYROLL_SCHEDULER_URL);
+          if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash ||
+              url.pathname !== '/api/internal/payroll/run' || !process.env.PAYROLL_SCHEDULER_SECRET)
+            throw new Error('Invalid payroll scheduler configuration');
+          let month = process.env.PAYROLL_MONTH || undefined;
+          if (month && !/^(20\d{2}|21\d{2})-(0[1-9]|1[0-2])$/.test(month)) throw new Error('Invalid payroll month');
+          let cursor, failed = false;
+          const seen = new Set();
+          do {
+            let response;
+            for (let attempt = 0; attempt < 3; attempt++) {
+              try {
+                response = await fetch(url, {
+                  method: 'POST', redirect: 'error', signal: AbortSignal.timeout(60000),
+                  headers: { Authorization: `Bearer ${process.env.PAYROLL_SCHEDULER_SECRET}`, 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ ...(month ? { month } : {}), ...(cursor ? { cursor } : {}) })
+                });
+              } catch (error) { if (attempt === 2) throw error; }
+              if (response?.status === 200 || (response && ![429,500,502,503,504].includes(response.status))) break;
+              await new Promise(resolve => setTimeout(resolve, 60000));
+            }
+            // 202, redirects, invalid bodies and partial acknowledgements fail.
+            if (response?.status !== 200) throw new Error(`Payroll HTTP ${response?.status}`);
+            const batch = await response.json();
+            if (!/^(20\d{2}|21\d{2})-(0[1-9]|1[0-2])$/.test(batch.month) || (month && month !== batch.month) ||
+                !['completed','processing','exceptions','not_due'].includes(batch.status) ||
+                !['created','preserved','exceptions'].every(k => Number.isSafeInteger(batch[k]) && batch[k] >= 0) ||
+                !Object.hasOwn(batch, 'nextCursor')) throw new Error('Unverified payroll response');
+            month = batch.month;
+            failed ||= batch.exceptions > 0 || batch.status === 'exceptions' ||
+              (batch.status === 'processing' && batch.nextTeacher === null);
+            console.log(JSON.stringify({ month, status: batch.status, created: batch.created, preserved: batch.preserved, exceptions: batch.exceptions }));
+            cursor = batch.nextCursor;
+            if (cursor !== null && (!cursor || !/^[a-f\d]{24}$/i.test(cursor.tenantId) ||
+                (cursor.afterTeacher !== undefined && !/^[a-f\d]{24}$/i.test(cursor.afterTeacher)))) throw new Error('Invalid payroll cursor');
+            if (!cursor && batch.status === 'processing') throw new Error('Payroll incomplete');
+            if (cursor) {
+              const key = JSON.stringify(cursor);
+              if (seen.has(key)) throw new Error('Payroll cursor did not advance');
+              seen.add(key);
+              await new Promise(resolve => setTimeout(resolve, 6500));
+            }
+          } while (cursor);
+          if (failed) throw new Error('Payroll exceptions require owner review');
+          JS

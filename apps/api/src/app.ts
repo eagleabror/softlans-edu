@@ -1,5 +1,6 @@
 import { mfaSecurityRouter, beginLoginChallenge, passwordSession } from "./mfa-security.js";
 import { DeviceSession } from "./security-models.js";
+import { payrollScheduler } from "./payroll-scheduler.js";
 import { tuitionScheduler } from "./tuition-scheduler.js";
 import { passwordSecurityRouter } from "./password-security.js";
 import type { PasswordEmail } from "./password-email.js";
@@ -145,6 +146,7 @@ export function createApp(
   // Machine-to-machine authentication is separate from CRM cookies and webhook secrets.
   app.use("/api/internal/notifications", notificationScheduler(config, lifecycle));
   app.use("/api/internal/billing", tuitionScheduler(config));
+  app.use("/api/internal/payroll", payrollScheduler(config));
   app.use(protectWrites(config));
   app.use(
     "/api/student-imports",

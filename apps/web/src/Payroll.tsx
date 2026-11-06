@@ -1,3 +1,4 @@
+import { PayrollAutomation } from "./PayrollAutomation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, HttpError } from "./api";
@@ -5,6 +6,7 @@ import { uzs } from "./Billing";
 type Line = {
   ruleId: string;
   groupId: string | null;
+  groupName?: string | null;
   salaryType: string;
   percentage: number | null;
   basisAmount: number;
@@ -39,6 +41,7 @@ type Rule = {
   _id: string;
   teacherId: string;
   groupId: string | null;
+  groupName?: string | null;
   salaryType: string;
   percentage: number | null;
   fixedAmount: number | null;
@@ -92,7 +95,7 @@ function Breakdown({ basis }: { basis: Basis }) {
           {basis.lines.map((l, i) => (
             <tr key={i}>
               <td>
-                {l.groupId ?? "Umumiy oylik"}
+                {l.groupName ?? l.groupId ?? "Umumiy oylik"}
                 {l.legacyAttribution && (
                   <small> · Eski hisob: joriy o‘qituvchi</small>
                 )}
@@ -364,6 +367,13 @@ export function PayrollPage({
           </>
         )}
       </section>
+      {owner && !settings && (
+        <PayrollAutomation
+          key={month}
+          month={month}
+          onComplete={() => refresh((v) => v + 1)}
+        />
+      )}
       {summary && (
         <div className="stats-grid financial-stats">
           {[
@@ -666,7 +676,10 @@ export function PayrollPage({
                     {[
                       "O‘qituvchi",
                       "Oy",
-                      "Maosh",
+                      "Hisoblash usuli",
+                      "Hisoblangan",
+                      "Tuzatishlar",
+                      "Yakuniy maosh",
                       "To‘langan",
                       "Qoldiq",
                       "Holat",
@@ -683,6 +696,19 @@ export function PayrollPage({
                     <tr key={p.id}>
                       <td>{p.teacherName}</td>
                       <td>{p.payrollMonth}</td>
+                      <td>
+                        {[
+                          ...new Set(
+                            p.calculationBasis.lines.map(
+                              (l) => types[l.salaryType],
+                            ),
+                          ),
+                        ].join(" · ") || "—"}
+                      </td>
+                      <td>{uzs(p.grossSalary)}</td>
+                      <td>
+                        {uzs(p.adjustments.reduce((n, a) => n + a.amount, 0))}
+                      </td>
                       <td>{uzs(p.finalSalary)}</td>
                       <td>{uzs(p.paidAmount)}</td>
                       <td>{uzs(p.outstandingAmount)}</td>
@@ -828,7 +854,7 @@ export function PayrollDetail({ owner }: { owner: boolean }) {
         <>
           <section className="panel">
             <h2>
-              {p.payrollMonth} ·{" "}
+              {p.teacherName} · {p.payrollMonth} ·{" "}
               {p.reversedAt ? "Bekor qilingan" : statuses[p.status]}
             </h2>
             <Breakdown basis={p.calculationBasis} />
@@ -836,6 +862,10 @@ export function PayrollDetail({ owner }: { owner: boolean }) {
               Hisoblangan: {uzs(p.grossSalary)} · Yakuniy: {uzs(p.finalSalary)}{" "}
               · To‘langan: {uzs(p.paidAmount)} · Majburiyat:{" "}
               {uzs(p.outstandingAmount)}
+            </p>
+            <p>
+              Tuzatishlar:{" "}
+              {uzs(p.adjustments.reduce((n, a) => n + a.amount, 0))}
             </p>
             {p.adjustments.map((a, i) => (
               <p key={i}>
