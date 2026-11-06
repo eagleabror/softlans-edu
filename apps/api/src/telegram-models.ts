@@ -77,6 +77,7 @@ export const TelegramDelivery = mongoose.model(
 // Global bot pacing survives restarts and multiple Render instances.
 const dispatchSchema = new Schema({
   _id: String,
+  leaseId: String,
   availableAt: { type: Date, required: true },
 });
 export const TelegramDispatch = mongoose.model(

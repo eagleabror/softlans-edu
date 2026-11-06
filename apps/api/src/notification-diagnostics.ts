@@ -12,6 +12,7 @@ import { Student } from "./models.js";
 import { AppError } from "./errors.js";
 import { attendanceEnabled, quiet } from "./notifications.js";
 import { telegramConfigured } from "./telegram.js";
+import { processorStatus, queueSnapshot } from "./notification-monitoring.js";
 // No names, financial data, Telegram IDs, source IDs, message text, or raw errors.
 export async function notificationDiagnostics(
   config: Config,
@@ -22,21 +23,23 @@ export async function notificationDiagnostics(
   const state = await NotificationProcessorState.findById("automation");
   const processor = {
     mode: "external_scheduler" as const,
-    state: !state
-      ? "never_seen"
-      : now.getTime() - (state.lastHeartbeatAt?.getTime() ?? 0) > 180000
-        ? "stale"
-        : "recent",
+    state: processorStatus(
+      state,
+      now,
+      config.MONITOR_SCHEDULER_STALE_SECONDS * 1000,
+    ),
     lastStartedAt: state?.lastStartedAt ?? null,
     lastHeartbeatAt: state?.lastHeartbeatAt ?? null,
     lastCompletedAt: state?.lastCompletedAt ?? null,
     lastFailedAt: state?.lastFailedAt ?? null,
+    lastInterruptedAt: state?.lastInterruptedAt ?? null,
     stage: state?.stage ?? null,
   };
   const result = {
     telegramConfigured: telegramConfigured(config),
     schedulerEndpointConfigured: !!config.NOTIFICATION_SCHEDULER_SECRET,
     processor,
+    queue: await queueSnapshot(tenantId, now),
   };
   if (!target) return result;
   const scope = { tenantId };

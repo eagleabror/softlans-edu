@@ -323,3 +323,37 @@ describe("server RBAC and isolation", () => {
     expect((await PlatformAudit.findById(entry!._id))!.reason).toBe("Shartlarni tekshirish");
   });
 });
+
+it("protects global notification aggregates with platform RBAC and MFA without student data", async () => {
+  const { NotificationJob } = await import("../src/notification-models.js");
+  await NotificationJob.deleteMany({});
+  await NotificationJob.create({
+    tenantId: tenantA,
+    kind: "test",
+    key: "synthetic-private",
+    status: "failed",
+    errorCode: "UNKNOWN_OUTCOME",
+    reportText: "Maxfiy student",
+  });
+  for (const cookie of [owner, other, admin, teacher])
+    expect((await get(`${base}/notification-diagnostics`, cookie)).status).toBe(
+      403,
+    );
+  expect(
+    (await request(app).get(`${base}/notification-diagnostics`)).status,
+  ).toBe(401);
+  const res = await get(`${base}/notification-diagnostics`);
+  expect(res.status).toBe(200);
+  expect(res.body.queue.unknownOutcome).toBe(1);
+  expect(res.text).not.toMatch(
+    /Maxfiy|synthetic-private|tenantId|studentId|reportText|chatId/,
+  );
+  expect(
+    (await get(`${base}/notification-diagnostics?tenantId=${tenantA}`)).status,
+  ).toBe(400);
+  await User.updateOne(
+    { _id: platformId },
+    { $set: { mfaEnabled: true }, $inc: { mfaRevision: 1 } },
+  );
+  expect((await get(`${base}/notification-diagnostics`)).status).toBe(401);
+});

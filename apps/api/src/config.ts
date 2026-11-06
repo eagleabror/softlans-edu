@@ -31,6 +31,17 @@ const schema = z
     TELEGRAM_BOT_TOKEN: z.string().optional(),
     TELEGRAM_BOT_USERNAME: z.string().optional(),
     TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
+    MONITOR_SCHEDULER_STALE_SECONDS: z.coerce.number().int()
+      .min(120).max(86400).default(180),
+    MONITOR_BACKLOG_THRESHOLD: z.coerce.number().int()
+      .min(1).max(1000000).default(100),
+    OPERATOR_ALERTS_ENABLED: booleanFlag.default(false),
+    OPERATOR_ALERTS_SUPPRESSED: booleanFlag.default(false),
+    OPERATOR_ALERT_COOLDOWN_MINUTES: z.coerce.number().int()
+      .min(5).max(1440).default(30),
+    OPERATOR_TELEGRAM_BOT_TOKEN: z.string()
+      .regex(/^\d+:[A-Za-z0-9_-]{20,}$/).optional(),
+    OPERATOR_TELEGRAM_CHAT_ID: z.string().regex(/^-?\d{1,20}$/).optional(),
     PASSWORD_RECOVERY_ENABLED: booleanFlag.default(false),
     PASSWORD_EMAIL_DELIVERY_VERIFIED: booleanFlag.default(false),
     PASSWORD_EMAIL_ENDPOINT: z.string().url().refine((v) => {
@@ -48,6 +59,20 @@ const schema = z
     PUBLIC_REGISTRATION_ENABLED: booleanFlag.optional(),
   })
   .superRefine((value, ctx) => {
+    if (value.OPERATOR_ALERTS_ENABLED &&
+      (!value.OPERATOR_TELEGRAM_BOT_TOKEN || !value.OPERATOR_TELEGRAM_CHAT_ID))
+      ctx.addIssue({
+        code: "custom", path: ["OPERATOR_ALERTS_ENABLED"],
+        message: "A separate operator bot and destination are required",
+      });
+    if (value.OPERATOR_TELEGRAM_BOT_TOKEN && [
+      value.TELEGRAM_BOT_TOKEN, value.TELEGRAM_WEBHOOK_SECRET,
+      value.JWT_SECRET, value.NOTIFICATION_SCHEDULER_SECRET,
+    ].includes(value.OPERATOR_TELEGRAM_BOT_TOKEN))
+      ctx.addIssue({
+        code: "custom", path: ["OPERATOR_TELEGRAM_BOT_TOKEN"],
+        message: "Use a separate operator credential",
+      });
     if (value.SUPER_ADMIN_MFA_ENFORCED && !value.MFA_ENCRYPTION_KEY)
       ctx.addIssue({ code: "custom", path: ["MFA_ENCRYPTION_KEY"], message: "MFA key required for enforcement" });
     if (value.MFA_ENCRYPTION_KEY === value.JWT_SECRET)

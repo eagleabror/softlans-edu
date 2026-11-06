@@ -131,7 +131,7 @@ export const NotificationSettings = mongoose.model(
 export const AttendanceEvent = mongoose.model("AttendanceEvent", event);
 export const NotificationJob = mongoose.model("NotificationJob", job);
 export const NotificationAudit = mongoose.model("NotificationAudit", audit);
-// Global liveness metadata only: no tenant/student identifiers, counts, or secrets.
+// Global liveness metadata only: no tenant/student identifiers, payloads, or secrets.
 const processorState = new Schema({
   _id: String,
   runId: String,
@@ -139,6 +139,9 @@ const processorState = new Schema({
   lastHeartbeatAt: Date,
   lastCompletedAt: Date,
   lastFailedAt: Date,
+  lastInterruptedAt: Date,
+  consecutiveFailures: { type: Number, default: 0 },
+  interruptedRuns: { type: Number, default: 0 },
   stage: {
     type: String,
     enum: [
@@ -148,6 +151,7 @@ const processorState = new Schema({
       "delivery",
       "completed",
       "failed",
+      "interrupted",
     ],
   },
 });
@@ -168,7 +172,19 @@ export const NotificationSchedulerLease = mongoose.model(
     { strict: "throw" },
   ),
 );
+// Finite operational alert codes only. No CRM recipients, payloads, or tokens.
+export const OperationalAlertState = mongoose.model(
+  "OperationalAlertState",
+  new Schema(
+    {
+      _id: String,
+      nextAllowedAt: Date,
+    },
+    { strict: "throw" },
+  ),
+);
 export const notificationModels = [
+  OperationalAlertState,
   NotificationSchedulerLease,
   NotificationProcessorState,
   GuardianLink,

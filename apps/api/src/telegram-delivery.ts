@@ -67,21 +67,35 @@ export async function dispatchTelegram(config: Config, send?: SendTelegram) {
     { $unset: { tokenHash: 1, tokenExpiresAt: 1 } },
   );
   // Expired leases have an unknown API outcome: do not automatically duplicate a possibly delivered message.
-  await Delivery.updateMany(
+  const expired = await Delivery.updateMany(
     { status: "sending", leaseUntil: { $lte: now } },
     {
       $set: { status: "failed", errorCode: "UNKNOWN_OUTCOME" },
-      $unset: { text: 1 },
+      $unset: { text: 1, leaseId: 1, leaseUntil: 1 },
     },
   );
+  if (expired.modifiedCount)
+    console.info(
+      JSON.stringify({
+        event: "telegram_delivery",
+        code: "STALE_LEASE_UNKNOWN_OUTCOME",
+        count: expired.modifiedCount,
+      }),
+    );
   await TelegramDispatch.updateOne(
     { _id: "bot" },
     { $setOnInsert: { availableAt: now } },
     { upsert: true },
   );
+  const permitId = randomUUID();
   const permit = await TelegramDispatch.findOneAndUpdate(
     { _id: "bot", availableAt: { $lte: now } },
-    { $set: { availableAt: new Date(now.getTime() + 60_000) } },
+    {
+      $set: {
+        leaseId: permitId,
+        availableAt: new Date(now.getTime() + 60_000),
+      },
+    },
   );
   if (!permit) return false;
   const leaseId = randomUUID();
@@ -99,7 +113,7 @@ export async function dispatchTelegram(config: Config, send?: SendTelegram) {
   ).select("+text");
   if (!job) {
     await TelegramDispatch.updateOne(
-      { _id: "bot" },
+      { _id: "bot", leaseId: permitId },
       { $set: { availableAt: new Date(Date.now() + 1100) } },
     );
     return false;
@@ -133,6 +147,15 @@ export async function dispatchTelegram(config: Config, send?: SendTelegram) {
     return true;
   }
   try {
+    if (
+      !(await Delivery.exists({
+        _id: job._id,
+        status: "sending",
+        leaseId,
+        leaseUntil: { $gt: new Date() },
+      }))
+    )
+      return true;
     const sender =
       send ??
       ((chatId, text) =>
@@ -141,14 +164,27 @@ export async function dispatchTelegram(config: Config, send?: SendTelegram) {
           text,
         ));
     await sender(row.chatId, job.text!);
-    await finish({ status: "sent", sentAt: new Date() });
+    const completed = await finish({ status: "sent", sentAt: new Date() });
+    console.info(
+      JSON.stringify({
+        event: "telegram_delivery",
+        code: completed.modifiedCount ? "SENT" : "OUTCOME_NOT_PERSISTED",
+      }),
+    );
     await TelegramDispatch.updateOne(
-      { _id: "bot" },
+      { _id: "bot", leaseId: permitId },
       { $set: { availableAt: new Date(Date.now() + 1100) } },
     );
   } catch (error) {
     const apiError = error instanceof GrammyError ? error : null;
     const code = apiError?.error_code;
+    console.info(
+      JSON.stringify({
+        event: "telegram_delivery",
+        code: code ? `TELEGRAM_${code}` : "UNKNOWN_OUTCOME",
+        attempt: job.attempts,
+      }),
+    );
     const retry =
       (code === 429 || (code !== undefined && code >= 500)) && job.attempts < 5;
     const delay = retryDelay(job.attempts, apiError?.parameters.retry_after);
@@ -169,7 +205,7 @@ export async function dispatchTelegram(config: Config, send?: SendTelegram) {
         },
       );
     await TelegramDispatch.updateOne(
-      { _id: "bot" },
+      { _id: "bot", leaseId: permitId },
       {
         $set: {
           availableAt: new Date(Date.now() + (code === 429 ? delay : 1100)),

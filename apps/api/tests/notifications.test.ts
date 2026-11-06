@@ -818,3 +818,126 @@ it("expires an old guardian test without a send attempt instead of forcing stale
   expect(row?.attempts).toBe(0);
   expect(row?.errorCode).toBe("INELIGIBLE");
 });
+it.each(["shutdown", "lost_run_lease"])(
+  "returns a pre-send claim to pending on %s without spending the send attempt",
+  async (mode) => {
+    await settings();
+    await enqueueNotification(await connected(), {
+      kind: "test",
+      key: "fenced",
+    });
+    const abort = new AbortController(),
+      send = vi.fn();
+    const ownsRun = vi.fn(async () => {
+      if (mode === "shutdown") abort.abort();
+      return mode !== "lost_run_lease";
+    });
+    expect(
+      await processNotification(config, send, new Date(), {
+        signal: abort.signal,
+        ownsRun,
+      }),
+    ).toBe(false);
+    expect(send).not.toHaveBeenCalled();
+    expect(await NotificationJob.findOne()).toMatchObject({
+      status: "pending",
+      attempts: 0,
+    });
+  },
+);
+it("an old bot permit owner cannot overwrite a successor's rate-limit gate", async () => {
+  await settings();
+  await enqueueNotification(await connected(), {
+    kind: "test",
+    key: "permit-fence",
+  });
+  const availableAt = new Date(Date.now() + 120000);
+  await processNotification(config, async () => {
+    await TelegramDispatch.updateOne(
+      { _id: "bot" },
+      { $set: { leaseId: "successor", availableAt } },
+    );
+  });
+  expect((await TelegramDispatch.findById("bot"))?.availableAt).toEqual(
+    availableAt,
+  );
+});
+it("persists a known in-flight send during shutdown while marking its batch interrupted", async () => {
+  await settings();
+  await enqueueNotification(await connected(), {
+    kind: "test",
+    key: "shutdown-in-flight",
+  });
+  const { runNotificationAutomation } =
+    await import("../src/notification-automation.js");
+  const { NotificationProcessorState } =
+    await import("../src/notification-models.js");
+  const abort = new AbortController();
+  let finish!: () => void;
+  const send = vi.fn(
+    () =>
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const run = runNotificationAutomation(config, {
+    signal: abort.signal,
+    saas: async () => {},
+    guardians: async () => {},
+    owners: async () => {},
+    process: () => processNotification(config, send),
+    pause: async () => {},
+    log: vi.fn(),
+  });
+  await vi.waitFor(() => expect(send).toHaveBeenCalledOnce());
+  abort.abort();
+  finish();
+  expect(await run).toBe(false);
+  expect(await NotificationJob.findOne()).toMatchObject({
+    status: "sent",
+    attempts: 1,
+  });
+  expect((await NotificationProcessorState.findById("automation"))?.stage).toBe(
+    "interrupted",
+  );
+  expect(send).toHaveBeenCalledOnce();
+});
+it("keeps an expired sender's unknown result and never logs a successful persist", async () => {
+  await settings();
+  const job = await enqueueNotification(await connected(), {
+    kind: "test",
+    key: "stale-sender",
+  });
+  const log = vi.spyOn(console, "info").mockImplementation(() => {});
+  try {
+    const send = vi.fn(async () => {
+      await NotificationJob.updateOne(
+        { _id: job!._id },
+        {
+          $set: { status: "failed", errorCode: "UNKNOWN_OUTCOME" },
+          $unset: { leaseId: 1, leaseUntil: 1 },
+        },
+      );
+    });
+    await processNotification(config, send);
+    expect(await NotificationJob.findOne()).toMatchObject({
+      status: "failed",
+      errorCode: "UNKNOWN_OUTCOME",
+    });
+    expect(log).toHaveBeenCalledWith(
+      JSON.stringify({
+        event: "notification_delivery",
+        code: "OUTCOME_NOT_PERSISTED",
+      }),
+    );
+    expect(log).not.toHaveBeenCalledWith(
+      JSON.stringify({ event: "notification_delivery", code: "SENT" }),
+    );
+    expect(
+      (await post(`/jobs/${(await NotificationJob.findOne())!._id}/retry`))
+        .status,
+    ).toBe(409);
+  } finally {
+    log.mockRestore();
+  }
+});
