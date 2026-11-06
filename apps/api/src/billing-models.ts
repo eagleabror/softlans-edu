@@ -13,11 +13,41 @@ const money = {
   validate: Number.isSafeInteger,
 };
 const options = { timestamps: true as const, strict: "throw" as const };
+const calculationSchema = new Schema(
+  {
+    policyVersion: { type: String, required: true },
+    policy: {
+      type: String,
+      enum: ["first_partial_month", "full_month"],
+      required: true,
+    },
+    timezone: { type: String, enum: ["Asia/Tashkent"], required: true },
+    month: { type: String, required: true },
+    monthlyFee: money,
+    totalLessons: money,
+    eligibleLessons: money,
+    calculatedAmount: money,
+    prorationAmount: money,
+    approximateLessonPrice: { type: Number, required: true, min: 0 },
+    enrolledAt: { type: String, required: true },
+    firstEnrolledAt: { type: String, required: true },
+    dueDate: { type: String, required: true },
+    lessons: {
+      type: [new Schema({ key: String, startsAt: String }, { _id: false })],
+      required: true,
+    },
+  },
+  { _id: false, strict: "throw" },
+);
 const chargeSchema = new Schema(
   {
     tenantId: ref("Tenant"),
     generatedBy: ref("User"),
-    payrollTeacherId: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    payrollTeacherId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     studentId: ref("Student"),
     groupId: ref("Group"),
     billingMonth: {
@@ -25,6 +55,17 @@ const chargeSchema = new Schema(
       required: true,
       immutable: true,
       match: /^\d{4}-(0[1-9]|1[0-2])$/,
+    },
+    calculation: {
+      type: calculationSchema,
+      immutable: true,
+      default: undefined,
+    },
+    prorationAmount: { ...money, required: false, immutable: true },
+    generationSource: {
+      type: String,
+      enum: ["enrollment", "manual", "scheduled"],
+      immutable: true,
     },
     originalAmount: money,
     discountAmount: { ...money, default: 0 },
@@ -36,6 +77,44 @@ const chargeSchema = new Schema(
   },
   options,
 );
+chargeSchema.pre("save", function () {
+  if (
+    !this.isNew &&
+    (this.isModified("calculation") || this.isModified("prorationAmount"))
+  )
+    throw new Error("Billing calculation cannot change");
+});
+// Mongoose's immutable parent option alone does not guard dotted subdocument
+// updates. Reject those explicitly, while allowing insert-only initialization.
+chargeSchema.pre(["updateOne", "updateMany", "findOneAndUpdate"], function () {
+  const update = this.getUpdate();
+  if (!update) return;
+  const protectedPath = (path: string) =>
+    ["calculation", "prorationAmount", "generationSource"].some(
+      (root) => path === root || path.startsWith(root + "."),
+    );
+  if (Array.isArray(update))
+    throw new Error("Billing update pipelines are not allowed");
+  for (const [operator, values] of Object.entries(update)) {
+    if (operator === "$setOnInsert") continue;
+    if (
+      protectedPath(operator) ||
+      (values &&
+        typeof values === "object" &&
+        Object.entries(values).some(
+          ([path, target]) =>
+            protectedPath(path) ||
+            (operator === "$rename" &&
+              typeof target === "string" &&
+              protectedPath(target)),
+        ))
+    )
+      throw new Error("Billing calculation cannot change");
+  }
+});
+chargeSchema.pre(["replaceOne", "findOneAndReplace"], function () {
+  throw new Error("Charge replacement is not allowed");
+});
 chargeSchema.index(
   { tenantId: 1, studentId: 1, groupId: 1, billingMonth: 1 },
   { unique: true },

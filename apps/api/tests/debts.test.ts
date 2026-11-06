@@ -1,3 +1,4 @@
+import { Schedule } from "../src/schedule-models.js";
 import { beforeAll, afterAll, beforeEach, describe, it, expect } from "vitest";
 import { randomBytes, randomUUID } from "node:crypto";
 import mongoose from "mongoose";
@@ -102,6 +103,7 @@ afterAll(async () => {
 });
 beforeEach(async () => {
   await Promise.all([
+    Schedule.deleteMany({}),
     Charge.deleteMany({}),
     Payment.deleteMany({}),
     PaymentReversal.deleteMany({}),
@@ -146,6 +148,8 @@ beforeEach(async () => {
     studentId,
     enrolledAt: "2025-01-01",
   });
+  await Schedule.create({ tenantId: tenant, groupId, teacherId: u._id,
+    classroomId: new mongoose.Types.ObjectId(), dayOfWeek: 1, startTime: "10:00", endTime: "11:00" });
 });
 
 describe("ledger-derived tenant debts", () => {

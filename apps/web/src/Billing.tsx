@@ -1,3 +1,4 @@
+import { TuitionCalculation } from "./TuitionPreview";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import type {
@@ -81,7 +82,8 @@ export function Billing({
   const [pay, setPay] = useState<ChargeView | null>(null),
     [adjust, setAdjust] = useState<ChargeView | null>(null),
     [reverse, setReverse] = useState<PaymentView | null>(null),
-    [generate, setGenerate] = useState(false);
+    [generate, setGenerate] = useState(false),
+    [inspect, setInspect] = useState<ChargeView | null>(null);
   useEffect(() => {
     let active = true;
     api<GroupsView>(`/groups?pageSize=100&page=${groupPage}`)
@@ -320,6 +322,19 @@ export function Billing({
                     </td>
                     <td>
                       {uzs(c.finalAmount)}
+                      {(c.prorationAmount ?? 0) > 0 && (
+                        <p className="small">
+                          Proratsiya: −{uzs(c.prorationAmount!)}
+                        </p>
+                      )}
+                      {c.calculation && (
+                        <button
+                          className="text-button"
+                          onClick={() => setInspect(c)}
+                        >
+                          Darslar bo‘yicha hisob
+                        </button>
+                      )}
                       {c.discountAmount > 0 && (
                         <p className="small">
                           Chegirma: {uzs(c.discountAmount)}
@@ -435,6 +450,22 @@ export function Billing({
           </div>
         </div>
       </section>
+      {inspect?.calculation && (
+        <Modal
+          title="Darslar bo‘yicha hisob"
+          busy={false}
+          close={() => setInspect(null)}
+        >
+          <p>
+            {inspect.studentName} · {inspect.groupName}
+          </p>
+          <TuitionCalculation calculation={inspect.calculation} />
+          <p className="muted">
+            Dastlabki hisob nusxasi. Keyingi tuzatishlar yakuniy summada aks
+            etadi.
+          </p>
+        </Modal>
+      )}
       {pay && (
         <PaymentDialog
           charge={pay}
@@ -450,8 +481,10 @@ export function Billing({
         >
           <form className="auth-form" onSubmit={submitGeneration}>
             <p>
-              {month} uchun barcha mos faol a’zoliklardan to‘liq oylik hisoblar
-              yaratiladi. Takroriy hisoblar yaratilmaydi.
+              {month} uchun mos faol a’zoliklardan dars jadvali va billing
+              siyosati asosida hisoblar yaratiladi. Birinchi qisman oy mutanosib
+              hisoblanadi. Mavjud hisoblar o‘zgarmaydi. Bu avtomatik hisoblash
+              uchun qo‘lda zaxira usulidir.
             </p>
             <label>
               To‘lov muddati (oy kuni)
@@ -696,6 +729,12 @@ function Correction({
       <form className="auth-form" onSubmit={submit}>
         {charge && (
           <>
+            {(charge.prorationAmount ?? 0) > 0 && (
+              <p>
+                Proratsiya alohida saqlanadi: −{uzs(charge.prorationAmount!)}.
+                Yakuniy to‘lov = asl summa − proratsiya − chegirma.
+              </p>
+            )}
             <label>
               Asl summa
               <input

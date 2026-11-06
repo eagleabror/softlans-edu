@@ -29,6 +29,8 @@ const groupSchema = new Schema(
       max: Number.MAX_SAFE_INTEGER,
       validate: integer,
     },
+    billingPolicy: { type: String, enum: ["first_partial_month", "full_month"], default: "first_partial_month", required: true },
+    billingDueDay: { type: Number, min: 1, max: 28, default: 10, validate: integer, required: true },
     status: {
       type: String,
       enum: ["active", "paused", "archived"],

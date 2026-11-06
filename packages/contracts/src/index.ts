@@ -147,6 +147,8 @@ export interface StudentsView {
 }
 
 export interface GroupInput {
+  billingPolicy?: TuitionPolicy;
+  billingDueDay?: number;
   name: string;
   courseName: string;
   teacherId: string;
@@ -241,6 +243,28 @@ export interface BillingSummary {
   outstandingAmount: number;
   paymentCount: number;
 }
+export type TuitionPolicy = "first_partial_month" | "full_month";
+export interface BillingCalculation {
+  policyVersion: string;
+  policy: TuitionPolicy;
+  timezone: "Asia/Tashkent";
+  month: string;
+  monthlyFee: number;
+  totalLessons: number;
+  eligibleLessons: number;
+  calculatedAmount: number;
+  prorationAmount: number;
+  approximateLessonPrice: number;
+  enrolledAt: string;
+  firstEnrolledAt?: string;
+  dueDate: string;
+  lessons: { key: string; startsAt: string }[];
+}
+export interface TuitionPreview {
+  calculation: BillingCalculation;
+  existingCharge: boolean;
+  automatic: boolean;
+}
 export interface ChargeView {
   id: string;
   studentId: string;
@@ -250,6 +274,8 @@ export interface ChargeView {
   groupName: string;
   originalAmount: number;
   discountAmount: number;
+  prorationAmount?: number;
+  calculation?: BillingCalculation | null;
   finalAmount: number;
   paidAmount: number;
   remainingAmount: number;

@@ -2912,3 +2912,16 @@ td {
   .password-settings { padding: 20px 16px; }
   .password-card h1, .password-settings h2 { font-size: 25px; }
 }
+
+/* Phase 6.6.1: reuse existing finance surfaces; keep quotes readable on mobile. */
+.enrollment-billing { flex-basis: 100%; min-width: 0; max-width: 100%; }
+.tuition-preview { background: #f7f8f5; color: #283c34; border: 1px solid #7b847f; border-radius: 10px; padding: 16px; min-width: 0; white-space: normal; }
+.tuition-preview h3 { font-size: 16px; margin: 0 0 12px; }
+.tuition-preview dl { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
+.tuition-preview dt { font-size: 14px; }
+.tuition-preview dd { margin: 4px 0 0; font-size: 16px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.tuition-preview p { margin: 12px 0 0; font-size: 14px; line-height: 1.6; }
+@media (max-width: 600px) { .tuition-preview dl { grid-template-columns: 1fr; } }
+
+.enrollment-billing > label { display: flex; align-items: center; gap: 8px; font-size: 14px; line-height: 1.5; }
+.enrollment-billing input[type="checkbox"] { width: 18px; height: 18px; min-height: 0; flex: 0 0 18px; }

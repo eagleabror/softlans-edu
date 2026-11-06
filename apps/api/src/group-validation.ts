@@ -15,6 +15,10 @@ export const groupCreateSchema = z
     teacherId: objectId,
     capacity: z.number().int().min(1).max(10000),
     monthlyFee: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER),
+    billingPolicy: z
+      .enum(["first_partial_month", "full_month"])
+      .default("first_partial_month"),
+    billingDueDay: z.number().int().min(1).max(28).default(10),
     status: groupStatus.default("active"),
     startDate: z.iso.date(),
     description: z.string().trim().max(2000).optional(),
@@ -22,7 +26,11 @@ export const groupCreateSchema = z
   .strict();
 export const groupUpdateSchema = groupCreateSchema
   .partial()
-  .extend({ status: groupStatus.optional() })
+  .extend({
+    status: groupStatus.optional(),
+    billingPolicy: z.enum(["first_partial_month", "full_month"]).optional(),
+    billingDueDay: z.number().int().min(1).max(28).optional(),
+  })
   .refine((v) => Object.keys(v).length > 0);
 export const groupListSchema = z
   .object({

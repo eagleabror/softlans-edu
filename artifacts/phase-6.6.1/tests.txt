@@ -1,0 +1,32 @@
+
+> softlans-edu@0.1.0 test
+> npm run test --workspaces --if-present
+
+
+> @softlans/api@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /workspace/softlans-edu/apps/api
+
+
+ Test Files  34 passed (34)
+      Tests  501 passed | 1 skipped (502)
+   Start at  16:14:17
+   Duration  113.25s (tests 84%, import 15%, transform 1%)
+
+
+> @softlans/web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /workspace/softlans-edu/apps/web
+
+
+ Test Files  22 passed (22)
+      Tests  120 passed (120)
+   Start at  16:16:10
+   Duration  24.48s (tests 59%, environment 25%, import 7%, setup 5%, transform 3%)
+
+    Isolate  22 workers spawned · ~324ms startup each (spawn + environment, per file)
+             at least ~6.81s faster with isolate: false — reuses workers across files instead of one per file

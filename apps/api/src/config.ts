@@ -24,6 +24,7 @@ const schema = z
         }
       }, "Use an exact HTTP(S) origin without a trailing slash"),
     MONGODB_URI: z.string().regex(/^mongodb(?:\+srv)?:\/\//),
+    BILLING_SCHEDULER_SECRET: z.string().regex(/^[A-Za-z0-9_+\/=-]{43,128}$/).optional(),
     NOTIFICATION_SCHEDULER_SECRET: z
       .string()
       .regex(/^[A-Za-z0-9_+\/=-]{43,128}$/)
@@ -79,6 +80,9 @@ const schema = z
       ctx.addIssue({ code: "custom", path: ["MFA_ENCRYPTION_KEY"], message: "Use a separate encryption key" });
     if (value.SESSION_LEGACY_ISSUED_BEFORE && Date.parse(value.SESSION_LEGACY_ISSUED_BEFORE) > Date.now())
       ctx.addIssue({ code: "custom", path: ["SESSION_LEGACY_ISSUED_BEFORE"], message: "Migration cutoff must not be in the future" });
+    if (value.BILLING_SCHEDULER_SECRET && [value.JWT_SECRET, value.TELEGRAM_WEBHOOK_SECRET,
+      value.TELEGRAM_BOT_TOKEN, value.NOTIFICATION_SCHEDULER_SECRET, value.MFA_ENCRYPTION_KEY, value.OPERATOR_TELEGRAM_BOT_TOKEN].includes(value.BILLING_SCHEDULER_SECRET))
+      ctx.addIssue({ code: "custom", path: ["BILLING_SCHEDULER_SECRET"], message: "Use a separate billing scheduler secret" });
     if (value.PASSWORD_RECOVERY_ENABLED &&
       (!value.PASSWORD_EMAIL_DELIVERY_VERIFIED || !value.PASSWORD_EMAIL_ENDPOINT ||
        !value.PASSWORD_EMAIL_API_KEY || !value.PASSWORD_EMAIL_FROM)) {

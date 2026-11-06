@@ -1,3 +1,4 @@
+import { EnrollmentBilling } from "./TuitionPreview";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type {
@@ -283,6 +284,8 @@ export function GroupForm({
       teacherId: "",
       capacity: 20,
       monthlyFee: 0,
+      billingPolicy: "first_partial_month",
+      billingDueDay: 10,
       status: "active",
       startDate: new Date().toISOString().slice(0, 10),
       description: "",
@@ -302,6 +305,8 @@ export function GroupForm({
             teacherId: g.teacherId,
             capacity: g.capacity,
             monthlyFee: g.monthlyFee,
+            billingPolicy: g.billingPolicy ?? "first_partial_month",
+            billingDueDay: g.billingDueDay ?? 10,
             status: g.status,
             startDate: g.startDate,
             description: g.description,
@@ -388,6 +393,40 @@ export function GroupForm({
                   value={form.monthlyFee}
                   onChange={(e) =>
                     setForm({ ...form, monthlyFee: Number(e.target.value) })
+                  }
+                />
+              </label>
+              <label>
+                Billing siyosati
+                <select
+                  className="plain-input"
+                  value={form.billingPolicy ?? "first_partial_month"}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      billingPolicy: e.target
+                        .value as GroupInput["billingPolicy"],
+                    })
+                  }
+                >
+                  <option value="first_partial_month">
+                    Birinchi oy — darslar bo‘yicha
+                  </option>
+                  <option value="full_month">Har oy — to‘liq narx</option>
+                </select>
+              </label>
+              <label>
+                To‘lov muddati (oy kuni)
+                <input
+                  className="plain-input"
+                  type="number"
+                  min={1}
+                  max={28}
+                  step={1}
+                  required
+                  value={form.billingDueDay ?? 10}
+                  onChange={(e) =>
+                    setForm({ ...form, billingDueDay: Number(e.target.value) })
                   }
                 />
               </label>
@@ -600,13 +639,7 @@ export function GroupDetail({ manage }: { manage: boolean }) {
               )}
               {students && (
                 <>
-                  <form
-                    className="group-actions"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      void action(`/groups/${id}/members`, { studentId });
-                    }}
-                  >
+                  <div className="group-actions">
                     <select
                       aria-label="O‘quvchi"
                       className="plain-input"
@@ -621,15 +654,19 @@ export function GroupDetail({ manage }: { manage: boolean }) {
                         </option>
                       ))}
                     </select>
-                    <button
-                      className="button primary"
-                      disabled={
-                        busy || g.activeMemberCount >= g.capacity || !studentId
+                    <EnrollmentBilling
+                      key={`${studentId}/${retry}`}
+                      groupId={g.id}
+                      studentId={studentId}
+                      disabled={busy || g.activeMemberCount >= g.capacity}
+                      onEnroll={(billingPreviewKey) =>
+                        action(`/groups/${id}/members`, {
+                          studentId,
+                          billingPreviewKey,
+                        })
                       }
-                    >
-                      Qo‘shish
-                    </button>
-                  </form>
+                    />
+                  </div>
                   {!students.total && <p>Faol o‘quvchilar topilmadi.</p>}
                   <Pages
                     page={studentPage}
