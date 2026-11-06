@@ -1,3 +1,4 @@
+import { payrollReadyEligibility } from "./payroll-notifications.js";
 import { ownerEligibility } from "./daily-reports.js";
 import { saasReminderEligibility } from "./saas-reminders.js";
 import { TelegramIntegration } from "./telegram-models.js";
@@ -345,8 +346,10 @@ export async function processNotification(
           ...(code ? { $push: { attemptsLog: { at: new Date(), code } } } : {}),
         },
       );
-    const owner = job.kind === "owner_daily" || job.kind === "owner_test" || job.kind === "saas_expiry";
-    const ownerState = job.kind === "saas_expiry"
+    const owner = job.kind === "owner_daily" || job.kind === "owner_test" || job.kind === "saas_expiry" || job.kind === "payroll_ready";
+    const ownerState = job.kind === "payroll_ready"
+      ? await payrollReadyEligibility(job, now)
+      : job.kind === "saas_expiry"
       ? await saasReminderEligibility(job, now)
       : owner ? await ownerEligibility(job, now) : null;
     const g = owner

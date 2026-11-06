@@ -59,6 +59,11 @@ const payroll = new Schema(
       default: "draft",
       required: true,
     },
+    generationSource: {
+      type: String,
+      enum: ["manual", "scheduled"],
+      immutable: true,
+    },
     calculatedAt: { type: Date, required: true },
     approvedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
     reversedAt: { type: Date, default: null },

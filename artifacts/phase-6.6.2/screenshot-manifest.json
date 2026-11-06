@@ -1,0 +1,120 @@
+{
+  "capturedAt": "2026-11-06T16:39:53.950Z",
+  "entries": [
+    {
+      "device": "desktop",
+      "state": "exceptions",
+      "file": "desktop/exceptions.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        600,
+        601,
+        700,
+        701,
+        768,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend, disposable synthetic data"
+    },
+    {
+      "device": "mobile",
+      "state": "exceptions",
+      "file": "mobile/exceptions.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        600,
+        601,
+        700,
+        701,
+        768,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend, disposable synthetic data"
+    },
+    {
+      "device": "desktop",
+      "state": "ready",
+      "file": "desktop/ready.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        600,
+        601,
+        700,
+        701,
+        768,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend, disposable synthetic data"
+    },
+    {
+      "device": "mobile",
+      "state": "ready",
+      "file": "mobile/ready.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        600,
+        601,
+        700,
+        701,
+        768,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend, disposable synthetic data"
+    },
+    {
+      "device": "desktop",
+      "state": "review",
+      "file": "desktop/review.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        600,
+        601,
+        700,
+        701,
+        768,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend, disposable synthetic data"
+    },
+    {
+      "device": "mobile",
+      "state": "review",
+      "file": "mobile/review.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        600,
+        601,
+        700,
+        701,
+        768,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend, disposable synthetic data"
+    }
+  ],
+  "browserErrors": [],
+  "assertions": [
+    "no viewport overflow",
+    "keyboard focus",
+    "manual replay confirmed",
+    "no approvals or payouts"
+  ]
+}

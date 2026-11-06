@@ -86,6 +86,7 @@ const job = new Schema(
         "owner_daily",
         "owner_test",
         "saas_expiry",
+        "payroll_ready",
       ],
       required: true,
     },

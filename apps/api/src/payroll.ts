@@ -1,3 +1,5 @@
+import { generatePayrollBatch } from "./payroll-automation.js";
+import { PayrollRun, PayrollRunItem } from "./payroll-automation-models.js";
 import { Router, type Request } from "express";
 import mongoose, { type ClientSession } from "mongoose";
 import { createHash } from "node:crypto";
@@ -184,6 +186,7 @@ function view(p: InstanceType<typeof Payroll>, self = false) {
       p.status === "draft" || p.reversedAt ? 0 : p.finalSalary - p.paidAmount,
     status: p.status,
     reversedAt: p.reversedAt,
+    generationSource: p.generationSource ?? "manual",
     calculatedAt: p.calculatedAt,
     approvedBy: p.approvedBy,
     approvedAt: p.approvedAt,
@@ -192,6 +195,47 @@ function view(p: InstanceType<typeof Payroll>, self = false) {
 }
 export const payrollRouter = Router();
 payrollRouter.use(requireRoles("business_owner", "teacher"));
+// Owner session + subscription/MFA/CSRF controls apply to the manual fallback.
+payrollRouter.post("/automation/run", owner, async (req, res) => {
+  const q = z
+    .object({
+      month: billingMonth,
+      confirmed: z.literal(true),
+      afterTeacher: objectId.optional(),
+    })
+    .strict()
+    .parse(req.body);
+  res.json(
+    await generatePayrollBatch(
+      scope(req).tenantId,
+      principal(req).userId,
+      q.month,
+      "manual",
+      q.afterTeacher,
+    ),
+  );
+});
+payrollRouter.get("/automation/status", owner, async (req, res) => {
+  const q = z
+    .object({
+      month: billingMonth,
+      page: z.coerce.number().int().min(1).max(10000).default(1),
+    })
+    .strict()
+    .parse(req.query);
+  const filter = { ...scope(req), month: q.month };
+  res.json({
+    run: await PayrollRun.findOne(filter).lean(),
+    items: await PayrollRunItem.find(filter)
+      .sort({ teacherId: 1 })
+      .skip((q.page - 1) * 20)
+      .limit(20)
+      .lean(),
+    total: await PayrollRunItem.countDocuments(filter),
+    page: q.page,
+    pageSize: 20,
+  });
+});
 payrollRouter.get("/rules", owner, async (req, res) => {
   const q = listing.omit({ month: true }).parse(req.query);
   const filter = {
@@ -330,6 +374,7 @@ payrollRouter.post("/drafts", owner, async (req, res) => {
           ...scope(req),
           teacherId: q.teacherId,
           payrollMonth: q.month,
+          generationSource: "manual",
           calculationBasis: basis,
           grossSalary: basis.grossSalary,
           finalSalary: basis.grossSalary,

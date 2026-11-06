@@ -1,0 +1,11 @@
+
+ RUN  v5.0.5 /workspace/softlans-edu/apps/web
+
+
+ Test Files  2 passed (2)
+      Tests  13 passed (13)
+   Start at  16:41:38
+   Duration  1.59s (tests 56%, environment 31%, setup 6%, import 4%, transform 1%)
+
+    Isolate  2 workers spawned · ~290ms startup each (spawn + environment, per file)
+             at least ~290ms faster with isolate: false — reuses workers across files instead of one per file

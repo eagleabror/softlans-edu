@@ -1,3 +1,4 @@
+import { PayrollRun, PayrollRunItem } from "./payroll-automation-models.js";
 import { securityModels } from "./security-models.js";
 import { onboardingSchema } from "./onboarding-model.js";
 import { leadModels } from "./lead-models.js";
@@ -191,6 +192,8 @@ export async function ensureIndexes() {
     ...telegramModels,
     ...notificationModels,
     DailyReportSettings,
+    PayrollRun,
+    PayrollRunItem,
     SalaryRule,
     Payroll,
     SalaryPayout,
