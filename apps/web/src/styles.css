@@ -2878,3 +2878,37 @@ td {
 .registration-form legend { margin-bottom: 12px; font-weight: 600; }
 .registration-form .saas-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .registration-form .saas-actions > button { flex: 1; }
+
+/* Password security reuses the active Figma design system and auth controls. */
+.password-public { min-height: 100dvh; display: grid; grid-template-columns: 42% 58%; background: var(--color-canvas); }
+.password-story { background: linear-gradient(150deg, #392080, var(--color-brand)); color: white; padding: 48px; display: flex; flex-direction: column; justify-content: space-between; gap: 48px; }
+.password-story h2 { font-size: clamp(28px, 3vw, 44px); line-height: 1.2; margin: 24px 0; }
+.password-story h2 span { color: #ddd2ff; }
+.password-story p { line-height: 1.7; }
+.password-story .eyebrow { color: #ddd2ff; margin-top: 24px; }
+.password-public-content { display: grid; align-items: center; padding: 48px; min-width: 0; }
+.password-card { width: 100%; max-width: 480px; margin: auto; padding: 32px; background: var(--color-surface); border-radius: var(--radius-card); box-shadow: var(--shadow-card); }
+.password-card h1, .password-settings h2 { font-size: 28px; line-height: 1.25; margin: 24px 0 12px; }
+.password-card > p, .password-settings > p { line-height: 1.65; margin-bottom: 24px; }
+.password-back { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-bottom: 24px; color: var(--color-brand); }
+.password-settings { max-width: 660px; padding: 28px; margin-top: 24px; }
+.password-settings .password-back { margin-bottom: 8px; }
+.password-form { gap: 16px; margin: 24px 0; }
+.password-field { display: grid; gap: 8px; min-width: 0; }
+.password-field label { color: var(--color-content); }
+.password-field .input-wrap { border-color: var(--color-control); }
+.password-field .input-wrap input { min-width: 0; }
+.password-field .icon-button { min-width: 44px; min-height: 44px; }
+.password-field-error { color: #9b382b; font-size: 14px; margin: 0; }
+.password-policy { font-size: 14px; line-height: 1.6; margin: 0; }
+.password-settings .notice, .password-card .notice { margin: 16px 0; }
+.password-settings .success-note, .password-card .success-note { display: flex; align-items: center; gap: 12px; line-height: 1.6; }
+@media (max-width: 700px) {
+  .password-public { grid-template-columns: 1fr; }
+  .password-story { padding: 24px; gap: 0; }
+  .password-story > div, .password-story > p { display: none; }
+  .password-public-content { padding: 28px 18px; align-items: start; }
+  .password-card { padding: 24px 20px; }
+  .password-settings { padding: 20px 16px; }
+  .password-card h1, .password-settings h2 { font-size: 25px; }
+}

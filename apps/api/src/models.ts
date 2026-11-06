@@ -33,6 +33,7 @@ const tenantSchema = new Schema(
     phone: { type: String, trim: true, maxlength: 16, match: /^\+?\d{7,15}$|^$/ },
     address: { type: String, trim: true, maxlength: 300 },
     onboarding: { type: onboardingSchema, default: undefined },
+    passwordSecurityRevision: { type: Number, default: 0, select: false },
     billingRevision: { type: Number, default: 0, select: false },
     subscriptionRevision: { type: Number, default: 0, select: false },
     schedulingRevision: { type: Number, default: 0, select: false },
@@ -68,10 +69,16 @@ const userSchema = new Schema(
       required: true,
     },
     active: { type: Boolean, required: true, default: true },
+    // Embedded reset state makes consumption + password/session update a single CAS.
+    // No TTL index on User: expiration is checked explicitly and must never delete accounts.
+    passwordResetHash: { type: String, select: false },
+    passwordResetExpiresAt: { type: Date, select: false },
+    passwordResetRequestedAt: { type: Date, select: false },
     sessionVersion: { type: Number, required: true, default: 0, select: false },
   },
   { timestamps: true, strict: "throw" },
 );
+userSchema.index({ passwordResetHash: 1 }, { sparse: true });
 userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ tenantId: 1, role: 1 });
 userSchema.pre("validate", function () {

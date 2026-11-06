@@ -1,3 +1,4 @@
+import { PasswordSecurity } from "./PasswordSecurity";
 import { SaasPlans, SaasSubscriptions, SaasPayments, SaasAnalytics } from "./SaasAdmin";
 import {
   useEffect,
@@ -886,9 +887,11 @@ export function SuperAdminAudit() {
 export function SuperAdminLayout({
   session,
   onLogout,
+  onPasswordUpdated,
 }: {
   session: SessionView;
   onLogout: () => void;
+  onPasswordUpdated?: (updated?: boolean) => void;
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
@@ -967,6 +970,7 @@ export function SuperAdminLayout({
             <History size={20} aria-hidden="true" />
             Audit tarixi
           </NavLink>
+          <NavLink to="/account"><ShieldCheck size={20} aria-hidden="true" />Hisob xavfsizligi</NavLink>
         </nav>
         <div className="platform-identity">
           <ShieldCheck size={22} aria-hidden="true" />
@@ -1006,6 +1010,7 @@ export function SuperAdminLayout({
             <Route path={`${root}/payment-requests`} element={<SaasPayments />} />
             <Route path={`${root}/saas-analytics`} element={<SaasAnalytics />} />
             <Route path={`${root}/audit`} element={<SuperAdminAudit />} />
+            <Route path="/account" element={<><h1>Hisob xavfsizligi</h1><PasswordSecurity mode="change" onSignedOut={onPasswordUpdated ?? onLogout} /></>} />
             <Route path="*" element={<Navigate to={root} replace />} />
           </Routes>
         </main>

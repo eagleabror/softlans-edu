@@ -1,3 +1,4 @@
+import { PasswordSecurity } from "./PasswordSecurity";
 import { DashboardStudents } from "./DashboardStudents";
 import { PageHeading, Stat } from "./ui";
 import { DashboardAnalytics } from "./DashboardAnalytics";
@@ -40,6 +41,7 @@ import {
   Route,
   Routes,
   useNavigate,
+  useLocation,
 } from "react-router-dom";
 import {
   ArrowRight,
@@ -118,6 +120,7 @@ const FinancialReports = lazy(() =>
 const AuthContext = createContext<{
   session: SessionView;
   setSession: (s: SessionView | null) => void;
+  onPasswordUpdated: (updated?: boolean) => void;
 } | null>(null);
 function useAuth() {
   const value = useContext(AuthContext);
@@ -182,8 +185,10 @@ function Password({
 function AuthPage({
   register,
   onSession,
+  passwordUpdated = false,
 }: {
   register?: boolean;
+  passwordUpdated?: boolean;
   onSession: (s: SessionView) => void;
 }) {
   const [error, setError] = useState("");
@@ -302,6 +307,7 @@ function AuthPage({
               ? "Markazingiz uchun hisob oching va jamoangizni birlashtiring."
               : "Hisobingizga kiring va markazingiz ishini davom ettiring."}
           </p>
+          {!register && passwordUpdated && <div className="success-note" role="status">Parolingiz yangilandi. Barcha sessiyalar tugatildi. Yangi parol bilan kiring.</div>}
           {register ? <Registration onSession={s => { onSession(s); navigate("/onboarding"); }} /> : <form onSubmit={submit} className="auth-form">
             {register && (
               <>
@@ -351,6 +357,7 @@ function AuthPage({
               minLength={register ? 12 : undefined}
               autoComplete={register ? "new-password" : "current-password"}
             />
+            {!register && <Link to="/forgot-password">Parolni unutdingizmi?</Link>}
             {error && <Notice>{error}</Notice>}
             <button className="button primary auth-submit" disabled={busy}>
               {busy ? (
@@ -391,7 +398,7 @@ function AuthPage({
   );
 }
 function Shell() {
-  const { session, setSession } = useAuth();
+  const { session, setSession, onPasswordUpdated } = useAuth();
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [mobile, setMobile] = useState(
@@ -881,6 +888,7 @@ function Shell() {
             )}
             <Route path="/settings/subscription" element={session.user.role === "business_owner" ? <TenantSubscription /> : <section className="panel"><h1>Obunani faqat markaz egasi boshqaradi.</h1><Link className="button light" to="/account">Hisobimga qaytish</Link></section>} />
             <Route path="/account" element={<Account />} />
+            <Route path="/account/change-password" element={<><PageHeading eyebrow="SHAXSIY MAYDON" title="Hisob xavfsizligi" description="Parolingiz va hisobingizni himoyalang." /><PasswordSecurity mode="change" onSignedOut={onPasswordUpdated} /></>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <footer className="page-footer">
@@ -1430,7 +1438,7 @@ export function AddMember({
   );
 }
 function Account() {
-  const { session } = useAuth();
+  const { session, onPasswordUpdated } = useAuth();
   return (
     <>
       <PageHeading
@@ -1458,6 +1466,7 @@ function Account() {
           <ShieldCheck size={17} /> Kirish huquqlaringiz serverda tekshiriladi.
         </div>
       </section>
+      <PasswordSecurity mode="change" onSignedOut={onPasswordUpdated} />
     </>
   );
 }
@@ -1505,7 +1514,10 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 export function App() {
+  const location = useLocation();
   const [session, setSession] = useState<SessionView | null>(null);
+  const [passwordUpdated, setPasswordUpdated] = useState(false);
+  const onPasswordUpdated = (updated = false) => { setPasswordUpdated(updated); setSession(null); };
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
@@ -1533,6 +1545,8 @@ export function App() {
     window.addEventListener("session-expired", expire);
     return () => window.removeEventListener("session-expired", expire);
   }, []);
+  if (["/forgot-password", "/reset-password"].includes(location.pathname))
+    return <PasswordSecurity key={location.pathname} mode={location.pathname === "/forgot-password" ? "forgot" : "reset"} onSignedOut={onPasswordUpdated} />;
   if (!ready)
     return (
       <div className="app-loading">
@@ -1553,17 +1567,17 @@ export function App() {
     );
   if (session?.user.role === "super_admin" && session.tenant === null)
     return (
-      <SuperAdminLayout session={session} onLogout={() => setSession(null)} />
+      <SuperAdminLayout session={session} onLogout={() => setSession(null)} onPasswordUpdated={onPasswordUpdated} />
     );
   if (session)
     return (
-      <AuthContext.Provider value={{ session, setSession }}>
+      <AuthContext.Provider value={{ session, setSession, onPasswordUpdated }}>
         <Shell />
       </AuthContext.Provider>
     );
   return (
     <Routes>
-      <Route path="/login" element={<AuthPage onSession={setSession} />} />
+      <Route path="/login" element={<AuthPage onSession={s => { setPasswordUpdated(false); setSession(s); }} passwordUpdated={passwordUpdated} />} />
       <Route
         path="/register"
         element={<AuthPage register onSession={setSession} />}

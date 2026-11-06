@@ -1,3 +1,5 @@
+import { passwordSecurityRouter } from "./password-security.js";
+import type { PasswordEmail } from "./password-email.js";
 import { onboardingRouter } from "./onboarding.js";
 import { Plan } from "./saas-models.js";
 import {
@@ -73,7 +75,7 @@ async function sessionView(user: UserRecord): Promise<SessionView> {
 }
 export function createApp(
   config: Config,
-  options: { frontendDist?: string } = {},
+  options: { frontendDist?: string; testPasswordEmail?: PasswordEmail } = {},
 ) {
   const app = express();
   app.disable("x-powered-by");
@@ -144,6 +146,8 @@ export function createApp(
       .status(mongoose.connection.readyState === 1 ? 200 : 503)
       .json({ ready: mongoose.connection.readyState === 1 }),
   );
+
+  app.use("/api/auth", passwordSecurityRouter(config, options.testPasswordEmail));
 
   app.get("/api/auth/registration-plans", limiter(60, 60_000), async (_req, res) => {
     if (!config.PUBLIC_REGISTRATION_ENABLED)

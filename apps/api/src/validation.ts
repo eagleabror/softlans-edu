@@ -35,3 +35,13 @@ export const teamSchema = z
     role: z.enum(["admin", "teacher"]),
   })
   .strict();
+
+export const changePasswordSchema = z.object({
+  currentPassword: loginSchema.shape.password,
+  newPassword: passwordSchema,
+}).strict();
+export const forgotPasswordSchema = z.object({ email: emailSchema }).strict();
+export const resetPasswordSchema = z.object({
+  token: z.string().regex(/^[a-f0-9]{64}$/, "Tiklash havolasi yaroqsiz."),
+  newPassword: passwordSchema,
+}).strict();
