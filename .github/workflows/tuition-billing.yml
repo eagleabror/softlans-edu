@@ -30,23 +30,34 @@ jobs:
           if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash ||
               url.pathname !== '/api/internal/billing/run' || !process.env.BILLING_SCHEDULER_SECRET)
             throw new Error('Billing scheduler configuration is invalid');
-          let after;
+          let after, month;
+          const seen = new Set();
           do {
             let response;
             for (let attempt = 0; attempt < 3; attempt++) {
-              response = await fetch(url, {
-                method: 'POST', redirect: 'error', signal: AbortSignal.timeout(60000),
-                headers: { Authorization: `Bearer ${process.env.BILLING_SCHEDULER_SECRET}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify(after ? { after } : {})
-              });
-              if (response.ok || ![429, 500, 502, 503, 504].includes(response.status)) break;
+              try {
+                response = await fetch(url, {
+                  method: 'POST', redirect: 'error', signal: AbortSignal.timeout(60000),
+                  headers: { Authorization: `Bearer ${process.env.BILLING_SCHEDULER_SECRET}`, 'Content-Type': 'application/json' },
+                  body: JSON.stringify(after ? { after } : {})
+                });
+              } catch (error) { if (attempt === 2) throw error; }
+              if (response?.status === 200 || (response && ![429, 500, 502, 503, 504].includes(response.status))) break;
               await new Promise(resolve => setTimeout(resolve, 60000));
             }
-            if (!response?.ok) throw new Error(`Billing scheduler HTTP ${response?.status}`);
+            if (response?.status !== 200) throw new Error(`Billing scheduler HTTP ${response?.status}`);
             const batch = await response.json();
+            if (!batch || !/^(20\d{2}|21\d{2})-(0[1-9]|1[0-2])$/.test(batch.month) ||
+                (month && month !== batch.month) ||
+                !['created','skipped'].every(k => Number.isSafeInteger(batch[k]) && batch[k] >= 0) ||
+                !Object.hasOwn(batch, 'nextCursor')) throw new Error('Unverified billing response');
+            month = batch.month;
             console.log(JSON.stringify({ month: batch.month, created: batch.created, skipped: batch.skipped }));
             after = batch.nextCursor;
-            if (after && !/^[a-f\d]{24}$/i.test(after)) throw new Error('Invalid billing cursor');
+            if (after !== null && (typeof after !== 'string' || !/^[a-f\d]{24}$/i.test(after)))
+              throw new Error('Invalid billing cursor');
+            if (after && seen.has(after)) throw new Error('Billing cursor did not advance');
+            if (after) seen.add(after);
             if (after) await new Promise(resolve => setTimeout(resolve, 6500));
           } while (after);
           JS
