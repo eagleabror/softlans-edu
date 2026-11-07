@@ -1,0 +1,1 @@
+Captured 16 screenshots; all browser assertions passed.

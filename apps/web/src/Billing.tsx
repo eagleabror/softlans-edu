@@ -1,3 +1,4 @@
+import { CashAccountField } from "./CashAccountField";
 import { TuitionCalculation } from "./TuitionPreview";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -587,6 +588,9 @@ function PaymentDialog({
         chargeId: charge.id,
         amount,
         method: f.get("method"),
+        ...(f.get("cashAccountId")
+          ? { cashAccountId: f.get("cashAccountId") }
+          : {}),
         paidAt: new Date(`${f.get("paidAt")}:00+05:00`).toISOString(),
         reference: f.get("reference"),
         note: f.get("note"),
@@ -637,6 +641,7 @@ function PaymentDialog({
               ))}
             </select>
           </label>
+          <CashAccountField />
           <label>
             To‘langan vaqt (Toshkent)
             <input

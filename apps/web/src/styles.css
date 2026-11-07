@@ -2933,3 +2933,30 @@ td {
 
 .enrollment-billing > label { display: flex; align-items: center; gap: 8px; font-size: 14px; line-height: 1.5; }
 .enrollment-billing input[type="checkbox"] { width: 18px; height: 18px; min-height: 0; flex: 0 0 18px; }
+
+/* Expense and cash pages reuse the shared forest/lime controls and panels. */
+.cash-page { display: grid; gap: 20px; min-width: 0; }
+.cash-tabs, .cash-actions, .cash-inline, .cash-pagination { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.cash-tabs a { padding: 12px; border-radius: 8px; color: #263e35; }
+.cash-tabs a.active { background: #d4e6ae; font-weight: 600; }
+.cash-form, .cash-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 24px; }
+.cash-page label, .cash-dialog label { display: grid; gap: 8px; min-width: 0; font-size: 14px; }
+.cash-page input, .cash-page select, .cash-page textarea, .cash-dialog textarea { border: 1px solid #7b847f; border-radius: 8px; padding: 10px 12px; min-height: 44px; width: 100%; background: white; color: #263e35; }
+.cash-page :is(input,select,textarea,button,a):focus-visible, .cash-dialog :focus-visible { outline: 2px solid #526b43; outline-offset: 3px; }
+.cash-form > :is(h2,p), .cash-form > button { grid-column: 1 / -1; }
+.cash-page h2 { font-size: 20px; margin: 0 0 12px; }
+.cash-page .panel > p { margin: 12px 0; }
+.cash-page td { vertical-align: top; overflow-wrap: anywhere; }
+.cash-page td .cash-inline { margin-bottom: 12px; }
+.cash-page td small { display: block; }
+.cash-money { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cash-detail { padding: 24px; }
+.cash-detail dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 20px 0; }
+.cash-detail dd { margin: 4px 0 0; overflow-wrap: anywhere; }
+.cash-detail dt { color: #526b43; }
+.cash-detail h3 { margin: 24px 0 12px; }
+.cash-dialog { width: min(520px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; padding: 24px; }
+.cash-dialog form { display: grid; gap: 20px; }
+@media (max-width: 700px) { .cash-form, .cash-filters, .cash-detail dl { grid-template-columns: minmax(0, 1fr); } .cash-form, .cash-filters, .cash-detail { padding: 16px; } .cash-page .page-heading { align-items: start; gap: 16px; flex-wrap: wrap; } .cash-inline { align-items: stretch; } .cash-inline > * { width: 100%; } }
+.cash-page table :is(th, td), .cash-page .status-pill { font-size: 14px; line-height: 1.5; color: #283c34; }
+.cash-page .status-pill { display: inline-block; padding: 4px 8px; border-radius: 8px; }

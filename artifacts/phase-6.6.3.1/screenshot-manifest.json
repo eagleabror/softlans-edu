@@ -1,0 +1,265 @@
+{
+  "capturedAt": "2026-11-06T17:21:42.840Z",
+  "entries": [
+    {
+      "device": "desktop",
+      "state": "expenses",
+      "file": "desktop/expenses.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        699,
+        700,
+        701,
+        768,
+        900,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend; disposable synthetic database"
+    },
+    {
+      "device": "desktop",
+      "state": "new",
+      "file": "desktop/new.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        699,
+        700,
+        701,
+        768,
+        900,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend; disposable synthetic database"
+    },
+    {
+      "device": "desktop",
+      "state": "categories",
+      "file": "desktop/categories.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        699,
+        700,
+        701,
+        768,
+        900,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend; disposable synthetic database"
+    },
+    {
+      "device": "desktop",
+      "state": "accounts",
+      "file": "desktop/accounts.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        699,
+        700,
+        701,
+        768,
+        900,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend; disposable synthetic database"
+    },
+    {
+      "device": "desktop",
+      "state": "movements",
+      "file": "desktop/movements.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        699,
+        700,
+        701,
+        768,
+        900,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend; disposable synthetic database"
+    },
+    {
+      "device": "desktop",
+      "state": "daily",
+      "file": "desktop/daily.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        699,
+        700,
+        701,
+        768,
+        900,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend; disposable synthetic database"
+    },
+    {
+      "device": "desktop",
+      "state": "detail",
+      "file": "desktop/detail.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        699,
+        700,
+        701,
+        768,
+        900,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend; disposable synthetic database"
+    },
+    {
+      "device": "mobile",
+      "state": "expenses",
+      "file": "mobile/expenses.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        699,
+        700,
+        701,
+        768,
+        900,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend; disposable synthetic database"
+    },
+    {
+      "device": "mobile",
+      "state": "new",
+      "file": "mobile/new.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        699,
+        700,
+        701,
+        768,
+        900,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend; disposable synthetic database"
+    },
+    {
+      "device": "mobile",
+      "state": "categories",
+      "file": "mobile/categories.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        699,
+        700,
+        701,
+        768,
+        900,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend; disposable synthetic database"
+    },
+    {
+      "device": "mobile",
+      "state": "accounts",
+      "file": "mobile/accounts.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        699,
+        700,
+        701,
+        768,
+        900,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend; disposable synthetic database"
+    },
+    {
+      "device": "mobile",
+      "state": "movements",
+      "file": "mobile/movements.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        699,
+        700,
+        701,
+        768,
+        900,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend; disposable synthetic database"
+    },
+    {
+      "device": "mobile",
+      "state": "daily",
+      "file": "mobile/daily.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        699,
+        700,
+        701,
+        768,
+        900,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend; disposable synthetic database"
+    },
+    {
+      "device": "mobile",
+      "state": "detail",
+      "file": "mobile/detail.png",
+      "overflowWidthsChecked": [
+        320,
+        375,
+        390,
+        699,
+        700,
+        701,
+        768,
+        900,
+        1024,
+        1440
+      ],
+      "source": "Real API + built frontend; disposable synthetic database"
+    }
+  ],
+  "browserErrors": [],
+  "assertions": [
+    "10 viewport widths per screen",
+    "dialog focus and Escape",
+    "real UI void",
+    "transfers conserve money",
+    "no external data"
+  ]
+}

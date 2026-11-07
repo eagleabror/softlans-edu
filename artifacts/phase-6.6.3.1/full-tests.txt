@@ -1,0 +1,43 @@
+
+> softlans-edu@0.1.0 test
+> npm run test --workspaces --if-present
+
+
+> @softlans/api@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /workspace/softlans-edu/apps/api
+
+
+ Test Files  35 passed (35)
+      Tests  532 passed | 1 skipped (533)
+   Start at  17:20:17
+   Duration  128.69s (tests 86%, import 14%)
+
+
+> @softlans/web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /workspace/softlans-edu/apps/web
+
+
+ Test Files  24 passed (24)
+      Tests  131 passed (131)
+   Start at  17:22:26
+   Duration  23.40s (tests 61%, environment 25%, import 7%, setup 5%, transform 1%)
+
+    Isolate  24 workers spawned · ~284ms startup each (spawn + environment, per file)
+             at least ~6.54s faster with isolate: false — reuses workers across files instead of one per file
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice

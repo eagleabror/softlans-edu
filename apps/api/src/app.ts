@@ -1,3 +1,4 @@
+import { cashRouter } from "./cash.js";
 import { mfaSecurityRouter, beginLoginChallenge, passwordSession } from "./mfa-security.js";
 import { DeviceSession } from "./security-models.js";
 import { payrollScheduler } from "./payroll-scheduler.js";
@@ -264,6 +265,7 @@ export function createApp(
     notificationRouter(config),
   );
   app.use("/api/onboarding", authenticate(config), onboardingRouter);
+  app.use("/api/cash", authenticate(config), cashRouter);
   app.use("/api/payroll", authenticate(config), payrollRouter);
   app.use("/api/saas", authenticate(config), saasRouter);
   app.use("/api/super-admin/saas", authenticate(config), saasAdminRouter);

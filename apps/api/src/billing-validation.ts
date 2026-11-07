@@ -14,6 +14,7 @@ export const reason = z
 export const paymentInput = z
   .object({
     chargeId: objectId,
+    cashAccountId: objectId.optional(),
     amount: money.min(1),
     method: z.enum(["cash", "bank_transfer", "click_manual"]),
     paidAt: z.iso.datetime({ offset: true }),

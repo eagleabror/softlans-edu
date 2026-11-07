@@ -1,0 +1,15 @@
+
+> @softlans/web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /workspace/softlans-edu/apps/web
+
+
+ Test Files  24 passed (24)
+      Tests  131 passed (131)
+   Start at  17:16:18
+   Duration  36.60s (tests 62%, environment 24%, import 6%, setup 4%, transform 2%)
+
+    Isolate  24 workers spawned · ~443ms startup each (spawn + environment, per file)
+             at least ~10.18s faster with isolate: false — reuses workers across files instead of one per file
