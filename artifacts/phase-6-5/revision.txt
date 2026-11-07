@@ -1,0 +1,8 @@
+37026a253e687508d2bebdbfda8a609af963a9b5 Merge pull request #38 from eagleabror/feat/phase-6-6-3-2-profit-loss
+8267d1a96edf6fbbcc359e8ae1854a9d9f68302e feat(6.6.3.2): management profit and loss reporting
+be41564ae65682c91be5c8b7ee6ad0a8ea98fdf7 Merge pull request #37 from eagleabror/feat/phase-6-6-3-1-expenses-cash
+d5576d1079ac4bb9dcbd70b153c76c5a45e7564e feat(6.6.3.1): expense and cash management
+09e2683520bdbfb0229b90059828b9f512454291 Merge pull request #36 from eagleabror/feat/phase-6-6-2-automated-payroll
+aee193d06e0b54dd57eb27b7dd6de7e03adf3f85 feat(6.6.2): automatic monthly payroll drafts
+26bdc16d7ff3125735a2dafaf3becba91f9e7868 Merge pull request #35 from eagleabror/feat/phase-6-6-1-prorated-tuition
+a085d16a473a41cfd6001c71eb20f7cdcd11b896 feat(6.6.1): automatic lesson-based prorated tuition

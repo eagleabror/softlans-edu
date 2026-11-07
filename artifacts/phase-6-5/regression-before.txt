@@ -1,0 +1,67 @@
+
+> @softlans/api@0.1.0 test
+> vitest run tests/management-reports.test.ts
+
+
+ RUN  v5.0.5 /workspace/softlans-edu/apps/api
+
+ ❯ tests/management-reports.test.ts (24 tests | 2 failed) 5326ms
+   × withholds profit when the original charge teacher has no payroll after reassignment 48ms
+   × accepts the original teacher payroll after reassignment and retains legacy fallback 42ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/management-reports.test.ts > withholds profit when the original charge teacher has no payroll after reassignment
+AssertionError: expected [] to deep equally contain ObjectContaining{…}
+
+- Expected:
+ObjectContaining {
+  "code": "PAYROLL_MISSING",
+  "month": "2025-02",
+}
+
++ Received:
+[]
+
+ ❯ tests/management-reports.test.ts:253:27
+    251|   await payroll();
+    252|   const result = await report();
+    253|   expect(result.warnings).toContainEqual(expect.objectContaining({
+       |                           ^
+    254|     code: "PAYROLL_MISSING", month: "2025-02",
+    255|   }));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/management-reports.test.ts > accepts the original teacher payroll after reassignment and retains legacy fallback
+AssertionError: expected null to be 700 // Object.is equality
+
+- Expected:
+700
+
++ Received:
+null
+
+ ❯ tests/management-reports.test.ts:267:52
+    265|   await charge(1000, { groupId: g._id, payrollTeacherId: originalTeach…
+    266|   await payroll({ teacherId: originalTeacher });
+    267|   expect((await report()).summary.estimatedResult).toBe(700);
+       |                                                    ^
+    268|   // Legacy charges without a snapshot still require the group's teach…
+    269|   await charge(1000, { groupId: g._id });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 22 passed (24)
+   Start at  05:00:49
+   Duration  6.85s (tests 79%, import 17%, transform 4%)
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path /workspace/softlans-edu/apps/api
+npm error workspace @softlans/api@0.1.0
+npm error location /workspace/softlans-edu/apps/api
+npm error command failed
+npm error command sh -c vitest run tests/management-reports.test.ts

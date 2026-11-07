@@ -118,7 +118,7 @@ export async function managementReport(
             { _id: { $in: payments.map((p) => p.chargeId) } },
           ],
         },
-        "groupId studentId billingMonth finalAmount cancelled updatedAt",
+        "groupId studentId payrollTeacherId billingMonth finalAmount cancelled updatedAt",
         tx,
       );
       const adjustments = await bounded(
@@ -355,7 +355,10 @@ export async function managementReport(
         for (const c of charges.filter(
           (c) => c.billingMonth === m.month && !c.cancelled,
         )) {
-          const teacherId = groupTeachers.get(String(c.groupId));
+          // Match payroll calculation: reassignment must not erase the original
+          // teacher's obligation. Only legacy charges lack this snapshot.
+          const teacherId =
+            c.payrollTeacherId ?? groupTeachers.get(String(c.groupId));
           if (teacherId) expected.add(String(teacherId));
         }
         for (const teacher of expected)

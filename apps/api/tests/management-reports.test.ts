@@ -238,6 +238,39 @@ it("separates prorated final tuition, partial receipts, approved unpaid salary a
   });
   expect(result.groups[0]).toMatchObject({ billed: 1000, receipts: 400 });
 });
+it("withholds profit when the original charge teacher has no payroll after reassignment", async () => {
+  const originalTeacher = id();
+  const g = await Group.create({
+    tenantId: tenant, teacherId: actor, name: "Qayta biriktirilgan guruh",
+    courseName: "Sintetik", capacity: 10, monthlyFee: 1000,
+    startDate: "2025-01-01",
+  });
+  await charge(1000, { groupId: g._id, payrollTeacherId: originalTeacher });
+  // Only the replacement teacher has an approved payroll. No rule remains for
+  // the original teacher, so the immutable charge attribution is essential.
+  await payroll();
+  const result = await report();
+  expect(result.warnings).toContainEqual(expect.objectContaining({
+    code: "PAYROLL_MISSING", month: "2025-02",
+  }));
+  expect(result.summary.estimatedResult).toBeNull();
+});
+it("accepts the original teacher payroll after reassignment and retains legacy fallback", async () => {
+  const originalTeacher = id();
+  const g = await Group.create({
+    tenantId: tenant, teacherId: actor, name: "Tarixiy guruh",
+    courseName: "Sintetik", capacity: 10, monthlyFee: 1000,
+    startDate: "2025-01-01",
+  });
+  await charge(1000, { groupId: g._id, payrollTeacherId: originalTeacher });
+  await payroll({ teacherId: originalTeacher });
+  expect((await report()).summary.estimatedResult).toBe(700);
+  // Legacy charges without a snapshot still require the group's teacher.
+  await charge(1000, { groupId: g._id });
+  expect((await report()).summary.estimatedResult).toBeNull();
+  await payroll();
+  expect((await report()).summary.estimatedResult).toBe(1400);
+});
 it("keeps late-month collections out of the original billing month and uses Tashkent midnight", async () => {
   const c = await charge();
   await payroll();

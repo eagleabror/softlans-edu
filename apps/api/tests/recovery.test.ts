@@ -18,6 +18,9 @@ import { Classroom, Schedule } from '../src/schedule-models.js';
 import { Group, Membership } from '../src/group-models.js';
 import { LessonSession, AttendanceRecord } from '../src/attendance-models.js';
 import { Charge, Payment } from '../src/billing-models.js';
+import { Payroll, SalaryPayout } from '../src/payroll-models.js';
+import { CashAccount, CashMovement, Expense, ExpenseCategory } from '../src/cash-models.js';
+import { cashDay } from '../src/cash-service.js';
 import { Subscription, Plan, PaymentRequest, SaasAudit } from '../src/saas-models.js';
 import { TelegramIntegration, TelegramDelivery } from '../src/telegram-models.js';
 import { createApp } from '../src/app.js';
@@ -75,7 +78,25 @@ it.runIf(process.env.DR_DRILL_CONFIRM === 'synthetic-only')('native encrypted ba
     await AttendanceRecord.create({ tenantId: tenant._id, sessionId: lesson._id, studentId: student._id, status: 'present', markedBy: teacher._id, markedAt: new Date() });
     const charge = await Charge.create({ tenantId: tenant._id, studentId: student._id, groupId: group._id, generatedBy: owner._id,
       billingMonth: '2025-02', originalAmount: 1000, discountAmount: 0, finalAmount: 1000, paidAmount: 400, dueDate: '2025-02-10' });
-    await Payment.create({ tenantId: tenant._id, studentId: student._id, chargeId: charge._id, amount: 400, method: 'cash', paidAt: new Date(), recordedBy: admin._id, idempotencyKey: randomUUID(), fingerprint: 'synthetic' });
+    const payment = await Payment.create({ tenantId: tenant._id, studentId: student._id, chargeId: charge._id, amount: 400, method: 'cash', paidAt: new Date(), recordedBy: admin._id, idempotencyKey: randomUUID(), fingerprint: 'synthetic' });
+    // Populate Phase 6.6 payroll/expense/cash collections as well as tuition.
+    // Inventory equality below checks every BSON value and index before startup.
+    const payroll = await Payroll.create({ tenantId: tenant._id, teacherId: teacher._id, createdBy: owner._id,
+      payrollMonth: '2025-02', calculationBasis: { lines: [] }, grossSalary: 100, finalSalary: 100, paidAmount: 40,
+      calculatedAt: new Date(), approvedAt: new Date(), approvedBy: owner._id, status: 'partially_paid' });
+    const payout = await SalaryPayout.create({ tenantId: tenant._id, payrollId: payroll._id, recordedBy: owner._id,
+      amount: 40, paidAt: new Date(), method: 'cash', idempotencyKey: randomUUID(), fingerprint: 'synthetic' });
+    const account = await CashAccount.create({ tenantId: tenant._id, createdBy: owner._id, name: 'Sintetik kassa', kind: 'cash', openingDate: '2025-01-01' });
+    const category = await ExpenseCategory.create({ tenantId: tenant._id, createdBy: owner._id, name: 'Sintetik ijara', accountingClassification: 'operating' });
+    const expense = await Expense.create({ tenantId: tenant._id, createdBy: owner._id, categoryId: category._id,
+      categoryName: category.name, accountingClassification: 'operating', accountId: account._id, amount: 100,
+      description: 'Sintetik ijara', expenseDate: '2025-02-10', method: 'cash', status: 'confirmed' });
+    for (const entry of [
+      { kind: 'opening', delta: 5000, sourceId: account.id, date: '2025-01-01' },
+      { kind: 'payment', delta: 400, sourceId: payment.id, date: cashDay(payment.paidAt) },
+      { kind: 'salary', delta: -40, sourceId: payout.id, date: cashDay(payout.paidAt) },
+      { kind: 'expense', delta: -100, sourceId: expense.id, date: expense.expenseDate },
+    ]) await CashMovement.create({ tenantId: tenant._id, recordedBy: owner._id, accountId: account._id, reason: 'Sintetik drill', ...entry });
     const plan = (await Plan.findOne({ code: 'starter' }))!;
     const snapshot = { planId: plan._id, planName: plan.name, planCode: plan.code, studentLimit: plan.studentLimit, groupLimit: plan.groupLimit, features: plan.features };
     await Subscription.create({ ...snapshot, tenantId: tenant._id, status: 'active', periodStart: new Date(), periodEnd: new Date(Date.now() + 86400000), agreedPriceUZS: plan.monthlyPriceUZS });
@@ -130,6 +151,10 @@ it.runIf(process.env.DR_DRILL_CONFIRM === 'synthetic-only')('native encrypted ba
     expect((await get('/api/debts', 2)).status).toBe(403);
     expect((await get('/api/debts')).body.charges[0]).toMatchObject({ remainingAmount: 600 });
     expect((await get('/api/debts', 3)).body.total).toBe(0);
+    expect((await get('/api/payroll/summary?month=2025-02')).body).toMatchObject({ approvedSalary: 100, paidSalary: 40, outstandingSalary: 60 });
+    expect((await get('/api/cash/daily?date=' + cashDay())).body.rows[0].confirmedBalance).toBe(5260);
+    expect((await get('/api/cash/expenses')).body.rows[0]).toMatchObject({ amount: 100, status: 'confirmed', accountingClassification: 'operating' });
+    expect((await get('/api/cash/daily?date=' + cashDay(), 3)).body.rows).toHaveLength(0);
     expect((await get('/api/super-admin/saas/plans')).status).toBe(403);
     expect((await Student.findById(student._id))!.tenantId.toString()).toBe(tenant.id);
     expect((await Group.findById(group._id))!.teacherId.toString()).toBe(teacher.id);
