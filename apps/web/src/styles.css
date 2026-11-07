@@ -2960,3 +2960,18 @@ td {
 @media (max-width: 700px) { .cash-form, .cash-filters, .cash-detail dl { grid-template-columns: minmax(0, 1fr); } .cash-form, .cash-filters, .cash-detail { padding: 16px; } .cash-page .page-heading { align-items: start; gap: 16px; flex-wrap: wrap; } .cash-inline { align-items: stretch; } .cash-inline > * { width: 100%; } }
 .cash-page table :is(th, td), .cash-page .status-pill { font-size: 14px; line-height: 1.5; color: #283c34; }
 .cash-page .status-pill { display: inline-block; padding: 4px 8px; border-radius: 8px; }
+
+.management-reports > .panel { margin-bottom: 20px; }
+.management-reports .stat-card strong { font-size: clamp(18px, 2vw, 26px); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.management-reports .stat-card small { display: block; line-height: 1.6; }
+.management-reports .report-kpis { grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); }
+.management-reports td { text-align: right; font-variant-numeric: tabular-nums; }
+.management-reports th, .management-reports td { white-space: normal; min-width: 120px; }
+.management-warnings li { margin-block: 8px; }
+.management-reports .table-scroll:focus-visible { outline: 2px solid #526b43; outline-offset: 2px; }
+.management-reports .page-heading { flex-wrap: wrap; align-items: start; }
+.management-reports .page-heading > div { flex: 1 1 280px; min-width: 0; }
+.management-reports .page-heading h1 { overflow-wrap: anywhere; }
+.management-reports table { font-size: 14px; color: #283c34; }
+.management-reports th, .management-reports td { color: #283c34; }
+.management-reports caption { color: #526b43; }

@@ -1,0 +1,55 @@
+{
+  "capturedAt": "2026-11-07T04:43:15.911Z",
+  "source": "Real API + built UI; fresh disposable synthetic MongoDB only",
+  "entries": [
+    {
+      "device": "desktop",
+      "widths": [
+        320,
+        375,
+        390,
+        699,
+        700,
+        701,
+        768,
+        900,
+        1024,
+        1440
+      ],
+      "assertions": [
+        "No page overflow",
+        "Real API report",
+        "Chart data table",
+        "CSV download",
+        "Month filter",
+        "Historical recorded cutoff",
+        "Category classification visible"
+      ]
+    },
+    {
+      "device": "mobile",
+      "widths": [
+        320,
+        375,
+        390,
+        699,
+        700,
+        701,
+        768,
+        900,
+        1024,
+        1440
+      ],
+      "assertions": [
+        "No page overflow",
+        "Real API report",
+        "Chart data table",
+        "CSV download",
+        "Month filter",
+        "Historical recorded cutoff",
+        "Category classification visible"
+      ]
+    }
+  ],
+  "browserErrors": []
+}

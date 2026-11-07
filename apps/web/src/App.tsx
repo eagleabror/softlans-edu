@@ -116,6 +116,9 @@ function uzbekDate(value: Date) {
   ];
   return `${part("day")} ${months[Number(part("month")) - 1]}, ${part("year")}`;
 }
+const ManagementReports = lazy(() =>
+  import("./ManagementReports").then((m) => ({ default: m.ManagementReports })),
+);
 const FinancialReports = lazy(() =>
   import("./FinancialReports").then((m) => ({ default: m.FinancialReports })),
 );
@@ -535,8 +538,13 @@ function Shell() {
               <Layers size={19} />Kassa va bank hisoblari
             </NavLink>
           )}
+          {session.user.role === "business_owner" && (
+            <NavLink to="/reports/management" onClick={() => setOpen(false)}>
+              <Layers size={19} />Foyda va pul oqimi
+            </NavLink>
+          )}
           {canManage && (
-            <NavLink to="/reports" aria-label="Moliyaviy hisobotlar" onClick={() => setOpen(false)}>
+            <NavLink to="/reports" end aria-label="Moliyaviy hisobotlar" onClick={() => setOpen(false)}>
               <Layers size={19} />
               Moliyaviy hisobotlar
             </NavLink>
@@ -788,6 +796,16 @@ function Shell() {
               </>
             )}
 
+            {session.user.role === "business_owner" && (
+              <Route
+                path="/reports/management"
+                element={
+                  <Suspense fallback={<p role="status">Yuklanmoqda…</p>}>
+                    <ManagementReports />
+                  </Suspense>
+                }
+              />
+            )}
             {canManage && (
               <>
                 <Route

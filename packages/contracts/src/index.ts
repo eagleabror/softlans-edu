@@ -435,3 +435,29 @@ export interface AttendanceSessions {
   pageSize: number;
   timezone: string;
 }
+
+export type ExpenseAccountingClass = "operating" | "capital" | "prepayment" | "unclassified";
+export interface ManagementMonth {
+  month: string;
+  billed: number;
+  receipts: number;
+  approvedSalary: number;
+  salaryPaid: number;
+  operatingExpenses: number;
+  estimatedResult: number | null;
+}
+export interface ManagementReport {
+  policy: "management-v1";
+  period: { start: string; end: string; asOf: string; timezone: "Asia/Tashkent" };
+  summary: Omit<ManagementMonth, "month"> & { debt: number; unclassifiedExpenses: number; unclassifiedMovements: number };
+  monthly: ManagementMonth[];
+  warnings: { code: string; message: string; month?: string; count?: number }[];
+  expenseCategories: { id: string; name: string; classification: ExpenseAccountingClass; amount: number }[];
+  groups: { id: string; name: string; billed: number; receipts: number }[];
+  cash: {
+    opening: number; openingEntries: number; tuition: number; salary: number; expenses: number;
+    manual: number; transfers: number; closing: number;
+    accounts: { id: string; name: string; kind: string; opening: number; openingEntries: number; tuition: number; salary: number; expenses: number; manual: number; transfers: number; closing: number; initialized: boolean }[];
+  };
+  unallocated: { payments: { count: number; amount: number }; salaries: { count: number; amount: number } };
+}

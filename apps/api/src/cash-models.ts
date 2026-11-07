@@ -14,11 +14,22 @@ const money = {
   validate: Number.isSafeInteger,
 };
 const options = { timestamps: true as const, strict: "throw" as const };
+export const expenseClassifications = [
+  "operating",
+  "capital",
+  "prepayment",
+  "unclassified",
+] as const;
 const category = new Schema(
   {
     tenantId: ref("Tenant"),
     name: { type: String, required: true, maxlength: 120 },
     active: { type: Boolean, default: true },
+    accountingClassification: {
+      type: String,
+      enum: expenseClassifications,
+      default: "unclassified",
+    },
     createdBy: ref("User"),
   },
   options,
@@ -47,6 +58,13 @@ const expense = new Schema(
     createdBy: ref("User"),
     amount: { ...money, min: 1 },
     categoryId: ref("ExpenseCategory"),
+    // Snapshot for NEW drafts only. Historical missing values always require review.
+    accountingClassification: {
+      type: String,
+      enum: expenseClassifications,
+      immutable: true,
+    },
+    categoryName: { type: String, immutable: true },
     accountId: ref("CashAccount"),
     description: { type: String, required: true, maxlength: 1000 },
     expenseDate: { type: String, required: true },
@@ -155,6 +173,7 @@ movement.index(
   },
 );
 movement.index({ tenantId: 1, accountId: 1, date: 1, _id: 1 });
+movement.index({ tenantId: 1, date: 1, _id: 1 });
 const operation = new Schema(
   {
     tenantId: ref("Tenant"),

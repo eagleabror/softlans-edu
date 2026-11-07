@@ -1,0 +1,1 @@
+8 screenshots; desktop/mobile, 10 widths, filters, as-of, CSV and chart tables passed; zero browser errors.

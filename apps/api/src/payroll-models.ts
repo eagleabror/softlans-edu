@@ -101,6 +101,7 @@ const payout = new Schema(
 );
 payout.index({ tenantId: 1, idempotencyKey: 1 }, { unique: true });
 payout.index({ tenantId: 1, payrollId: 1, paidAt: 1 });
+payout.index({ tenantId: 1, paidAt: 1 });
 const reversal = new Schema(
   {
     tenantId: ref("Tenant"),
