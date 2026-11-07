@@ -1,0 +1,33 @@
+
+> softlans-edu@0.1.0 test
+> npm run test --workspaces --if-present
+
+
+> @softlans/api@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /workspace/softlans-edu/apps/api
+
+
+ Test Files  36 passed (36)
+      Tests  554 passed | 1 skipped (555)
+   Start at  04:59:35
+   Duration  176.87s (tests 82%, import 17%, transform 1%)
+
+
+> @softlans/web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /workspace/softlans-edu/apps/web
+
+
+ Test Files  25 passed (25)
+      Tests  136 passed (136)
+   Start at  05:02:32
+   Duration  36.35s (tests 57%, environment 27%, import 8%, setup 6%, transform 3%)
+
+Environment  jsdom was created 25 times · 9.07s total, 27% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments

@@ -1,0 +1,17 @@
+
+> softlans-edu@0.1.0 test:recovery
+> npm run test:recovery -w @softlans/api
+
+
+> @softlans/api@0.1.0 test:recovery
+> DR_DRILL_CONFIRM=synthetic-only vitest run tests/recovery.test.ts
+
+
+ RUN  v5.0.5 /workspace/softlans-edu/apps/api
+
+{"drill":"synthetic-only","collections":56,"recoveryMs":4386,"productionVerified":false}
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  05:05:14
+   Duration  7.66s (tests 84%, import 14%, transform 3%)

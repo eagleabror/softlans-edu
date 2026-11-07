@@ -1,0 +1,12 @@
+
+> @softlans/api@0.1.0 test
+> vitest run tests/pilot-financial-lifecycle.test.ts
+
+
+ RUN  v5.0.5 /workspace/softlans-edu/apps/api
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  05:04:09
+   Duration  7.55s (tests 78%, import 18%, transform 4%)
