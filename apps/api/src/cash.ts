@@ -9,6 +9,7 @@ import {
   CashMovement,
   CashOperation,
   CashAudit,
+  expenseClassifications,
 } from "./cash-models.js";
 import { Payment, PaymentReversal } from "./billing-models.js";
 import { SalaryPayout, SalaryPayoutReversal } from "./payroll-models.js";
@@ -149,7 +150,7 @@ cashRouter.get("/draft-options", async (req, res) => {
     ...scope(req),
     ...(principal(req).role === "admin" ? { active: true } : {}),
   })
-    .select("name active")
+    .select("name active accountingClassification")
     .sort({ name: 1 });
   const accounts = await CashAccount.find({
     ...scope(req),
@@ -243,7 +244,11 @@ for (const [path, sourceModel] of [
         name: text,
         ...(path === "accounts"
           ? { kind: z.enum(["cash", "bank", "manual"]) }
-          : {}),
+          : {
+              accountingClassification: z
+                .enum(expenseClassifications)
+                .default("unclassified"),
+            }),
         reason,
         idempotencyKey: z.string().uuid(),
       })
@@ -274,6 +279,13 @@ for (const [path, sourceModel] of [
       .object({
         name: text,
         active: z.boolean(),
+        ...(path === "categories"
+          ? {
+              accountingClassification: z
+                .enum(expenseClassifications)
+                .optional(),
+            }
+          : {}),
         reason,
         idempotencyKey: z.string().uuid(),
       })
@@ -288,6 +300,8 @@ for (const [path, sourceModel] of [
         if (!r) throw cashMissing();
         const before = r.toObject();
         r.set({ name: q.name, active: q.active });
+        if ("accountingClassification" in q && q.accountingClassification)
+          r.set("accountingClassification", q.accountingClassification);
         await r.save({ session: tx });
         await audit(
           req,
@@ -342,12 +356,13 @@ cashRouter.post("/expenses", async (req, res) => {
   const q = expenseInput.parse(req.body);
   res.status(201).json(
     await operation(req, q, async (tx) => {
+      const category = await ExpenseCategory.findOne({
+        ...scope(req),
+        _id: q.categoryId,
+        active: true,
+      }).session(tx);
       if (
-        !(await ExpenseCategory.exists({
-          ...scope(req),
-          _id: q.categoryId,
-          active: true,
-        }).session(tx)) ||
+        !category ||
         !(await CashAccount.exists({
           ...scope(req),
           _id: q.accountId,
@@ -357,7 +372,15 @@ cashRouter.post("/expenses", async (req, res) => {
         throw cashMissing();
       const { idempotencyKey: _k, ...fields } = q;
       const [e] = await Expense.create(
-        [{ ...scope(req), ...fields, createdBy: principal(req).userId }],
+        [
+          {
+            ...scope(req),
+            ...fields,
+            accountingClassification: category.accountingClassification,
+            categoryName: category.name,
+            createdBy: principal(req).userId,
+          },
+        ],
         { session: tx },
       );
       await audit(

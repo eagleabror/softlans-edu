@@ -1,0 +1,15 @@
+
+> @softlans/web@0.1.0 test
+> vitest run --run src/ManagementReports.test.tsx src/Expenses.test.tsx
+
+
+ RUN  v5.0.5 /workspace/softlans-edu/apps/web
+
+
+ Test Files  2 passed (2)
+      Tests  10 passed (10)
+   Start at  04:38:47
+   Duration  6.37s (tests 57%, environment 25%, import 7%, transform 6%, setup 4%, worker 1%)
+
+    Isolate  2 workers spawned · ~931ms startup each (spawn + environment, per file)
+             at least ~931ms faster with isolate: false — reuses workers across files instead of one per file

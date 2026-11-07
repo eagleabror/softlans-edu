@@ -1,0 +1,12 @@
+
+> @softlans/api@0.1.0 test
+> vitest run --run tests/management-reports.test.ts
+
+
+ RUN  v5.0.5 /workspace/softlans-edu/apps/api
+
+
+ Test Files  1 passed (1)
+      Tests  22 passed (22)
+   Start at  04:40:14
+   Duration  21.11s (tests 83%, import 14%, transform 4%)

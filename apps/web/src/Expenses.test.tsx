@@ -188,3 +188,32 @@ it("distinguishes loading, API errors and retry", async () => {
   await userEvent.click(screen.getByRole("button", { name: "Qayta urinish" }));
   expect(await screen.findByText(expense.description)).toBeInTheDocument();
 });
+it("requires confirmed reason before changing future expense classification defaults", async () => {
+  show("/expenses/categories");
+  const select = await screen.findByLabelText("Ijara hisob tasnifi");
+  await userEvent.selectOptions(select, "capital");
+  await userEvent.click(screen.getByRole("button", { name: "Nomini saqlash" }));
+  expect(
+    vi
+      .mocked(api)
+      .mock.calls.filter(([, options]) => options?.method === "PATCH"),
+  ).toHaveLength(0);
+  await userEvent.type(
+    screen.getByLabelText("Amal sababi"),
+    "Faqat kelgusi qoralamalar uchun",
+  );
+  await userEvent.click(
+    within(screen.getByRole("dialog")).getByRole("button", {
+      name: "Tasdiqlash",
+    }),
+  );
+  await waitFor(() =>
+    expect(api).toHaveBeenCalledWith(
+      `/cash/categories/${category.id}`,
+      expect.objectContaining({
+        method: "PATCH",
+        body: expect.stringContaining('"accountingClassification":"capital"'),
+      }),
+    ),
+  );
+});

@@ -23,7 +23,35 @@ import {
   StatusBadge,
 } from "./ui";
 
+const classificationNames: Record<string, string> = {
+  operating: "Operatsion xarajat",
+  capital: "Kapital xaridi",
+  prepayment: "Oldindan to‘lov",
+  unclassified: "Tasniflanmagan · tekshirish kerak",
+};
+function Classification({
+  value = "unclassified",
+  label,
+}: {
+  value?: string;
+  label: string;
+}) {
+  return (
+    <select
+      name="accountingClassification"
+      defaultValue={value}
+      aria-label={label}
+    >
+      {Object.entries(classificationNames).map(([key, name]) => (
+        <option key={key} value={key}>
+          {name}
+        </option>
+      ))}
+    </select>
+  );
+}
 type Named = {
+  accountingClassification?: string;
   id: string;
   name: string;
   active?: boolean;
@@ -31,6 +59,7 @@ type Named = {
   openingDate?: string | null;
 };
 type ExpenseRow = {
+  accountingClassification?: string;
   id: string;
   amount: number;
   categoryId: string;
@@ -666,6 +695,12 @@ export function Expenses({ owner }: { owner: boolean }) {
                   ["Summa", uzs(expense.amount)],
                   ["Sana", expense.expenseDate],
                   ["Kategoriya", name(options.categories, expense.categoryId)],
+                  [
+                    "Hisob tasnifi",
+                    classificationNames[
+                      expense.accountingClassification ?? "unclassified"
+                    ],
+                  ],
                   ["Hisob", name(options.accounts, expense.accountId)],
                   ["Holat", statuses[expense.status]],
                   [
@@ -739,7 +774,8 @@ export function Expenses({ owner }: { owner: boolean }) {
                 <h2>{mode === "categories" ? "Kategoriyalar" : "Hisoblar"}</h2>
                 <p>
                   Moliyaviy tarixga ega yozuvlar o‘chirilmaydi. Faolsizlantirish
-                  tarixni saqlaydi.
+                  tarixni saqlaydi. Hisob tasnifi faqat yangi xarajat
+                  qoralamalariga qo‘llanadi; eski xarajatlar o‘zgarmaydi.
                 </p>
                 <button
                   className="button light"
@@ -778,6 +814,13 @@ export function Expenses({ owner }: { owner: boolean }) {
                               (f) => ({
                                 name: f.get("name"),
                                 active: r.active,
+                                ...(mode === "categories"
+                                  ? {
+                                      accountingClassification: f.get(
+                                        "accountingClassification",
+                                      ),
+                                    }
+                                  : {}),
                               }),
                             )
                           }
@@ -789,6 +832,12 @@ export function Expenses({ owner }: { owner: boolean }) {
                             required
                             aria-label={`${r.name} yangi nomi`}
                           />
+                          {mode === "categories" && (
+                            <Classification
+                              value={r.accountingClassification}
+                              label={`${r.name} hisob tasnifi`}
+                            />
+                          )}
                           <button className="button light">
                             Nomini saqlash
                           </button>
@@ -867,7 +916,13 @@ export function Expenses({ owner }: { owner: boolean }) {
                     `/${mode}`,
                     (f) => ({
                       name: f.get("name"),
-                      ...(mode === "accounts" ? { kind: f.get("kind") } : {}),
+                      ...(mode === "accounts"
+                        ? { kind: f.get("kind") }
+                        : {
+                            accountingClassification: f.get(
+                              "accountingClassification",
+                            ),
+                          }),
                     }),
                   )
                 }
@@ -885,6 +940,11 @@ export function Expenses({ owner }: { owner: boolean }) {
                       <option value="bank">Bank</option>
                       <option value="manual">Qo‘lda boshqariladigan</option>
                     </select>
+                  </Field>
+                )}
+                {mode === "categories" && (
+                  <Field label="Hisob tasnifi (yangi xarajatlar uchun)">
+                    <Classification label="Yangi kategoriya hisob tasnifi" />
                   </Field>
                 )}
                 <button className="button primary" disabled={busy}>

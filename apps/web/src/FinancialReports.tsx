@@ -41,7 +41,7 @@ const agingNames: Record<string, string> = {
   "8-30": "8–30 kun",
   "31+": "30 kundan ortiq",
 };
-function Chart({
+export function Chart({
   title,
   rows,
   series,
