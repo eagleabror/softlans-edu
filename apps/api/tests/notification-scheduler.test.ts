@@ -295,6 +295,10 @@ it("runs the existing durable processor for an actual pending job via the HTTP t
     expect((await NotificationJob.findById(job!._id))?.status).toBe("sent"),
   );
   await released();
+  const { NotificationProcessorState } = await import("../src/notification-models.js");
+  const state = await NotificationProcessorState.findById("automation");
+  expect(state?.stage).toBe("completed");
+  expect(state?.lastCompletedAt).toBeInstanceOf(Date);
   expect(send).toHaveBeenCalledOnce();
   expect((await NotificationJob.findById(job!._id))?.attempts).toBe(1);
   expect(r.text).not.toContain("12345");

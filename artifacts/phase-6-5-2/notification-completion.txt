@@ -1,0 +1,9 @@
+
+ RUN  v5.0.5 /workspace/softlans-edu/apps/api
+
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  06:32:51
+   Duration  7.93s (tests 58%, import 33%, transform 9%)
+

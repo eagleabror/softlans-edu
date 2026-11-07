@@ -1,0 +1,120 @@
+
+ RUN  v5.0.5 /workspace/softlans-edu/apps/api
+
+ ❯ tests/scheduler-workflows.test.ts (20 tests | 10 failed) 57ms
+   ❯ billing workflow completion (13)
+     × rejects HTTP 202 as completion 11ms
+     × rejects incomplete or invalid acknowledgements {} 2ms
+     × rejects incomplete or invalid acknowledgements {"month":"2026-11","created":0,"skipped":0} 2ms
+     × rejects incomplete or invalid acknowledgements {"month":"bad"} 2ms
+     × rejects incomplete or invalid acknowledgements {"created":-1} 2ms
+     × rejects incomplete or invalid acknowledgements {"skipped":0.5} 2ms
+     × rejects incomplete or invalid acknowledgements {"nextCursor":""} 2ms
+     × rejects repeated cursors before submitting another batch 2ms
+     × fails if the Tashkent month changes between batches 2ms
+     × retries ambiguous transport failure and 503 at the same cursor 2ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/scheduler-workflows.test.ts > billing workflow completion > rejects HTTP 202 as completion
+AssertionError: promise resolved "undefined" instead of rejecting
+
+- Expected:
+Error {
+  "message": "rejected promise",
+}
+
++ Received:
+undefined
+
+ ❯ tests/scheduler-workflows.test.ts:52:27
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯
+
+ FAIL  tests/scheduler-workflows.test.ts > billing workflow completion > rejects incomplete or invalid acknowledgements {}
+ FAIL  tests/scheduler-workflows.test.ts > billing workflow completion > rejects incomplete or invalid acknowledgements {"month":"2026-11","created":0,"skipped":0}
+ FAIL  tests/scheduler-workflows.test.ts > billing workflow completion > rejects incomplete or invalid acknowledgements {"month":"bad"}
+ FAIL  tests/scheduler-workflows.test.ts > billing workflow completion > rejects incomplete or invalid acknowledgements {"created":-1}
+ FAIL  tests/scheduler-workflows.test.ts > billing workflow completion > rejects incomplete or invalid acknowledgements {"skipped":0.5}
+ FAIL  tests/scheduler-workflows.test.ts > billing workflow completion > rejects incomplete or invalid acknowledgements {"nextCursor":""}
+AssertionError: promise resolved "undefined" instead of rejecting
+
+- Expected:
+Error {
+  "message": "rejected promise",
+}
+
++ Received:
+undefined
+
+ ❯ tests/scheduler-workflows.test.ts:58:27
+     56|       ? Response.json(body) : bill(body);
+     57|     const r = await run("tuition-billing", [response]);
+     58|     await expect(r.promise).rejects.toThrow();
+       |                           ^
+     59|   });
+     60|   it("rejects repeated cursors before submitting another batch", async…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯
+
+ FAIL  tests/scheduler-workflows.test.ts > billing workflow completion > rejects repeated cursors before submitting another batch
+AssertionError: promise resolved "undefined" instead of rejecting
+
+- Expected:
+Error {
+  "message": "rejected promise",
+}
+
++ Received:
+undefined
+
+ ❯ tests/scheduler-workflows.test.ts:62:27
+     60|   it("rejects repeated cursors before submitting another batch", async…
+     61|     const r = await run("tuition-billing", [bill({ nextCursor: cursor …
+     62|     await expect(r.promise).rejects.toThrow();
+       |                           ^
+     63|     expect(r.calls).toHaveLength(2);
+     64|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯
+
+ FAIL  tests/scheduler-workflows.test.ts > billing workflow completion > fails if the Tashkent month changes between batches
+AssertionError: promise resolved "undefined" instead of rejecting
+
+- Expected:
+Error {
+  "message": "rejected promise",
+}
+
++ Received:
+undefined
+
+ ❯ tests/scheduler-workflows.test.ts:67:27
+     65|   it("fails if the Tashkent month changes between batches", async () =…
+     66|     const r = await run("tuition-billing", [bill({ nextCursor: cursor …
+     67|     await expect(r.promise).rejects.toThrow();
+       |                           ^
+     68|   });
+     69|   it("retries ambiguous transport failure and 503 at the same cursor",…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯
+
+ FAIL  tests/scheduler-workflows.test.ts > billing workflow completion > retries ambiguous transport failure and 503 at the same cursor
+Error: synthetic timeout
+ ❯ tests/scheduler-workflows.test.ts:70:75
+     68|   });
+     69|   it("retries ambiguous transport failure and 503 at the same cursor",…
+     70|     const r = await run("tuition-billing", [bill({ nextCursor: cursor …
+       |                                                                           ^
+     71|     await r.promise;
+     72|     expect(r.calls.map(c => c.body)).toEqual([{}, { after: cursor }, {…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/10]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  10 failed | 10 passed (20)
+   Start at  06:29:49
+   Duration  390ms (tests 36%, transform 32%, import 29%, worker 3%)
+

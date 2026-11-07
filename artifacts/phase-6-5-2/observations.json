@@ -1,0 +1,45 @@
+{
+  "observedDateUtc": "2026-11-07",
+  "repository": "eagleabror/softlans-edu",
+  "mainSha": "cc4d66b8e4154ac5b54452bbe52182bcff4549d3",
+  "pr39": {
+    "merged": true,
+    "mergedAt": "2026-11-07T06:15:54Z",
+    "headSha": "b18a283cc808a9c2f164775cb2007b382111e7ab",
+    "prCiRun": 42341567986,
+    "mergeCiRun": 42346229231,
+    "ciConclusion": "success"
+  },
+  "render": {
+    "workspaceConfirmedByOperator": true,
+    "serviceId": "srv-dbhr2u88v5cc7396t4ng",
+    "serviceName": "softlans-edu-demo",
+    "repoBranch": "main",
+    "autoDeploy": "yes",
+    "plan": "free",
+    "deployId": "dep-dbnc47142hec73ca1t3g",
+    "deployStatus": "live",
+    "deploySha": "cc4d66b8e4154ac5b54452bbe52182bcff4549d3",
+    "deployFinishedAt": "2026-11-07T06:17:54.034726Z",
+    "separateHostedStagingFoundForRepository": false,
+    "discoveryIncludedPreviews": true,
+    "previewGeneration": "off"
+  },
+  "observedSchedulerRuns": [
+    { "id": 42313698490, "name": "Monthly tuition billing", "event": "schedule", "conclusion": "skipped" },
+    { "id": 42324040518, "name": "Monthly teacher payroll drafts", "event": "schedule", "conclusion": "skipped" },
+    { "id": 42346306138, "name": "Monthly teacher payroll drafts", "event": "workflow_dispatch", "conclusion": "skipped", "sha": "cc4d66b8e4154ac5b54452bbe52182bcff4549d3" }
+  ],
+  "publicRecoveryCapability": { "method": "GET", "path": "/api/auth/password-recovery", "httpStatus": 200, "enabled": false },
+  "fixPr": { "number": 40, "draft": true, "sha": "f58b3e84684ec2081903c110945ae02ced52f2a5", "merged": false, "ciRun": 42347367657, "ciConclusion": "success" },
+  "controls": {
+    "productionSchedulerPosts": 0,
+    "workflowDispatchesByAudit": 0,
+    "productionDbConnections": 0,
+    "realTelegramOrEmailMessages": 0,
+    "productionSecretsChanged": false,
+    "mergeOrDeployByAudit": false,
+    "productionBackup": "owner-deferred; not configured or restored",
+    "pilotDecision": "NO-GO"
+  }
+}
