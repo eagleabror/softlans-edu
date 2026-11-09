@@ -79,7 +79,8 @@ it("reconciles enrollment through P&L and correction-period cash in three isolat
     ok(await post("/payroll/rules", { teacherId: teacher.id, salaryType: "billed", percentage: 40, effectiveFrom: "2026-10-01", reason: "Sintetik audit" }, cookie), 201);
     centers.push({ tenant, owner, teacher, cookie, cash, bank, chargeId: c.id, paymentId: responses[0]!.body.payment.id });
   }
-  vi.useRealTimers();
+  // Keep correction timestamps inside the report period regardless of run date.
+  vi.setSystemTime(new Date("2026-11-07T12:00:00+05:00"));
   for (const center of centers) center.cookie = "softlans_session=" + await createSession(center.owner, config);
   // Exercise the real authenticated scheduler router, including every tenant cursor.
   let cursor: unknown;

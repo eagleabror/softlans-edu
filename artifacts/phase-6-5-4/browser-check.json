@@ -1,0 +1,56 @@
+{
+  "syntheticOnly": true,
+  "realLocalApi": true,
+  "schedulerSecretsAbsent": true,
+  "desktopCreated": 1,
+  "mobileRetryCreated": 0,
+  "mobileRetrySkipped": 1,
+  "confirmationRequired": true,
+  "widths": [
+    {
+      "width": 320,
+      "pageOverflow": false
+    },
+    {
+      "width": 375,
+      "pageOverflow": false
+    },
+    {
+      "width": 390,
+      "pageOverflow": false
+    },
+    {
+      "width": 699,
+      "pageOverflow": false
+    },
+    {
+      "width": 700,
+      "pageOverflow": false
+    },
+    {
+      "width": 701,
+      "pageOverflow": false
+    },
+    {
+      "width": 768,
+      "pageOverflow": false
+    },
+    {
+      "width": 900,
+      "pageOverflow": false
+    },
+    {
+      "width": 901,
+      "pageOverflow": false
+    },
+    {
+      "width": 1024,
+      "pageOverflow": false
+    },
+    {
+      "width": 1440,
+      "pageOverflow": false
+    }
+  ],
+  "pageErrors": []
+}

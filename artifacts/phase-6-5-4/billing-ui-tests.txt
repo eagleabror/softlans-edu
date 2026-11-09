@@ -1,0 +1,11 @@
+> @softlans/web@0.1.0 test
+> vitest run src/Billing.test.tsx
+
+
+ RUN  v5.0.5 /workspace/softlans-edu/apps/web
+
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  13:59:09
+   Duration  1.78s (tests 52%, environment 32%, setup 7%, transform 6%, import 4%)

@@ -146,8 +146,13 @@ export function Billing({
     const form = new FormData(e.currentTarget);
     setBusy(true);
     setError("");
+    setSuccess("");
     try {
-      await api("/billing/charges/generate", {
+      const result = await api<{
+        month: string;
+        created: number;
+        skipped: number;
+      }>("/billing/charges/generate", {
         method: "POST",
         body: JSON.stringify({
           month,
@@ -155,7 +160,20 @@ export function Billing({
           confirmed: true,
         }),
       });
+      if (
+        result.month !== month ||
+        ![result.created, result.skipped].every(
+          (n) => Number.isSafeInteger(n) && n >= 0,
+        )
+      )
+        throw new Error(
+          "Yakun natijasi tasdiqlanmadi. Hisoblarni tekshiring va qayta urining.",
+        );
       done();
+      // Generation is atomic: a successful response has no failed items.
+      setSuccess(
+        `${result.month}: Yaratildi: ${result.created} · O‘tkazib yuborildi: ${result.skipped} · Xatolar: 0`,
+      );
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -484,8 +502,8 @@ export function Billing({
             <p>
               {month} uchun mos faol a’zoliklardan dars jadvali va billing
               siyosati asosida hisoblar yaratiladi. Birinchi qisman oy mutanosib
-              hisoblanadi. Mavjud hisoblar o‘zgarmaydi. Bu avtomatik hisoblash
-              uchun qo‘lda zaxira usulidir.
+              hisoblanadi. Mavjud hisoblar o‘zgarmaydi. Bu amal qo‘lda
+              tasdiqlanadi; scheduler sozlamalari talab qilinmaydi.
             </p>
             <label>
               To‘lov muddati (oy kuni)

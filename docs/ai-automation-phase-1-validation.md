@@ -1,6 +1,7 @@
 # 1-bosqich — tekshiruv hisoboti
 
-Sana: 2026-11-09. Baza: `main`, `872fd4e`.
+Sana: 2026-11-09. Yangilangan baza: `origin/main`,
+`57899a3adee785b6c7ef2f0780f96c40989e3364` (PR #42 merge’i).
 Mahalliy muhit: Node.js 24.19.0, npm 11.9.0; CI Node.js 22 ishlatadi.
 
 | Tekshiruv | Natija |
@@ -9,39 +10,58 @@ Mahalliy muhit: Node.js 24.19.0, npm 11.9.0; CI Node.js 22 ishlatadi.
 | `NODE_ENV=production npm run build` | Barcha uch modul — muvaffaqiyatli |
 | `npm audit --audit-level=high` | 0 ta zaiflik |
 | `npm audit --omit=dev --audit-level=high` | 0 ta zaiflik |
-| API testlari | 590 o‘tdi, 1 o‘tkazib yuborildi, 1 mavjud xato |
-| Web testlari | 136 o‘tdi, 25 fayl |
-| Contracts testlari | 1 o‘tdi |
+| Avval yiqilgan moliyaviy test | 1 o‘tdi; to‘liq suite’dan oldin bajarildi |
+| API testlari | 592 o‘tdi, 1 mavjud recovery skip; 41 fayl; 0 xato |
+| Web testlari | 138 o‘tdi, 25 fayl; 0 xato |
+| Contracts testlari | 1 o‘tdi; 0 xato |
 | Python gateway xavfsizlik testlari | 11 o‘tdi |
 | Node audit tayyorgarligi testlari | 6 o‘tdi |
-| `actionlint` 1.7.11 | Ikkala o‘zgartirilgan/yangi workflow xatosiz |
+| `actionlint` 1.7.11 | Barcha to‘rtta workflow xatosiz |
 | `git diff --check` | Xatosiz |
 
-API testlari yakuniy konfiguratsiya bilan to‘liq qayta bajarildi: 40 test fayli,
-592 test, 193.12 soniya. DB qo‘riqchisi qo‘shilishidan kelib chiqqan URI va bo‘sh
-environment moslik xatolari tuzatildi; integration, analytics va izolyatsiya
-testlarining alohida 38 ta tekshiruvi ham muvaffaqiyatli.
+To‘liq `npm test` exit code `0`: jami 731 test o‘tdi, 1 recovery skip,
+moliyaviy testlarda skip yoki xato yo‘q. API suite 193.60 soniyada yakunlandi.
 
-## Main’da avvaldan mavjud xato
+GitHub CI natijalari aynan yangilangan branch commit’i push qilingandan keyin
+tekshiriladi; yakuniy run va job havolalari PR #43 tavsifida beriladi. Mahalliy
+tekshiruv GitHub CI muvaffaqiyatli yakunlanganini o‘z-o‘zidan isbotlamaydi.
 
-`apps/api/tests/pilot-financial-lifecycle.test.ts:130` xatosi ushbu PR’dan
-mustaqil: ayni test o‘zgarishsiz `origin/main`ning alohida worktree’sida, lokal
-vaqtinchalik MongoDB bilan qayta bajarilib, bir xil natija berdi.
+## PR #42 tuzatishi va main bilan birlashtirish
 
-Test hisobot oralig‘ini `2026-11-07`gacha belgilaydi, lekin reversal/void
-operatsiyalari haqiqiy joriy `2026-11-09` sanasini oladi. Shuning uchun test
-`receipts=61538, salaryPaid=0, operatingExpenses=0` kutgan joyda
-`receipts=161538, salaryPaid=30000, operatingExpenses=20000` qaytdi.
-Bu test yashirilmadi, skip qilinmadi va CI muvaffaqiyatli deb ko‘rsatilmadi.
-PR draft holatda inson review’iga beriladi. Keyingi alohida test barqarorligi
-PR’ida sintetik vaqtni boshqarish tekshirilishi kerak; billing mantig‘ini
-o‘zgartirish majburiy inson review’ini talab qiladi.
+PR #42’ning `45cf8aec748f0b35df402191e77bfdf4244c7dcf` commit’i va
+`57899a3adee785b6c7ef2f0780f96c40989e3364` merge commit’i `origin/main`
+tarixida borligi `git merge-base --is-ancestor` bilan tasdiqlandi.
+Mavjud `automation/phase-1-ci-readonly-audit` branch’iga main merge qilindi;
+konflikt bo‘lmadi. Yangi PR yaratilmaydi.
+
+Avvalgi xato: pilot moliyaviy testdagi reversal/void amallari haqiqiy
+2026-11-09 sanasini olgan, hisobot esa 2026-11-07 da tugagan. PR #42
+`vi.setSystemTime(new Date("2026-11-07T12:00:00+05:00"))` orqali faqat test
+vaqtini hisobot davriga mahkamlaydi. Moliyaviy assertion’lar kuchsizlantirilmagan;
+test fayli yangilangan main bilan aynan bir xil. Tuzatilgan test alohida
+bajarilib, 1/1 o‘tdi. Ushbu yangilashda production backend moliyaviy mantig‘i
+o‘zgartirilmadi.
+
+Phase 1 workflow’lari, prompt, gateway, automation xavfsizlik testlari,
+contracts tekshiruvlari va lokal MongoDB qo‘riqchisi saqlandi. Workflow fayllari
+oldingi PR #43 head’i bilan aynan bir xil; barcha GitHub permissions faqat
+o‘qish huquqida qoldi. AI faollashtirilmadi, secret qo‘shilmadi, pullik API
+chaqirilmadi. PR #43 merge qilinmaydi va production deploy bajarilmaydi.
+
+## Mavjud intentional recovery skip
+
+`apps/api/tests/recovery.test.ts:52` dagi native encrypted backup/restore
+sinovi avvaldan `it.runIf(process.env.DR_DRILL_CONFIRM === 'synthetic-only')`
+bilan himoyalangan. Oddiy suite bu shartni yoqmaydi; natijadagi yagona skip
+shu maxsus recovery sinovidir. Preflight va arxiv yaxlitligining qolgan recovery
+testlari oddiy suite’da bajariladi. Moliyaviy testlarga skip qo‘shilmagan.
 
 ## Codex va xavfsizlik dalillari
 
 Rasmiy `@openai/codex@0.167.0` hamda
 `@openai/codex-responses-api-proxy@0.167.0` bilan lokal mock sinovi bajarildi:
-CLI → rasmiy proxy → budjet darvozasi → lokal soxta API. `:read-only` profili,
+Avvalgi Phase 1 tekshiruvida CLI → rasmiy proxy → budjet darvozasi → lokal
+soxta API oqimi ishlatildi. `:read-only` profili,
 soxta kalit va o‘zbekcha javob bilan CLI exit code `0`, aniq 1 ta upstream
 chaqiruvi; tool’lar bo‘sh, output limiti 8192 token ekanligi tasdiqlandi.
 Rasmiy CLI’dagi `additional_tools` input formati ham topilib, darvozada
