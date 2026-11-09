@@ -1,0 +1,50 @@
+name: Super Admin — bir martalik yaratish
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Birinchi Super Adminni yaratish uchun CREATE deb yozing (maxfiy ma’lumot kiritmang)'
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: super-admin-provisioning
+  cancel-in-progress: false
+jobs:
+  provision:
+    if: github.repository == 'eagleabror/softlans-edu' && github.ref == 'refs/heads/main' && inputs.confirmation == 'CREATE'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    environment: super-admin-provisioning
+    steps:
+      - name: Tekshirilgan kodni olish
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Bog‘liqliklar (credentials berilmaydi)
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Provisioning kodini kompilyatsiya qilish (credentials berilmaydi)
+        run: npm run build -w @softlans/api
+      - name: Atlas uchun shu runner IP manzili
+        run: node .github/scripts/provision-runner-ip.mjs
+      - name: Atlas ruxsatini kutish va birinchi Super Adminni yaratish
+        timeout-minutes: 17
+        env:
+          MONGODB_URI: ${{ secrets.PROVISION_MONGODB_URI }}
+          SUPER_ADMIN_EMAIL: ${{ secrets.SUPER_ADMIN_EMAIL }}
+          SUPER_ADMIN_NAME: ${{ secrets.SUPER_ADMIN_NAME }}
+          SUPER_ADMIN_PASSWORD: ${{ secrets.SUPER_ADMIN_PASSWORD }}
+          PROVISION_EXPECTED_DATABASE: ${{ vars.PROVISION_EXPECTED_DATABASE }}
+          PROVISION_FIRST_ADMIN_ONLY: 'true'
+          PROVISION_WAIT_SECONDS: '900'
+        run: node apps/api/dist/apps/api/src/scripts/super-admin.js
+      - name: Har qanday natijadan keyingi tozalash eslatmasi
+        if: always()
+        run: |
+          echo '### Qo‘lda tozalash shart' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Muvaffaqiyat, xato yoki bekor qilishdan keyin: vaqtinchalik Atlas DB foydalanuvchisini va runner /32 ruxsatini o‘chiring; provisioning Secrets’ni olib tashlang; workflow’ni Disable workflow orqali yoping. Yangi login parolini shaxsiy parol menejerida saqlang. Bu workflow Atlas ruxsatlarini avtomatik o‘chirmaydi.' >> "$GITHUB_STEP_SUMMARY"
