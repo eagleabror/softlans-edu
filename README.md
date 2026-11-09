@@ -172,3 +172,9 @@ See [Telegram integration setup and operations](docs/telegram-phase-5.1.md) for 
 ## 6.3.2 — SaaS obunalar
 
 Tariflar, 14 kunlik trial, qo‘lda SaaS to‘lov tasdiqlash, tenant limitlari va analitika uchun [o‘zbekcha foydalanish va migration yo‘riqnomasi](docs/phase-6-3-2-subscriptions.md).
+
+## Nazorat qilinadigan AI avtomatlashtirish — 1-bosqich
+
+CI, ixtiyoriy read-only Codex auditi, xavfsizlik chegaralari, API budjeti va
+keyingi alohida PR’lar uchun [o‘zbekcha arxitektura va sozlash yo‘riqnomasi](docs/ai-automation-phase-1.md).
+AI standart holatda o‘chiq; API kalitisiz barcha oddiy CI tekshiruvlari ishlaydi.

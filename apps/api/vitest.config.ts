@@ -5,6 +5,7 @@ process.env.MONGOMS_DOWNLOAD_DIR ??= fileURLToPath(
 );
 export default defineConfig({
   test: {
+    setupFiles: ["./tests/setup/isolated-mongodb.ts"],
     environment: "node",
     fileParallelism: false,
     testTimeout: 30_000,

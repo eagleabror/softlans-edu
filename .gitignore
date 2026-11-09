@@ -8,6 +8,7 @@ coverage/
 work/
 .DS_Store
 *.tsbuildinfo
+__pycache__/
 # Backup artifacts must never enter Git (including encrypted archives).
 *.bson
 *.archive
