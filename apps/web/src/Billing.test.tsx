@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, it, expect, vi } from "vitest";
@@ -26,6 +26,8 @@ beforeEach(() => {
   };
   vi.resetAllMocks();
   vi.mocked(api).mockImplementation(async (path) => {
+    if (path === "/billing/charges/generate")
+      return { month: "2026-10", created: 2, skipped: 3 };
     if (path.startsWith("/groups"))
       return {
         groups: [{ id: charge.groupId, name: charge.groupName }],
@@ -111,6 +113,7 @@ it("confirms bulk generation and shows loading/empty states", async () => {
       <Billing owner />
     </MemoryRouter>,
   );
+  fireEvent.change(screen.getByLabelText("Hisob oyi"), { target: { value: "2026-10" } });
   await userEvent.click(
     screen.getByRole("button", { name: "Oylik hisob yaratish" }),
   );
@@ -130,8 +133,26 @@ it("confirms bulk generation and shows loading/empty states", async () => {
     ),
   );
   expect(
-    await screen.findByText("Amal muvaffaqiyatli bajarildi."),
+    await screen.findByText("2026-10: Yaratildi: 2 · O‘tkazib yuborildi: 3 · Xatolar: 0"),
   ).toBeInTheDocument();
+});
+it.each(["failure", "unverified"])("keeps %s generation visible without reporting success counts", async (kind) => {
+  const original = vi.mocked(api).getMockImplementation()!;
+  vi.mocked(api).mockImplementation(async (path, options) => {
+    if (path === "/billing/charges/generate") {
+      if (kind === "failure") throw new Error("Hisob yaratishda xato");
+      return { status: "accepted" };
+    }
+    return original(path, options);
+  });
+  render(<MemoryRouter><Billing owner={false} /></MemoryRouter>);
+  await userEvent.click(screen.getByRole("button", { name: "Oylik hisob yaratish" }));
+  const dialog = screen.getByRole("dialog");
+  await userEvent.click(within(dialog).getByRole("checkbox"));
+  await userEvent.click(within(dialog).getByRole("button", { name: "Tasdiqlash va yaratish" }));
+  expect(await within(dialog).findByRole("alert")).toHaveTextContent(kind === "failure" ? "Hisob yaratishda xato" : "Yakun natijasi tasdiqlanmadi");
+  expect(screen.queryByText(/Yaratildi:/)).not.toBeInTheDocument();
+  expect(within(dialog).getByRole("button", { name: "Tasdiqlash va yaratish" })).toBeEnabled();
 });
 it("opens immutable billing calculation in a readable dialog", async () => {
   vi.mocked(api).mockImplementation(async (path) => {

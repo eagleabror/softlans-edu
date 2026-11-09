@@ -1,0 +1,11 @@
+> @softlans/api@0.1.0 test
+> vitest run tests/pilot-financial-lifecycle.test.ts tests/manual-financial-mode.test.ts
+
+
+ RUN  v5.0.5 /workspace/softlans-edu/apps/api
+
+
+ Test Files  2 passed (2)
+      Tests  2 passed (2)
+   Start at  14:04:19
+   Duration  8.38s (tests 69%, import 29%, transform 3%)
