@@ -40,14 +40,15 @@ nashr etilmaydi. Model xulosasi inson tekshirishi kerak bo‘lgan maslahatdir.
 
 `verify` check nomi saqlanadi. API, web va contracts alohida typecheck/build
 qilinadi; mavjud API/web testlari to‘liq ishlaydi. Contracts eksportlarining
-runtime invarianti alohida test qilinadi. Dependency audit barcha paketlar va
+runtime invarianti alohida test qilinadi. Workspace’da majburiy script yo‘q
+bo‘lsa tekshiruv uni jim o‘tkazib yubormaydi. Dependency audit barcha paketlar va
 production paketlari uchun alohida job’larda ishlaydi; asosiy test xatosi auditni
 bekor qilmaydi. `high` va `critical` topilma CI’ni muvaffaqiyatsiz qiladi.
 
 CI’da production secret yo‘q. `NODE_ENV=test`, `TEST_MONGODB_URI` va
 `MONGODB_URI` bo‘sh beriladi; mavjud `mongodb-memory-server` testlari vaqtinchalik
 lokal replica set yaratadi. Tashqi test bazasiga fallback qilinmaydi. Test
-jarayonidagi ulanish qo‘riqchisi faqat loopback MongoDB manzillarini qabul qiladi.
+jarayonidagi Mongoose ulanish qo‘riqchisi faqat loopback MongoDB manzillarini qabul qiladi.
 Bu himoya dastur production ulanish funksiyasini o‘zgartirmaydi.
 
 ## AI’ni yoqish va xarajat siyosati

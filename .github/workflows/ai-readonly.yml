@@ -1,0 +1,109 @@
+name: AI read-only audit
+
+on:
+  # Only the trusted base workflow runs. PR code is never checked out/executed.
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  schedule:
+    - cron: '23 5 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ai-readonly-${{ github.event.pull_request.number || 'main' }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    if: >-
+      vars.AI_READONLY_ENABLED == 'true' &&
+      github.run_attempt == 1 &&
+      github.actor != 'github-actions[bot]' &&
+      (github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main') &&
+      (github.event_name != 'pull_request_target' ||
+       (github.event.pull_request.head.repo.full_name == github.repository &&
+        github.event.pull_request.draft == false))
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      pull-requests: read
+      actions: read
+    steps:
+      - name: Ishonchli main nusxasini olish
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Ruxsat va tarif siyosatini tekshirish
+        id: gate
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          AI_PRICING_REVIEWED_ON: ${{ vars.AI_PRICING_REVIEWED_ON }}
+        with:
+          retries: 0
+          script: |
+            const { authorize } = require('./.github/scripts/prepare-ai-audit.cjs');
+            await authorize({ github, context, core });
+
+      - name: API kaliti mavjudligini tekshirish
+        if: steps.gate.outputs.allowed == 'true'
+        id: key
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ -n "$OPENAI_API_KEY" ]; then
+            echo 'available=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'available=false' >> "$GITHUB_OUTPUT"
+            echo 'AI audit o‘tkazib yuborildi: API kaliti sozlanmagan.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Faqat o‘qiladigan audit dalillarini tayyorlash
+        if: steps.key.outputs.available == 'true'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          retries: 0
+          script: |
+            const { prepare } = require('./.github/scripts/prepare-ai-audit.cjs');
+            await prepare({ github, context, core });
+
+      - name: Qat’iy budjet darvozasini ishga tushirish
+        if: steps.key.outputs.available == 'true'
+        run: |
+          # Root-owned daemon cannot be changed/read through runner process memory.
+          sudo -n install -o root -g root -m 0700 .github/scripts/ai-budget-gateway.py /run/softlans-ai-budget.py
+          sudo -n python3 /run/softlans-ai-budget.py > /dev/null 2>&1 &
+          python3 - <<'PY'
+          import time, urllib.request
+          for attempt in range(20):
+              try:
+                  with urllib.request.urlopen('http://127.0.0.1:8765/health', timeout=1) as r:
+                      if r.status == 200:
+                          break
+              except OSError:
+                  time.sleep(0.25)
+          else:
+              raise SystemExit('Budjet darvozasi ishga tushmadi; AI ishlamaydi.')
+          PY
+
+      # Must remain the final step: drop-sudo is irreversible. No write-token job.
+      - name: Codex bilan o‘zbekcha read-only audit
+        if: steps.key.outputs.available == 'true'
+        uses: openai/codex-action@bdf19a4a223ec2549a3e2274a0cf61556bc07675 # v1
+        timeout-minutes: 4
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          responses-api-endpoint: http://127.0.0.1:8765/v1/responses
+          codex-version: '0.167.0'
+          codex-home: ${{ runner.temp }}/softlans-codex-home
+          working-directory: ${{ runner.temp }}/softlans-ai-input
+          prompt-file: ${{ runner.temp }}/softlans-ai-input/prompt.txt
+          permission-profile: ':read-only'
+          safety-strategy: drop-sudo
+          model: gpt-6-luna
+          effort: low
+          codex-args: '["--skip-git-repo-check", "--ephemeral"]'

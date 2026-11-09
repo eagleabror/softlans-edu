@@ -3,21 +3,73 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+env:
+  NODE_ENV: test
+  MONGODB_URI: ''
+  TEST_MONGODB_URI: ''
+  NPM_CONFIG_FETCH_RETRIES: '1'
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - run: npm run typecheck
-      - run: npm test
-      - run: npm run build
-      - run: npm audit --audit-level=high
-      - run: npm audit --omit=dev --audit-level=high
+      - name: Dependency’larni lockfile’dan o‘rnatish
+        run: npm ci --no-audit --no-fund
+      - name: Barcha modullar typecheck’i
+        run: npm run typecheck
+      - name: Izolyatsiyalangan bazadagi barcha testlar
+        run: npm test
+      - name: Barcha modullar production build’i
+        env:
+          NODE_ENV: production
+        run: npm run build
+
+  dependency-audit:
+    name: Dependency audit (${{ matrix.scope }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        scope: [all, production]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Barcha dependency xavfsizligi
+        if: matrix.scope == 'all'
+        run: npm audit --audit-level=high
+      - name: Production dependency xavfsizligi
+        if: matrix.scope == 'production'
+        run: npm audit --omit=dev --audit-level=high
+
+  automation-safety:
+    name: AI avtomatlashtirish xavfsizligi
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Budjet va maxfiy ma’lumotlar himoyasi
+        run: python3 -m unittest discover -s .github/scripts/tests -p 'test_*.py' -v
+      - name: Audit tayyorgarligi va ishonch chegaralari
+        run: node --test .github/scripts/tests/*.test.cjs

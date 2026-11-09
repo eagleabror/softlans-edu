@@ -12,10 +12,10 @@
   },
   "scripts": {
     "dev": "concurrently -k -n api,web \"npm run dev -w @softlans/api\" \"npm run dev -w @softlans/web\"",
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm run build --workspaces",
     "start": "npm start -w @softlans/api",
-    "typecheck": "npm run typecheck --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces",
+    "test": "npm run test --workspaces",
     "test:unit": "npm run test:unit -w @softlans/api",
     "test:integration": "npm run test:integration -w @softlans/api",
     "seed:dev": "npm run seed:dev -w @softlans/api",
