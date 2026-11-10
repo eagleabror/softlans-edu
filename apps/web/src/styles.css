@@ -2975,3 +2975,19 @@ td {
 .management-reports table { font-size: 14px; color: #283c34; }
 .management-reports th, .management-reports td { color: #283c34; }
 .management-reports caption { color: #526b43; }
+
+/* Monthly automation only: contain the dense audit table and long Uzbek controls. */
+.billing-automation { min-width: 0; margin-bottom: 20px; }
+.billing-automation > p { margin-block: 14px; line-height: 1.6; }
+.billing-automation .section-heading,
+.billing-automation .pagination,
+.billing-automation .pagination > div { flex-wrap: wrap; }
+.billing-automation .pagination { gap: 12px; padding-inline: 0; font-size: 14px; }
+.billing-automation .button { white-space: normal; max-width: 100%; }
+.billing-automation .table-scroll { max-width: 100%; }
+.billing-automation .table-scroll:focus-visible { outline: 2px solid #526b43; outline-offset: 2px; }
+.billing-automation caption { text-align: left; white-space: normal; padding-block: 12px; }
+
+.billing-automation th, .billing-automation td { font-size: 14px; color: #526b43; }
+.billing-automation td:last-child { white-space: normal; min-width: 240px; overflow-wrap: anywhere; }
+.billing-automation .muted, .billing-automation .pagination { color: #526b43; }

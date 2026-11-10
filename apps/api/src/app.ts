@@ -3,7 +3,7 @@ import { managementRouter } from "./management-reports.js";
 import { mfaSecurityRouter, beginLoginChallenge, passwordSession } from "./mfa-security.js";
 import { DeviceSession } from "./security-models.js";
 import { payrollScheduler } from "./payroll-scheduler.js";
-import { tuitionScheduler } from "./tuition-scheduler.js";
+import { tuitionScheduler, tuitionAutomation } from "./tuition-scheduler.js";
 import { passwordSecurityRouter } from "./password-security.js";
 import type { PasswordEmail } from "./password-email.js";
 import { onboardingRouter } from "./onboarding.js";
@@ -275,6 +275,7 @@ export function createApp(
   app.use("/api/attendance", authenticate(config), attendanceRouter);
   app.use("/api/analytics", authenticate(config), analyticsRouter);
   app.use("/api/debts", authenticate(config), debtsRouter);
+  app.use("/api/billing/automation", authenticate(config), tuitionAutomation(config));
   app.use("/api/billing", authenticate(config), billingRouter);
   app.use("/api/classrooms", authenticate(config), classroomsRouter);
   app.use("/api/schedules", authenticate(config), schedulesRouter);

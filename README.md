@@ -97,6 +97,11 @@ backup dalili emas. [A–F GAP tahlili](docs/automation-gap-analysis.md),
 [Phase A natijasi](docs/phase-a-backup-readiness.md),
 [production readiness checklist](docs/runbooks/backup-readiness.md).
 
+Phase B: [automatic monthly billing](docs/phase-b-monthly-billing.md) — existing
+lesson-based engine, read-only monthly preview, tenant scheduler audit history and
+admin results. API/CLI writes require the new `BILLING_SCHEDULER_ENABLED=true` opt-in;
+default is **off**. This change does not activate production scheduling.
+
 ## Authentication and tenant boundaries
 
 - Public registration accepts `name`, `email`, `password`, `centerName`, and an optional active `planId` for the 14-day trial. Extra fields are rejected. Both tenant and owner are created in one transaction; unique email indexing resolves races without orphan tenants.

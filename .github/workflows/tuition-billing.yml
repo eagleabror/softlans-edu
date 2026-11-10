@@ -4,6 +4,11 @@ on:
     # 00:05 Asia/Tashkent daily, also catches new active memberships on retries.
     - cron: '5 19 * * *'
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Faqat preview: hisoblar va audit bazaga yozilmaydi'
+        type: boolean
+        default: true
 permissions:
   contents: read
 concurrency:
@@ -12,7 +17,7 @@ concurrency:
 jobs:
   generate:
     # Opt-in only: this PR does not configure a deployment or production secrets.
-    if: ${{ vars.BILLING_SCHEDULER_URL != '' }}
+    if: ${{ github.ref == 'refs/heads/main' && vars.BILLING_SCHEDULER_ENABLED == 'true' && vars.BILLING_SCHEDULER_URL != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -21,6 +26,7 @@ jobs:
           node-version: 22
       - name: Generate current-month tuition and follow tenant cursors
         env:
+          BILLING_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && 'true' || 'false' }}
           BILLING_SCHEDULER_URL: ${{ vars.BILLING_SCHEDULER_URL }}
           BILLING_SCHEDULER_SECRET: ${{ secrets.BILLING_SCHEDULER_SECRET }}
         shell: bash
@@ -30,6 +36,7 @@ jobs:
           if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash ||
               url.pathname !== '/api/internal/billing/run' || !process.env.BILLING_SCHEDULER_SECRET)
             throw new Error('Billing scheduler configuration is invalid');
+          const dryRun = process.env.BILLING_DRY_RUN === 'true';
           let after, month;
           const seen = new Set();
           do {
@@ -39,7 +46,7 @@ jobs:
                 response = await fetch(url, {
                   method: 'POST', redirect: 'error', signal: AbortSignal.timeout(60000),
                   headers: { Authorization: `Bearer ${process.env.BILLING_SCHEDULER_SECRET}`, 'Content-Type': 'application/json' },
-                  body: JSON.stringify(after ? { after } : {})
+                  body: JSON.stringify({ ...(after ? { after } : {}), dryRun })
                 });
               } catch (error) { if (attempt === 2) throw error; }
               if (response?.status === 200 || (response && ![429, 500, 502, 503, 504].includes(response.status))) break;
@@ -48,11 +55,13 @@ jobs:
             if (response?.status !== 200) throw new Error(`Billing scheduler HTTP ${response?.status}`);
             const batch = await response.json();
             if (!batch || !/^(20\d{2}|21\d{2})-(0[1-9]|1[0-2])$/.test(batch.month) ||
-                (month && month !== batch.month) ||
+                (month && month !== batch.month) || batch.dryRun !== dryRun ||
+                !Number.isSafeInteger(batch.wouldCreate) || batch.wouldCreate < 0 ||
+                (dryRun && batch.created !== 0) || (!dryRun && batch.wouldCreate !== 0) ||
                 !['created','skipped'].every(k => Number.isSafeInteger(batch[k]) && batch[k] >= 0) ||
                 !Object.hasOwn(batch, 'nextCursor')) throw new Error('Unverified billing response');
             month = batch.month;
-            console.log(JSON.stringify({ month: batch.month, created: batch.created, skipped: batch.skipped }));
+            console.log(JSON.stringify({ month: batch.month, dryRun, created: batch.created, wouldCreate: batch.wouldCreate, skipped: batch.skipped }));
             after = batch.nextCursor;
             if (after !== null && (typeof after !== 'string' || !/^[a-f\d]{24}$/i.test(after)))
               throw new Error('Invalid billing cursor');

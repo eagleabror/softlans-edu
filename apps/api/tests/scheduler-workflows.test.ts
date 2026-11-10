@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 // Execute the actual checked-in workflow JavaScript, with no network, credentials,
 // or database. Timers are immediate; a finite response queue catches cursor loops.
-async function run(name: "tuition-billing" | "payroll-monthly", replies: (Response | Error)[]) {
+async function run(name: "tuition-billing" | "payroll-monthly", replies: (Response | Error)[], dryRun = false) {
   const yaml = readFileSync(new URL(`../../../.github/workflows/${name}.yml`, import.meta.url), "utf8");
   const source = yaml.split("<<'JS'\n")[1]!.split("          JS")[0]!;
   const calls: { url: string; body: object }[] = [];
@@ -12,6 +12,7 @@ async function run(name: "tuition-billing" | "payroll-monthly", replies: (Respon
   const promise = runInNewContext(`(async () => { ${source}\n })()`, {
     URL, AbortSignal,
     process: { env: {
+      BILLING_DRY_RUN: String(dryRun),
       BILLING_SCHEDULER_URL: "https://synthetic.invalid/api/internal/billing/run",
       BILLING_SCHEDULER_SECRET: "synthetic-only",
       PAYROLL_SCHEDULER_URL: "https://synthetic.invalid/api/internal/payroll/run",
@@ -34,15 +35,29 @@ async function run(name: "tuition-billing" | "payroll-monthly", replies: (Respon
   });
   return { promise, calls, logs };
 }
-const bill = (extra = {}, status = 200) => Response.json({ month: "2026-11", created: 1, skipped: 0, nextCursor: null, ...extra }, { status });
+const bill = (extra = {}, status = 200) => Response.json({ month: "2026-11", created: 1, skipped: 0, wouldCreate: 0, dryRun: false, nextCursor: null, ...extra }, { status });
 const payroll = (extra = {}, status = 200) => Response.json({ month: "2026-10", status: "completed", created: 1, preserved: 0, exceptions: 0, nextCursor: null, ...extra }, { status });
 const cursor = "a".repeat(24);
 
 describe("billing workflow completion", () => {
+  it("sends dry-run through every cursor and rejects an acknowledgement of writes", async () => {
+    const r = await run("tuition-billing", [bill({ dryRun: true, created: 0, wouldCreate: 2, nextCursor: cursor }), bill({ dryRun: true, created: 0, wouldCreate: 1 })], true);
+    await r.promise;
+    expect(r.calls.map(c => c.body)).toEqual([{ dryRun: true }, { after: cursor, dryRun: true }]);
+    const bad = await run("tuition-billing", [bill()], true);
+    await expect(bad.promise).rejects.toThrow();
+  });
+  it("requires an explicit opt-in and main branch in the checked-in workflow", () => {
+    const yaml = readFileSync(new URL("../../../.github/workflows/tuition-billing.yml", import.meta.url), "utf8");
+    expect(yaml).toContain("vars.BILLING_SCHEDULER_ENABLED == 'true'");
+    expect(yaml).toContain("github.ref == 'refs/heads/main'");
+    expect(yaml).toContain("default: true");
+  });
+
   it("follows every tenant cursor and ends only on an explicit null", async () => {
     const r = await run("tuition-billing", [bill({ nextCursor: cursor }), bill()]);
     await r.promise;
-    expect(r.calls.map(c => c.body)).toEqual([{}, { after: cursor }]);
+    expect(r.calls.map(c => c.body)).toEqual([{ dryRun: false }, { after: cursor, dryRun: false }]);
     expect(r.logs).toHaveLength(2);
     expect(r.logs.join()).not.toContain("synthetic-only");
   });
@@ -69,7 +84,7 @@ describe("billing workflow completion", () => {
   it("retries ambiguous transport failure and 503 at the same cursor", async () => {
     const r = await run("tuition-billing", [bill({ nextCursor: cursor }), new Error("synthetic timeout"), new Response(null, { status: 503 }), bill()]);
     await r.promise;
-    expect(r.calls.map(c => c.body)).toEqual([{}, { after: cursor }, { after: cursor }, { after: cursor }]);
+    expect(r.calls.map(c => c.body)).toEqual([{ dryRun: false }, { after: cursor, dryRun: false }, { after: cursor, dryRun: false }, { after: cursor, dryRun: false }]);
   });
   it("stops after three transient failures and does not retry 401", async () => {
     for (const status of [503, 401]) {

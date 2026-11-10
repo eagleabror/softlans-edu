@@ -461,3 +461,31 @@ export interface ManagementReport {
   };
   unallocated: { payments: { count: number; amount: number }; salaries: { count: number; amount: number } };
 }
+
+export interface TuitionMonthPreview {
+  month: string;
+  timezone: string;
+  dryRun: true;
+  created: number;
+  wouldCreate: number;
+  skipped: number;
+  amount: number;
+}
+export interface TuitionAutomationView {
+  schedulerEnabled: boolean;
+  timezone: string;
+  page: number;
+  pageSize: number;
+  total: number;
+  runs: {
+    id: string;
+    month: string;
+    status: "running" | "completed" | "failed";
+    startedAt: string;
+    finishedAt: string | null;
+    created: number;
+    skipped: number;
+    amount: number;
+    errorCode: "BILLING_OWNER_REQUIRED" | "BILLING_RUN_FAILED" | null;
+  }[];
+}
