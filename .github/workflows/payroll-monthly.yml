@@ -6,6 +6,10 @@ on:
     - cron: '*/15 * * * *'
   workflow_dispatch:
     inputs:
+      dry_run:
+        description: 'Read-only preview; creates no drafts, audit or notifications'
+        type: boolean
+        default: true
       month:
         description: 'Closed payroll month YYYY-MM (empty = previous Tashkent month)'
         required: false
@@ -18,7 +22,7 @@ concurrency:
 jobs:
   drafts:
     # Opt-in only. This PR neither deploys nor configures production secrets.
-    if: ${{ vars.PAYROLL_SCHEDULER_URL != '' }}
+    if: ${{ github.ref == 'refs/heads/main' && vars.PAYROLL_SCHEDULER_ENABLED == 'true' && vars.PAYROLL_SCHEDULER_URL != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -29,6 +33,7 @@ jobs:
         env:
           PAYROLL_SCHEDULER_URL: ${{ vars.PAYROLL_SCHEDULER_URL }}
           PAYROLL_SCHEDULER_SECRET: ${{ secrets.PAYROLL_SCHEDULER_SECRET }}
+          PAYROLL_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && 'true' || 'false' }}
           PAYROLL_MONTH: ${{ inputs.month }}
         shell: bash
         run: |
@@ -39,6 +44,8 @@ jobs:
             throw new Error('Invalid payroll scheduler configuration');
           let month = process.env.PAYROLL_MONTH || undefined;
           if (month && !/^(20\d{2}|21\d{2})-(0[1-9]|1[0-2])$/.test(month)) throw new Error('Invalid payroll month');
+          if (!['true', 'false'].includes(process.env.PAYROLL_DRY_RUN)) throw new Error('Invalid dry-run flag');
+          const dryRun = process.env.PAYROLL_DRY_RUN === 'true';
           let cursor, failed = false;
           const seen = new Set();
           do {
@@ -48,7 +55,7 @@ jobs:
                 response = await fetch(url, {
                   method: 'POST', redirect: 'error', signal: AbortSignal.timeout(60000),
                   headers: { Authorization: `Bearer ${process.env.PAYROLL_SCHEDULER_SECRET}`, 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ ...(month ? { month } : {}), ...(cursor ? { cursor } : {}) })
+                  body: JSON.stringify({ dryRun, ...(month ? { month } : {}), ...(cursor ? { cursor } : {}) })
                 });
               } catch (error) { if (attempt === 2) throw error; }
               if (response?.status === 200 || (response && ![429,500,502,503,504].includes(response.status))) break;
@@ -57,14 +64,14 @@ jobs:
             // 202, redirects, invalid bodies and partial acknowledgements fail.
             if (response?.status !== 200) throw new Error(`Payroll HTTP ${response?.status}`);
             const batch = await response.json();
-            if (!/^(20\d{2}|21\d{2})-(0[1-9]|1[0-2])$/.test(batch.month) || (month && month !== batch.month) ||
+            if (batch.dryRun !== dryRun || (dryRun && batch.created !== 0) || !/^(20\d{2}|21\d{2})-(0[1-9]|1[0-2])$/.test(batch.month) || (month && month !== batch.month) ||
                 !['completed','processing','exceptions','not_due'].includes(batch.status) ||
                 !['created','preserved','exceptions'].every(k => Number.isSafeInteger(batch[k]) && batch[k] >= 0) ||
                 !Object.hasOwn(batch, 'nextCursor')) throw new Error('Unverified payroll response');
             month = batch.month;
             failed ||= batch.exceptions > 0 || batch.status === 'exceptions' ||
               (batch.status === 'processing' && batch.nextTeacher === null);
-            console.log(JSON.stringify({ month, status: batch.status, created: batch.created, preserved: batch.preserved, exceptions: batch.exceptions }));
+            console.log(JSON.stringify({ dryRun, month, status: batch.status, wouldCreate: batch.wouldCreate ?? 0, created: batch.created, preserved: batch.preserved, exceptions: batch.exceptions }));
             cursor = batch.nextCursor;
             if (cursor !== null && (!cursor || !/^[a-f\d]{24}$/i.test(cursor.tenantId) ||
                 (cursor.afterTeacher !== undefined && !/^[a-f\d]{24}$/i.test(cursor.afterTeacher)))) throw new Error('Invalid payroll cursor');

@@ -1,5 +1,5 @@
 import { TuitionRun } from "./tuition-run-model.js";
-import { PayrollRun, PayrollRunItem } from "./payroll-automation-models.js";
+import { PayrollRun, PayrollRunItem, PayrollAttempt } from "./payroll-automation-models.js";
 import { cashModels } from "./cash-models.js";
 import { securityModels } from "./security-models.js";
 import { onboardingSchema } from "./onboarding-model.js";
@@ -198,6 +198,7 @@ export async function ensureIndexes() {
     TuitionRun,
     PayrollRun,
     PayrollRunItem,
+    PayrollAttempt,
     SalaryRule,
     Payroll,
     SalaryPayout,

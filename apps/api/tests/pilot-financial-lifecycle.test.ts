@@ -21,6 +21,7 @@ const config = parseConfig({
   NODE_ENV: "test", APP_ORIGIN: origin,
   JWT_SECRET: randomBytes(48).toString("hex"),
   MONGODB_URI: "mongodb://localhost/unused-pilot-fixture",
+  PAYROLL_SCHEDULER_ENABLED: "true",
   PAYROLL_SCHEDULER_SECRET: randomBytes(48).toString("hex"),
 });
 const app = createApp(config);
@@ -85,7 +86,7 @@ it("reconciles enrollment through P&L and correction-period cash in three isolat
   // Exercise the real authenticated scheduler router, including every tenant cursor.
   let cursor: unknown;
   do {
-    const r = await request(app).post("/api/internal/payroll/run").set("Authorization", `Bearer ${config.PAYROLL_SCHEDULER_SECRET}`).send({ month: "2026-10", ...(cursor ? { cursor } : {}) });
+    const r = await request(app).post("/api/internal/payroll/run").set("Authorization", `Bearer ${config.PAYROLL_SCHEDULER_SECRET}`).send({ month: "2026-10", dryRun: false, ...(cursor ? { cursor } : {}) });
     ok(r, 200);
     expect(r.body.exceptions).toBe(0);
     cursor = r.body.nextCursor;

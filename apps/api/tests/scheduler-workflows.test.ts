@@ -13,6 +13,7 @@ async function run(name: "tuition-billing" | "payroll-monthly", replies: (Respon
     URL, AbortSignal,
     process: { env: {
       BILLING_DRY_RUN: String(dryRun),
+      PAYROLL_DRY_RUN: String(dryRun),
       BILLING_SCHEDULER_URL: "https://synthetic.invalid/api/internal/billing/run",
       BILLING_SCHEDULER_SECRET: "synthetic-only",
       PAYROLL_SCHEDULER_URL: "https://synthetic.invalid/api/internal/payroll/run",
@@ -36,7 +37,7 @@ async function run(name: "tuition-billing" | "payroll-monthly", replies: (Respon
   return { promise, calls, logs };
 }
 const bill = (extra = {}, status = 200) => Response.json({ month: "2026-11", created: 1, skipped: 0, wouldCreate: 0, dryRun: false, nextCursor: null, ...extra }, { status });
-const payroll = (extra = {}, status = 200) => Response.json({ month: "2026-10", status: "completed", created: 1, preserved: 0, exceptions: 0, nextCursor: null, ...extra }, { status });
+const payroll = (extra = {}, status = 200) => Response.json({ month: "2026-10", status: "completed", dryRun: false, created: 1, preserved: 0, exceptions: 0, nextCursor: null, ...extra }, { status });
 const cursor = "a".repeat(24);
 
 describe("billing workflow completion", () => {
@@ -100,7 +101,7 @@ describe("payroll workflow completion", () => {
     const nextCursor = { tenantId: cursor, afterTeacher: "b".repeat(24) };
     const r = await run("payroll-monthly", [payroll({ status: "processing", nextCursor }), payroll()]);
     await r.promise;
-    expect(r.calls.map(c => c.body)).toEqual([{}, { month: "2026-10", cursor: nextCursor }]);
+    expect(r.calls.map(c => c.body)).toEqual([{ dryRun: false }, { dryRun: false, month: "2026-10", cursor: nextCursor }]);
     expect(r.calls.every(c => c.url.endsWith("/api/internal/payroll/run"))).toBe(true);
   });
   it.each([payroll({}, 202), Response.json({}), payroll({ status: "processing" }), payroll({ exceptions: 1, status: "exceptions" })])("rejects non-completion or exceptions", async response => {
@@ -110,11 +111,44 @@ describe("payroll workflow completion", () => {
   it("retries transport failure and preserves draft-only request shape", async () => {
     const r = await run("payroll-monthly", [new Error("synthetic timeout"), payroll()]);
     await r.promise;
-    expect(r.calls.map(c => c.body)).toEqual([{}, {}]);
+    expect(r.calls.map(c => c.body)).toEqual([{ dryRun: false }, { dryRun: false }]);
   });
   it("treats not_due as a valid no-op rather than proof of draft creation", async () => {
     const r = await run("payroll-monthly", [payroll({ status: "not_due", created: 0 })]);
     await r.promise;
     expect(r.logs.join()).toContain("not_due");
+  });
+});
+
+describe("Phase C payroll workflow safety", () => {
+  it("requires main + explicit enablement and defaults manual dispatch to preview", () => {
+    const yaml = readFileSync(new URL("../../../.github/workflows/payroll-monthly.yml", import.meta.url), "utf8");
+    expect(yaml).toContain("github.ref == 'refs/heads/main'");
+    expect(yaml).toContain("vars.PAYROLL_SCHEDULER_ENABLED == 'true'");
+    expect(yaml).toContain("default: true");
+  });
+  it("propagates dry-run through tenant/teacher cursors and refuses a write acknowledgement", async () => {
+    const nextCursor = { tenantId: cursor, afterTeacher: "b".repeat(24) };
+    const r = await run("payroll-monthly", [payroll({ dryRun: true, created: 0, status: "processing", nextCursor }), payroll({ dryRun: true, created: 0 })], true);
+    await r.promise;
+    expect(r.calls.map(c => c.body)).toEqual([{ dryRun: true }, { dryRun: true, month: "2026-10", cursor: nextCursor }]);
+    const bad = await run("payroll-monthly", [payroll()], true);
+    await expect(bad.promise).rejects.toThrow();
+  });
+  it("stops repeated cursors and invalid month transitions", async () => {
+    const nextCursor = { tenantId: cursor };
+    for (const second of [payroll({ nextCursor }), payroll({ month: "2026-11" })]) {
+      const r = await run("payroll-monthly", [payroll({ nextCursor }), second]);
+      await expect(r.promise).rejects.toThrow();
+      expect(r.calls).toHaveLength(2);
+    }
+  });
+  it("retries 503 at the same cursor but never retries unauthorized requests", async () => {
+    const r = await run("payroll-monthly", [new Response(null, { status: 503 }), payroll()]);
+    await r.promise;
+    expect(r.calls.map(c => c.body)).toEqual([{ dryRun: false }, { dryRun: false }]);
+    const unauthorized = await run("payroll-monthly", [new Response(null, { status: 401 })]);
+    await expect(unauthorized.promise).rejects.toThrow();
+    expect(unauthorized.calls).toHaveLength(1);
   });
 });
