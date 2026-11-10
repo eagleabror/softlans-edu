@@ -37,6 +37,47 @@ jobs:
           NODE_ENV: production
         run: npm run build
 
+  recovery-drill:
+    name: Sintetik MongoDB backup va restore
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Dependency’larni lockfile’dan o‘rnatish
+        id: recovery-dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Rasmiy MongoDB Database Tools — versiya va SHA256 pin
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/database-tools.tgz"
+          curl --fail --silent --show-error --location --retry 2 --max-time 120 \
+            https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2204-x86_64-100.20.1.tgz \
+            --output "$archive"
+          # Source: https://downloads.mongodb.org/tools/db/release.json (2026-11-10).
+          echo "2d56bb351383f7a42ffb866666631da8b7bcd82503b273e0c16d3be201ad12c1  $archive" | sha256sum --check -
+          tar -xzf "$archive" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/mongodb-database-tools-ubuntu2204-x86_64-100.20.1/bin" >> "$GITHUB_PATH"
+      - name: Sintetik bazada shifrlangan backup/restore — skip qabul qilinmaydi
+        if: ${{ always() && steps.recovery-dependencies.outcome == 'success' }}
+        run: npm run test:recovery
+      - name: Faqat maxfiy ma’lumotsiz recovery hisobotlari
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: synthetic-recovery-report
+          path: |
+            work/recovery/run-*/report.json
+            work/recovery/run-*/report.md
+          retention-days: 14
+          if-no-files-found: warn
+
   dependency-audit:
     name: Dependency audit (${{ matrix.scope }})
     runs-on: ubuntu-latest

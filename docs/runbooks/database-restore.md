@@ -7,7 +7,8 @@ ko‘r-ko‘rona almashtirmang. Render rollback MongoDBni tiklamaydi.**
 
 Talablar: Node 22.12+, `npm ci`, MongoDB Database Tools (`mongodump`,
 `mongorestore`) PATHda, MongoMemoryReplSet uchun MongoDB 7.0.24 binarysi.
-Sinovdagi vosita: 100.14.0. Ishonchli MongoDB manbasidan mos OS paketini oling,
+Phase A CI vositasi: 100.20.1 (Ubuntu 22.04 x86_64; rasmiy manifestdagi SHA256
+workflow’da pin qilingan). Ishonchli MongoDB manbasidan mos OS paketini oling,
 versiya va yetkazib beruvchi checksum/signaturasini o‘z jarayoningizda tekshiring.
 Bu loyiha vositalarni yashirin yuklamaydi. Memory server binaryni keshga
 olishi mumkin. Hech qanday production URI yoki secret kiritmang.
@@ -25,6 +26,16 @@ Helper oddiy chaqirilganda dry-run; execute uchun targetga bog‘langan alohida
 `RESTORE_SYNTHETIC:<target>` tasdig‘i shart. Empty/ambiguous/production nomlar,
 masofaviy yoki credentialli URI, qo‘shimcha parametr va bo‘sh bo‘lmagan target
 rad etiladi. `--drop` yo‘q; target boshqa yozuvchilar uchun ochilmasin.
+
+Phase A runner’i ilova secretlari, tashqi DB URI va `NODE_OPTIONS`ni test
+processiga uzatmaydi; CLI argumentlarini qabul qilmaydi. Vositalar topilmasa,
+runner xatosida yoki test skipped/missing bo‘lsa exit 1 va **failed/unverified**
+hisoboti chiqadi. Har run yangi katalogdan foydalanadi; avvalgi PASS qayta
+ishlatilmaydi. Faqat fixed status/code/check va davomiyliklar JSON/Markdown’ga
+kiradi; Vitest stack/error/documentlari artifactga ko‘chirilmaydi. Hisobot:
+`work/recovery/run-*/report.json` va `report.md`; CI job summary va 14 kunlik
+artifact. Raw Vitest JSON vaqtinchalik joydan finally’da o‘chiriladi; backup
+fayllari CI artifactga yuklanmaydi. CI native drillda 3/3 real testni talab qiladi.
 
 Barcha fixturelar model validatsiyasi orqali yaratiladi. Debt alohida model
 emas: 1000 charge – 400 payment = 600 qarz API orqali tekshiriladi. Ikki tenant,

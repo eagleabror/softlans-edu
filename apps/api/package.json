@@ -17,7 +17,7 @@
     "telegram:dispatch": "tsx src/scripts/telegram-dispatch.ts",
     "telegram:automation": "node dist/apps/api/src/scripts/telegram-automation.js",
     "telegram:automation:dev": "tsx src/scripts/telegram-automation.ts",
-    "test:recovery": "DR_DRILL_CONFIRM=synthetic-only vitest run tests/recovery.test.ts",
+    "test:recovery": "tsx tests/recovery-drill.ts",
     "mfa:readiness": "tsx src/scripts/mfa-readiness.ts",
     "payroll:monthly": "node dist/apps/api/src/scripts/payroll-monthly.js",
     "payroll:monthly:dev": "tsx src/scripts/payroll-monthly.ts",
