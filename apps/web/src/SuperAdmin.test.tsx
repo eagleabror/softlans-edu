@@ -219,10 +219,12 @@ it("renders audit actor, center, reason and status transition without editing co
 
 it("keeps unavailable platform statistics in a loading state rather than displaying zeroes", async () => {
   let finish!: (value: Response) => void;
-  vi.stubGlobal("fetch", vi.fn((url: string) => url.endsWith("/auth/me")
+  const fetcher = vi.fn((url: string) => url.endsWith("/auth/me")
     ? response(session)
-    : new Promise<Response>(resolve => { finish = resolve; })));
+    : new Promise<Response>(resolve => { finish = resolve; }));
+  vi.stubGlobal("fetch", fetcher);
   renderApp();
+  await waitFor(() => expect(fetcher).toHaveBeenCalledWith("/api/super-admin/stats", expect.any(Object)));
   expect(await screen.findByRole("status")).toHaveTextContent("Yuklanmoqda…");
   expect(screen.queryByText("Jami markazlar")).not.toBeInTheDocument();
   await act(async () => finish(await response(statistics)));
