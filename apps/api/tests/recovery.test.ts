@@ -117,13 +117,21 @@ it.runIf(process.env.DR_DRILL_CONFIRM === 'synthetic-only')('native encrypted ba
     }
     const before = await inventory();
     // Quiescent fixture source: no concurrent writers; not a live oplog/PITR test.
-    await backupSynthetic(repl.getUri(source), source, path, key);
+    // Competing backup attempts must never overwrite an existing archive.
+    const backups = await Promise.allSettled([
+      backupSynthetic(repl.getUri(source), source, path, key),
+      backupSynthetic(repl.getUri(source), source, path, key),
+    ]);
+    expect(backups.filter(result => result.status === 'fulfilled')).toHaveLength(1);
+    expect(backups.filter(result => result.status === 'rejected')).toHaveLength(1);
     await mongoose.disconnect();
     await connectDatabase(repl.getUri(target));
     expect(await mongoose.connection.db!.listCollections().toArray()).toHaveLength(0);
     const started = performance.now();
     const confirmation = `RESTORE_SYNTHETIC:${target}`;
     expect(await restoreSynthetic(repl.getUri(target), source, target, path, key)).toEqual({ dryRun: true });
+    await expect(restoreSynthetic(repl.getUri(target), source, target, path, randomBytes(32), confirmation, true)).rejects.toThrow();
+    expect(await mongoose.connection.db!.listCollections().toArray()).toHaveLength(0);
     const valid = await readFile(path), corrupt = Buffer.from(valid); corrupt[corrupt.length - 1] ^= 1;
     await writeFile(path, corrupt);
     await expect(restoreSynthetic(repl.getUri(target), source, target, path, key, confirmation, true)).rejects.toThrow();

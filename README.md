@@ -84,15 +84,18 @@ packages/contracts Shared TypeScript response types and roles
 
 Integration tests download MongoDB **7.0.24** on their first run and start a disposable single-node replica set. No production secrets or running application database are needed. This requires network access to `fastdl.mongodb.org`, writable `work/`, local process/port access, and MongoDB OS libraries (`libssl3` on modern Linux).
 
-To use an existing **dedicated test** replica set if downloads are unavailable:
+Test setup’i meros olingan `MONGODB_URI` va `TEST_MONGODB_URI`ni o‘chiradi;
+testlar faqat o‘zining disposable lokal MongoDB bazalarini yaratadi. Binary
+yuklash imkonsiz bo‘lsa, `MONGOMS_SYSTEM_BINARY` orqali mos lokal `mongod`
+executable’dan foydalanish mumkin. Production URI kiritmang. React tests cover Uzbek authentication, request payloads, failure recovery and role-aware navigation. Integration tests cover tenant ID spoofing, cross-tenant direct-object access, roles, session revocation, disabled accounts/centers, transaction rollback and concurrency, injection, CSRF, limits, and safe errors.
 
-```powershell
-$env:TEST_MONGODB_URI='mongodb://127.0.0.1:27017/softlans_edu_test?replicaSet=rs0'
-npm run test:integration
-Remove-Item Env:TEST_MONGODB_URI
-```
-
-Tests delete users and tenants in that database. The path must be exactly `/softlans_edu_test`; never point it at an application database. An alternative is to set `MONGOMS_SYSTEM_BINARY` to a locally installed `mongod` executable. Tests do not seed a running application or skip failures when MongoDB is unavailable. React tests cover Uzbek authentication, request payloads, failure recovery and role-aware navigation. Integration tests cover tenant ID spoofing, cross-tenant direct-object access, roles, session revocation, disabled accounts/centers, transaction rollback and concurrency, injection, CSRF, limits, and safe errors.
+Phase A: `npm run test:recovery` — mavjud sintetik shifrlangan native backup/restore
+drilli, PATH’da `mongodump`/`mongorestore` talab qilinadi. Natija va xatolar uchun
+maxfiy ma’lumotsiz hisobot `work/recovery/run-*/report.json` va `report.md`ga
+yoziladi; CI alohida drillni bajarib, faqat hisobotlarni saqlaydi. Bu production
+backup dalili emas. [A–F GAP tahlili](docs/automation-gap-analysis.md),
+[Phase A natijasi](docs/phase-a-backup-readiness.md),
+[production readiness checklist](docs/runbooks/backup-readiness.md).
 
 ## Authentication and tenant boundaries
 
