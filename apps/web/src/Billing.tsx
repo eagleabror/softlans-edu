@@ -1,3 +1,4 @@
+import { BillingAutomation } from "./BillingAutomation";
 import { CashAccountField } from "./CashAccountField";
 import { TuitionCalculation } from "./TuitionPreview";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -195,6 +196,7 @@ export function Billing({
           Oylik hisob yaratish
         </button>
       </div>
+      {!history && !studentId && <BillingAutomation key={month} month={month} version={version} />}
       <nav className="billing-tabs" aria-label="Moliya">
         <Link
           className="button"

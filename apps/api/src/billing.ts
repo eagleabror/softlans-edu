@@ -103,6 +103,16 @@ async function paidFor(
 }
 export const billingRouter = Router();
 billingRouter.use(requireRoles("business_owner", "admin"));
+billingRouter.post("/charges/preview", async (req, res) => {
+  const input = z.object({
+    month: billingMonth,
+    dueDay: z.number().int().min(1).max(28).optional(),
+  }).strict().parse(req.body);
+  res.json(await generateTuitionMonth(
+    scope(req).tenantId, principal(req).userId, input.month, "manual",
+    input.dueDay, { dryRun: true },
+  ));
+});
 billingRouter.post("/charges/generate", async (req, res) => {
   const input = z
     .object({

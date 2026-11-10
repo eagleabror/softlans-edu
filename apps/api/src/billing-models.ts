@@ -33,11 +33,13 @@ const calculationSchema = new Schema(
     firstEnrolledAt: { type: String, required: true },
     dueDate: { type: String, required: true },
     lessons: {
-      type: [new Schema({ key: String, startsAt: String }, { _id: false })],
+      type: [new Schema({ key: String, startsAt: String }, { _id: false, versionKey: false })],
       required: true,
     },
   },
-  { _id: false, strict: "throw" },
+  // Embedded snapshots have no independent version key. This also prevents
+  // Mongoose transaction rollback from trying to restore a nonexistent __v.
+  { _id: false, strict: "throw", versionKey: false },
 );
 const chargeSchema = new Schema(
   {

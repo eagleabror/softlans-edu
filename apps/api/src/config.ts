@@ -27,6 +27,7 @@ const schema = z
     PAYROLL_SCHEDULER_SECRET: z.string().regex(/^[A-Za-z0-9_+\/=-]{43,128}$/).optional(),
     PAYROLL_CLOSE_DAY: z.coerce.number().int().min(1).max(28).default(1),
     PAYROLL_CLOSE_TIME: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).default("00:15"),
+    BILLING_SCHEDULER_ENABLED: z.enum(["true", "false"]).default("false").transform(v => v === "true"),
     BILLING_SCHEDULER_SECRET: z.string().regex(/^[A-Za-z0-9_+\/=-]{43,128}$/).optional(),
     NOTIFICATION_SCHEDULER_SECRET: z
       .string()

@@ -1,3 +1,4 @@
+import { TuitionRun } from "../src/tuition-run-model.js";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { randomBytes, randomUUID } from "node:crypto";
 import mongoose from "mongoose";
@@ -17,7 +18,7 @@ import { configuredPasswordEmail } from "../src/password-email.js";
 // No actual Telegram/email credentials, production records or endpoint calls.
 const config = parseConfig({ NODE_ENV: "test", APP_ORIGIN: "http://localhost:5173",
   MONGODB_URI: "mongodb://localhost/unused", JWT_SECRET: randomBytes(48).toString("hex"),
-  BILLING_SCHEDULER_SECRET: randomBytes(48).toString("base64url") });
+  BILLING_SCHEDULER_ENABLED: "true", BILLING_SCHEDULER_SECRET: randomBytes(48).toString("base64url") });
 let repl: MongoMemoryReplSet;
 const outbound = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("Synthetic audit: outbound blocked"));
 beforeAll(async () => {
@@ -56,6 +57,8 @@ it("recovers a partially committed billing batch, follows >10 tenant cursors and
     .set("Authorization", `Bearer ${config.BILLING_SCHEDULER_SECRET}`).send(after ? { after } : {});
   const failed = await trigger();
   expect(failed.status).toBe(500);
+  expect(await TuitionRun.countDocuments({ status: "completed" })).toBe(4);
+  expect((await TuitionRun.findOne({ status: "failed" }))!.errorCode).toBe("BILLING_OWNER_REQUIRED");
   expect(await Charge.countDocuments()).toBe(4); // Earlier tenant commits survive the batch error.
   await User.updateOne({ _id: missingOwner!._id }, { $set: { active: true } });
   const first = await trigger();

@@ -1,5 +1,7 @@
+import { TuitionRun } from "../src/tuition-run-model.js";
+import { generateTuitionMonth, runTuitionBatch } from "../src/tuition-service.js";
 import { Schedule } from "../src/schedule-models.js";
-import { beforeAll, afterAll, beforeEach, describe, it, expect } from "vitest";
+import { beforeAll, afterAll, beforeEach, describe, it, expect, vi } from "vitest";
 import { randomBytes, randomUUID } from "node:crypto";
 import mongoose from "mongoose";
 import request from "supertest";
@@ -97,6 +99,7 @@ afterAll(async () => {
 });
 beforeEach(async () => {
   await Promise.all([
+    TuitionRun.deleteMany({}),
     Schedule.deleteMany({}),
     Charge.deleteMany({}),
     Payment.deleteMany({}),
@@ -753,7 +756,7 @@ describe("6.6.1 automatic tuition and financial safety", () => {
     const secret = randomBytes(48).toString("base64url");
     const scheduledApp = createApp({
       ...config,
-      BILLING_SCHEDULER_SECRET: secret,
+      BILLING_SCHEDULER_ENABLED: true, BILLING_SCHEDULER_SECRET: secret,
     });
     const path = "/api/internal/billing/run";
     expect((await request(app).post(path).send({})).status).toBe(503);
@@ -789,5 +792,140 @@ describe("6.6.1 automatic tuition and financial safety", () => {
       .send({});
     expect(again.status).toBe(200);
     expect(again.body.created).toBe(0);
+  });
+});
+
+
+describe("Phase B monthly preview, audit and recovery", () => {
+  const now = new Date("2026-11-01T00:00:00+05:00");
+  async function secondMember() {
+    const u = (await User.findOne({ tenantId: tenant, role: "business_owner" }))!;
+    const student = await Student.create({ tenantId: tenant, createdBy: u._id,
+      firstName: "Synthetic", lastName: "Second", enrollmentDate: "2025-01-01" });
+    await Membership.create({ tenantId: tenant, studentId: student._id, groupId, enrolledAt: "2025-01-01" });
+    return u;
+  }
+  it("previews the exact monthly amount without touching charges, locks or audit, even with scheduler disabled", async () => {
+    const before = (await Tenant.findById(tenant))!.toObject();
+    const preview = await post("/billing/charges/preview", { month: "2026-11" }, admin);
+    expect(preview.status).toBe(200);
+    expect(preview.body).toMatchObject({ month: "2026-11", dryRun: true, created: 0, wouldCreate: 1, skipped: 0, amount: 1000 });
+    expect(await Charge.countDocuments()).toBe(0);
+    expect(await TuitionRun.countDocuments()).toBe(0);
+    expect((await Tenant.findById(tenant))!.toObject()).toEqual(before);
+    const batch = await runTuitionBatch(undefined, now, true);
+    expect(batch).toMatchObject({ dryRun: true, created: 0, wouldCreate: 1 });
+    expect(await TuitionRun.countDocuments()).toBe(0);
+    expect((await Tenant.findById(tenant))!.toObject()).toEqual(before);
+    expect((await generate("2026-11")).body).toMatchObject({ created: 1, amount: preview.body.amount });
+    expect((await post("/billing/charges/preview", { month: "2026-11" })).body).toMatchObject({ wouldCreate: 0, skipped: 1, amount: 0 });
+  });
+  it("enforces preview and history RBAC, rejects tenant injection, and separates tenant history", async () => {
+    await runTuitionBatch(undefined, now);
+    for (const cookie of [teacher, platform]) {
+      expect((await get("/billing/automation", cookie)).status).toBe(403);
+      expect((await post("/billing/charges/preview", { month: "2026-11" }, cookie)).status).toBe(403);
+    }
+    expect((await post("/billing/charges/preview", { month: "2026-11", tenantId: otherTenant })).status).toBe(400);
+    expect((await get(`/billing/automation?tenantId=${otherTenant}`)).status).toBe(400);
+    const a = await get("/billing/automation?month=2026-11", admin);
+    const b = await get("/billing/automation?month=2026-11", other);
+    expect(a.body).toMatchObject({ schedulerEnabled: false, total: 1 });
+    expect(a.body.runs[0]).toMatchObject({ status: "completed", created: 1, amount: 1000, errorCode: null });
+    expect(b.body.runs[0]).toMatchObject({ status: "completed", created: 0, amount: 0 });
+    expect(a.body.runs[0].id).not.toBe(b.body.runs[0].id);
+    expect(a.body.runs[0].tenantId).toBeUndefined();
+    expect((await get("/billing/automation?month=2026-12")).body.total).toBe(0);
+    expect((await get("/billing/automation?page=2")).body.runs).toEqual([]);
+    expect((await get("/billing/automation?page=0")).status).toBe(400);
+  });
+  it("keeps secret-only deployments disabled, permits authenticated dry-run and preserves manual fallback", async () => {
+    const secret = randomBytes(48).toString("base64url");
+    const disabled = createApp({ ...config, BILLING_SCHEDULER_SECRET: secret });
+    const trigger = (body: object, token = secret) => request(disabled).post("/api/internal/billing/run")
+      .set("Authorization", `Bearer ${token}`).send(body);
+    expect((await trigger({})).status).toBe(503);
+    expect((await trigger({ dryRun: true }, "wrong")).status).toBe(401);
+    expect((await trigger({ dryRun: true, month: "2020-01" })).status).toBe(400);
+    expect((await trigger({ dryRun: "true" })).status).toBe(400);
+    expect((await trigger({ dryRun: true })).body).toMatchObject({ created: 0, wouldCreate: 1, dryRun: true });
+    expect(await TuitionRun.countDocuments()).toBe(0);
+    expect(await Charge.countDocuments()).toBe(0);
+    expect((await generate()).status).toBe(200);
+  });
+  it("rolls back a mid-tenant failure, persists only a safe error code, then retries without duplicates", async () => {
+    await secondMember();
+    const original = Charge.create.bind(Charge);
+    let inserts = 0;
+    const spy = vi.spyOn(Charge, "create").mockImplementation((async (...args: unknown[]) => {
+      if (++inserts === 2) throw new Error("synthetic-sensitive-URI-and-secret");
+      return (original as (...args: unknown[]) => Promise<unknown>)(...args);
+    }) as typeof Charge.create);
+    try { await expect(runTuitionBatch(undefined, now)).rejects.toThrow("synthetic-sensitive"); }
+    finally { spy.mockRestore(); }
+    expect(inserts).toBe(2);
+    expect(await Charge.countDocuments({ tenantId: tenant })).toBe(0);
+    const failed = await TuitionRun.findOne({ tenantId: tenant });
+    expect(failed!.toObject()).toMatchObject({ status: "failed", created: 0, skipped: 0, amount: 0, errorCode: "BILLING_RUN_FAILED" });
+    expect(JSON.stringify(failed)).not.toContain("synthetic-sensitive");
+    expect((await runTuitionBatch(undefined, now)).created).toBe(2);
+    expect((await runTuitionBatch(undefined, now)).created).toBe(0);
+    expect(await Charge.countDocuments()).toBe(2);
+    expect(await TuitionRun.countDocuments({ tenantId: tenant, status: "completed" })).toBe(2);
+  });
+  it("retries a transient transaction with fresh counters and a single atomic completion", async () => {
+    await secondMember();
+    const original = Charge.create.bind(Charge);
+    let inserts = 0;
+    const spy = vi.spyOn(Charge, "create").mockImplementation((async (...args: unknown[]) => {
+      if (++inserts === 2) {
+        const error = new mongoose.mongo.MongoServerError({ message: "synthetic conflict", code: 112 });
+        error.addErrorLabel("TransientTransactionError");
+        throw error;
+      }
+      return (original as (...args: unknown[]) => Promise<unknown>)(...args);
+    }) as typeof Charge.create);
+    try { expect((await runTuitionBatch(undefined, now)).created).toBe(2); }
+    finally { spy.mockRestore(); }
+    expect(inserts).toBe(4);
+    expect(await Charge.countDocuments()).toBe(2);
+    expect((await TuitionRun.findOne({ tenantId: tenant }))!.toObject()).toMatchObject({ status: "completed", created: 2, skipped: 0, amount: 2000 });
+  });
+  it("rolls back charges if recording completion fails and manual billing remains independent of audit", async () => {
+    const spy = vi.spyOn(TuitionRun, "updateOne").mockImplementationOnce(() => { throw new Error("synthetic audit failure"); });
+    try { await expect(runTuitionBatch(undefined, now)).rejects.toThrow("synthetic audit failure"); }
+    finally { spy.mockRestore(); }
+    expect(await Charge.countDocuments()).toBe(0);
+    expect((await TuitionRun.findOne({ tenantId: tenant }))!.status).toBe("failed");
+    const unavailable = vi.spyOn(TuitionRun, "create").mockRejectedValue(new Error("synthetic audit unavailable"));
+    try { expect((await generate("2026-11")).body.created).toBe(1); }
+    finally { unavailable.mockRestore(); }
+  });
+  it("serializes concurrent scheduler attempts and manual generation; cancelled charges remain final", async () => {
+    const actor = await secondMember();
+    const results = await Promise.all([
+      runTuitionBatch(undefined, now), runTuitionBatch(undefined, now),
+      generateTuitionMonth(tenant, actor._id, "2026-11", "manual"),
+    ]);
+    expect(results.reduce((sum, r) => sum + r.created, 0)).toBe(2);
+    expect(await Charge.countDocuments()).toBe(2);
+    expect(await TuitionRun.countDocuments({ status: "failed" })).toBe(0);
+    await Charge.updateMany({ tenantId: tenant }, { cancelled: true });
+    const before = await Charge.find().lean();
+    expect((await runTuitionBatch(undefined, now)).created).toBe(0);
+    expect(await Charge.find().lean()).toEqual(before);
+  });
+  it("excludes inactive students, paused groups, removed memberships and cross-tenant references", async () => {
+    await Student.updateOne({ _id: studentId }, { status: "archived" });
+    expect((await runTuitionBatch(undefined, now, true)).wouldCreate).toBe(0);
+    await Student.updateOne({ _id: studentId }, { status: "active" });
+    await Group.updateOne({ _id: groupId }, { status: "paused" });
+    expect((await runTuitionBatch(undefined, now, true)).wouldCreate).toBe(0);
+    await Group.updateOne({ _id: groupId }, { status: "active" });
+    await Membership.updateMany({ tenantId: tenant }, { status: "removed" });
+    expect((await runTuitionBatch(undefined, now, true)).wouldCreate).toBe(0);
+    await Membership.create({ tenantId: otherTenant, studentId, groupId, enrolledAt: "2025-01-01" });
+    expect((await runTuitionBatch(undefined, now)).created).toBe(0);
+    expect(await Charge.countDocuments()).toBe(0);
   });
 });

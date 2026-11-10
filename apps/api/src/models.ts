@@ -1,3 +1,4 @@
+import { TuitionRun } from "./tuition-run-model.js";
 import { PayrollRun, PayrollRunItem } from "./payroll-automation-models.js";
 import { cashModels } from "./cash-models.js";
 import { securityModels } from "./security-models.js";
@@ -194,6 +195,7 @@ export async function ensureIndexes() {
     ...telegramModels,
     ...notificationModels,
     DailyReportSettings,
+    TuitionRun,
     PayrollRun,
     PayrollRunItem,
     SalaryRule,
