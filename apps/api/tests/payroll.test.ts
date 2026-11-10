@@ -1110,3 +1110,17 @@ it("paginates preview teachers and durable attempt history without crossing tena
   expect(page1.attempts.runs[0]._id).not.toBe(page2.attempts.runs[0]._id);
   expect((await get("/automation/status?month=2025-03")).body.attempts.total).toBe(0);
 });
+
+it("requires a group for percentage payroll but preserves a genuine zero-collection basis", async () => {
+  await rule({ salaryType: "collected", percentage: 50 });
+  const zero = await preview();
+  expect(zero.status).toBe(200);
+  expect(zero.body).toMatchObject({ grossSalary: 0 });
+  expect(zero.body.lines).toHaveLength(1);
+  await Group.deleteMany({ tenantId: tenant });
+  const missing = await post("/automation/preview", { month: "2025-02" });
+  expect(missing.body.items.find((i: {teacherId: string}) => i.teacherId === teacherId)).toMatchObject({ status: "exception", code: "PAYROLL_GROUP_MISSING" });
+  await auto();
+  expect(await Payroll.countDocuments({ teacherId })).toBe(0);
+  expect((await PayrollRunItem.findOne({ teacherId }))!.code).toBe("PAYROLL_GROUP_MISSING");
+});

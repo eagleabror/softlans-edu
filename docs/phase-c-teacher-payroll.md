@@ -18,7 +18,7 @@ Production backup tayyorligi hali tasdiqlanmagan. Bu Phase C doirasida backupni 
 
 ## Tayyorlangan xatti-harakat
 
-- Hisoblash formulasi, rounding, collected/billed manbalari, fixed qoidasi va qo‘lda individual qoralama yaratish saqlanadi. Faqat yo‘qolgan guruh (`PAYROLL_GROUP_MISSING`) va buzilgan summa (`PAYROLL_CALCULATION_DATA_INVALID`) uchun validation qo‘shildi. Haqiqatan nol tushum/hisob nol asos bo‘lishi mumkin; bu taxminiy xato sifatida o‘zgartirilmaydi.
+- Hisoblash formulasi, rounding, collected/billed manbalari, fixed qoidasi va qo‘lda individual qoralama yaratish saqlanadi. Faqat yo‘qolgan guruh (`PAYROLL_GROUP_MISSING`) va buzilgan summa (`PAYROLL_CALCULATION_DATA_INVALID`) uchun validation qo‘shildi. Foizli qoida uchun hisoblash guruhi bo‘lmasa aniq exception qaytariladi. Mavjud guruhdagi haqiqatan nol tushum/hisob nol asos bo‘lishi mumkin; bu taxminiy xato sifatida o‘zgartirilmaydi.
 - Owner `POST /api/payroll/automation/preview` orqali 10 o‘qituvchilik snapshot preview oladi (`month`, ixtiyoriy `afterTeacher`). Mavjud statement’ning muzlatilgan asosi va tuzatishlardan keyingi summasi ko‘rsatiladi. Yangi qoralama qayta hisoblanadi; preview quote emas.
 - Individual `/api/payroll/preview` endi billing lock/revision yozmaydi. Preview’lar maosh, audit, attempt yoki notification yaratmaydi.
 - `GET /api/payroll/automation/status?month=YYYY-MM&page=1&historyPage=1`: oylik teacher natijalari, alohida 20 qatorli attempt tarixi, notification outbox status sonlari. Tarix faqat tenant Owner’iga ochiq. Admin, teacher va super_admin boshqara olmaydi.
@@ -43,7 +43,7 @@ DB hajmi uchun mavjud 20 000 payment/charge limiti saqlangan. Katta tenant’lar
 
 ## Lokal tekshiruv natijalari
 
-- `npm test`: 622 API, 149 web, 1 contracts — **772 passed**. Mavjud opt-in recovery testi oddiy suite’da 1 skipped; bu production backup tasdig‘i emas.
+- `npm test`: API, web va contracts suite’lari tekshirildi; yakuniy commit bo‘yicha aniq test sonlari Draft PR tavsifida. Mavjud opt-in recovery testi oddiy suite’da skipped; bu production backup tasdig‘i emas.
 - `npm run typecheck`, o‘zgargan payroll/workflow testlari uchun alohida strict TypeScript: PASS.
 - `npm run build`: PASS; mavjud Vite chunk/import ogohlantirishlari saqlangan.
 - `npm audit --audit-level=high`, `npm audit --omit=dev --audit-level=high`: 0 vulnerabilities.

@@ -204,6 +204,8 @@ export async function calculatePayroll(
       "INVALID_SALARY_SETTINGS",
       "O‘qituvchining guruhlari uchun amal qiluvchi maosh qoidasini kiriting.",
     );
+  if (!lines.length)
+    throw new AppError(409, "PAYROLL_GROUP_MISSING", "Foizli maosh uchun o‘qituvchining hisoblash guruhi topilmadi. Guruh biriktirilganini tekshiring.");
   return {
     policyVersion: "tashkent-charge-owner-v1",
     timezone: "Asia/Tashkent",
