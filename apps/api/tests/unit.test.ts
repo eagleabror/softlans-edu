@@ -87,6 +87,7 @@ describe("tenant and role invariants", () => {
       "business_owner",
       "admin",
       "teacher",
+      "student",
     ] as const;
     for (const actor of roles)
       for (const target of roles)

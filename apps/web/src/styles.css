@@ -2991,3 +2991,11 @@ td {
 .billing-automation th, .billing-automation td { font-size: 14px; color: #526b43; }
 .billing-automation td:last-child { white-space: normal; min-width: 240px; overflow-wrap: anywhere; }
 .billing-automation .muted, .billing-automation .pagination { color: #526b43; }
+
+/* Student access provisioning stays inside the existing CRM student profile. */
+.student-account-panel { margin-top: 24px; }
+.student-account-panel h2 { display: flex; align-items: center; gap: 8px; }
+.student-account-panel .auth-form { max-width: 560px; }
+.student-account-panel .plain-input { padding: 12px; width: 100%; }
+.student-account-panel .info-row strong { overflow-wrap: anywhere; min-width: 0; }
+.student-account-panel .plain-input { border-color: var(--color-muted); }

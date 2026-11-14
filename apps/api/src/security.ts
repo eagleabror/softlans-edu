@@ -4,7 +4,7 @@ import type { ClientSession } from "mongoose";
 import type { Request, RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import type { Config } from "./config.js";
-import { Tenant, User, type UserRecord } from "./models.js";
+import { Student, Tenant, User, type UserRecord } from "./models.js";
 import { AppError } from "./errors.js";
 import type { Role } from "@softlans/contracts";
 import type { Types } from "mongoose";
@@ -82,6 +82,7 @@ export const authenticate =
         !(await Tenant.exists({ _id: user.tenantId, active: true }))
       )
         throw new Error();
+      if (!(await studentAccountAvailable(user))) throw new Error();
       if ((user.mfaEnabled || (user.role === "super_admin" && config.SUPER_ADMIN_MFA_ENFORCED)) && payload.mfa !== true)
         throw new Error();
       let sessionId: string | undefined;
@@ -117,6 +118,14 @@ export const authenticate =
     // Subscription denial is distinct from authentication and administrative blocking.
     await subscriptionEntitlement(req, _res, next);
   };
+/** The link is server-owned and checked on login, MFA completion and every request. */
+export async function studentAccountAvailable(user: UserRecord, session?: ClientSession) {
+  if (user.role !== "student") return user.studentId == null;
+  if (!user.studentId || !user.tenantId) return false;
+  return Boolean(await Student.exists({
+    _id: user.studentId, tenantId: user.tenantId, status: { $ne: "archived" },
+  }).session(session ?? null));
+}
 export function principal(req: Express.Request): Principal {
   if (!req.principal)
     throw new AppError(401, "UNAUTHENTICATED", "Hisobingizga kiring.");

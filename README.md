@@ -1,5 +1,7 @@
 # SoftLans Edu 2.0
 
+O‘quvchi shaxsiy kabineti, hisob ochish va kirish chegaralari: [O‘quvchi kabineti](docs/student-portal.md).
+
 6.3.1 bosqichidagi alohida Super Admin paneli, API, xavfsizlik chegaralari va demo tekshiruvlari: [Super Admin va markazlarni boshqarish](docs/phase-6.3.1-super-admin.md).
 
 O‘zbekiston ta’lim markazlari uchun TypeScript monorepo: tenant CRM, o‘quvchilar, guruhlar, jadval, davomat, billing, payroll, leadlar, Telegram, SaaS obunalar va onboarding. Interfeys o‘zbek tilida. Parolni tiklash va MFA hali mavjud emas.

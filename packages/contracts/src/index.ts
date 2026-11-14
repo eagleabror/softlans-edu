@@ -3,6 +3,7 @@ export const ROLES = [
   "business_owner",
   "admin",
   "teacher",
+  "student",
 ] as const;
 export type Role = (typeof ROLES)[number];
 export interface UserView {
@@ -488,4 +489,71 @@ export interface TuitionAutomationView {
     amount: number;
     errorCode: "BILLING_OWNER_REQUIRED" | "BILLING_RUN_FAILED" | null;
   }[];
+}
+
+// Student portal responses deliberately exclude CRM notes and staff metadata.
+export interface StudentAccountView {
+  account: { id: string; email: string; active: boolean } | null;
+}
+export interface StudentAccountInput { email: string; password: string }
+export interface StudentProfileView {
+  name: string;
+  email: string;
+  phone: string;
+  centerName: string;
+  status: StudentStatus;
+  enrollmentDate: string;
+}
+export interface StudentLessonView {
+  key: string;
+  groupId: string;
+  groupName: string;
+  courseName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  teacherName: string;
+  classroomName: string;
+  status: "scheduled" | "completed" | "cancelled";
+}
+export interface StudentScheduleView {
+  lessons: StudentLessonView[];
+  weekStart: string;
+  weekEnd: string;
+  timezone: "Asia/Tashkent";
+}
+export interface StudentPage { total: number; page: number; pageSize: number }
+export interface StudentAttendanceView extends StudentPage {
+  month: string;
+  summary: Pick<AttendanceSummary, "present" | "absent" | "late" | "excused" | "marked" | "unmarked" | "attendancePercentage">;
+  lessons: {
+    id: string; date: string; startTime: string; endTime: string; groupName: string;
+    lessonStatus: "scheduled" | "completed" | "cancelled";
+    status: AttendanceStatus | null;
+  }[];
+}
+export interface StudentChargeView {
+  id: string; groupName: string; billingMonth: string; finalAmount: number;
+  paidAmount: number; remainingAmount: number;
+  status: ChargeView["status"]; dueDate: string;
+}
+export interface StudentChargesView extends StudentPage {
+  month: string;
+  charges: StudentChargeView[];
+  summary: { billed: number; paid: number; remaining: number };
+}
+export interface StudentPaymentsView extends StudentPage {
+  month: string;
+  payments: {
+    id: string; amount: number; method: PaymentView["method"]; paidAt: string;
+    reversed: boolean;
+  }[];
+}
+export interface StudentDashboardView {
+  month: string;
+  groups: { id: string; name: string; courseName: string; teacherName: string }[];
+  attendance: StudentAttendanceView["summary"];
+  outstandingAmount: number;
+  nextDueDate: string | null;
+  nextLesson: StudentLessonView | null;
 }

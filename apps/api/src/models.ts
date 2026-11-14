@@ -69,9 +69,10 @@ const userSchema = new Schema(
     passwordHash: { type: String, required: true, select: false },
     role: {
       type: String,
-      enum: ["super_admin", "business_owner", "admin", "teacher"],
+      enum: ["super_admin", "business_owner", "admin", "teacher", "student"],
       required: true,
     },
+    studentId: { type: Schema.Types.ObjectId, ref: "Student", immutable: true },
     active: { type: Boolean, required: true, default: true },
     // Embedded reset state makes consumption + password/session update a single CAS.
     // No TTL index on User: expiration is checked explicitly and must never delete accounts.
@@ -95,7 +96,13 @@ const userSchema = new Schema(
 userSchema.index({ passwordResetHash: 1 }, { sparse: true });
 userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ tenantId: 1, role: 1 });
+userSchema.index({ tenantId: 1, studentId: 1 }, {
+  unique: true, partialFilterExpression: { role: "student" },
+});
 userSchema.pre("validate", function () {
+  if ((this.role === "student") !== (this.studentId != null)) {
+    this.invalidate("studentId", "Only student accounts require a linked student");
+  }
   if ((this.role === "super_admin") !== (this.tenantId == null)) {
     this.invalidate(
       "tenantId",
