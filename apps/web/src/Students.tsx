@@ -1,3 +1,4 @@
+import { StudentAccount } from "./StudentAccount";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { GraduationCap, Plus } from "lucide-react";
@@ -373,6 +374,7 @@ export function StudentDetail() {
           </div>
         </section>
       )}
+      {student && <StudentAccount key={student.id} studentId={student.id} status={student.status} />}
       <dialog
         ref={dialog}
         className="member-dialog student-dialog"

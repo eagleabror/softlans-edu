@@ -1,3 +1,4 @@
+import { studentPortalRouter, studentAccountsRouter } from "./student-portal.js";
 import { cashRouter } from "./cash.js";
 import { managementRouter } from "./management-reports.js";
 import { mfaSecurityRouter, beginLoginChallenge, passwordSession } from "./mfa-security.js";
@@ -43,6 +44,7 @@ import { AppError, errorHandler } from "./errors.js";
 import { registerSchema, loginSchema, teamSchema } from "./validation.js";
 import {
   authenticate,
+  studentAccountAvailable,
   principal,
   requireRoles,
   tenantScope,
@@ -220,6 +222,7 @@ export function createApp(
       !valid ||
       !user ||
       !user.active ||
+      !(await studentAccountAvailable(user)) ||
       (user.role === "super_admin" ? user.tenantId !== null : !user.tenantId) ||
       (user.tenantId &&
         !(await Tenant.exists({ _id: user.tenantId, active: true })))
@@ -283,9 +286,10 @@ export function createApp(
   app.use("/api/leads", authenticate(config), leadsRouter);
   app.use("/api/trial-lessons", authenticate(config), trialsRouter);
   app.use("/api/follow-ups", authenticate(config), followUpsRouter);
-  app.use("/api/students", authenticate(config), studentsRouter);
+  app.use("/api/student", authenticate(config), studentPortalRouter);
+  app.use("/api/students", authenticate(config), studentAccountsRouter, studentsRouter);
 
-  app.get("/api/dashboard", authenticate(config), async (req, res) => {
+  app.get("/api/dashboard", authenticate(config), requireRoles("super_admin", "business_owner", "admin", "teacher"), async (req, res) => {
     const actor = principal(req);
     if (actor.role === "super_admin") {
       const [tenantCount, teamCount] = await Promise.all([
@@ -324,7 +328,7 @@ export function createApp(
       financial,
       debts,
     ] = await Promise.all([
-      User.countDocuments({ ...scope, active: true }),
+      User.countDocuments({ ...scope, active: true, role: { $in: ["business_owner", "admin", "teacher"] } }),
       User.countDocuments({ ...scope, active: true, role: "admin" }),
       User.countDocuments({ ...scope, active: true, role: "teacher" }),
       studentStatistics(scope),
@@ -353,7 +357,7 @@ export function createApp(
     requireRoles("business_owner", "admin"),
   ];
   app.get("/api/team", ...teamAuth, async (req, res) => {
-    const scope = tenantScope(principal(req));
+    const scope = { ...tenantScope(principal(req)), role: { $in: ["business_owner", "admin", "teacher"] } };
     const pageValue = Number(req.query.page ?? 1);
     if (!Number.isSafeInteger(pageValue) || pageValue < 1 || pageValue > 10000)
       throw new AppError(400, "BAD_PAGE", "Sahifa raqami noto‘g‘ri.");
@@ -377,6 +381,7 @@ export function createApp(
     const user = await User.findOne({
       _id: req.params.id,
       ...tenantScope(principal(req)),
+      role: { $in: ["business_owner", "admin", "teacher"] },
     });
     if (!user) throw new AppError(404, "NOT_FOUND", "Foydalanuvchi topilmadi.");
     res.json({ user: userView(user) });

@@ -9,7 +9,7 @@ import type { Config } from "./config.js";
 import { Tenant, User, type UserRecord } from "./models.js";
 import { DeviceSession, MfaChallenge } from "./security-models.js";
 import { AppError } from "./errors.js";
-import { authenticate, principal, createSession, COOKIE_NAME, cookieOptions } from "./security.js";
+import { studentAccountAvailable, authenticate, principal, createSession, COOKIE_NAME, cookieOptions } from "./security.js";
 import { acceptedStep, digest, encryptionKey, newSecret, recoveryCodes, recoveryDigest, seal, totp, unseal } from "./mfa-crypto.js";
 
 const fields = "+passwordHash +sessionVersion +mfaEnabled +mfaSecret +mfaPendingSecret +mfaPendingExpiresAt +mfaLastStep +mfaRecoveryHashes +mfaRevision";
@@ -40,6 +40,7 @@ async function lockedUser(id: Types.ObjectId, version: number, session: ClientSe
     const result = await Tenant.updateOne({ _id: user.tenantId, active: true }, { $inc: { passwordSecurityRevision: 1 } }, { session });
     if (result.matchedCount !== 1) throw conflict();
   }
+  if (!(await studentAccountAvailable(user, session))) throw conflict();
   return user;
 }
 async function consumeFactor(user: UserRecord, code: string, config: Config, session: ClientSession) {

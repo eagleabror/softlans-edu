@@ -2,7 +2,7 @@ import { assertQuota } from "./saas-entitlements.js";
 import { lockBilling } from "./billing-lock.js";
 import { Router } from "express";
 import mongoose from "mongoose";
-import { Student, type StudentRecord } from "./models.js";
+import { Student, User, type StudentRecord } from "./models.js";
 import { principal, requireRoles, tenantScope } from "./security.js";
 import { AppError } from "./errors.js";
 import {
@@ -127,6 +127,10 @@ for (const statusOnly of [false, true]) {
           current?.status !== "archived"
             ? { archivedAt: new Date() }
             : {};
+        if (current && "status" in input && input.status === "archived") {
+          await User.updateMany({ ...tenantScope(principal(req)), studentId: current._id, role: "student" },
+            { $inc: { sessionVersion: 1 } }, { session });
+        }
         return Student.findOneAndUpdate(
           { _id: req.params.id, ...tenantScope(principal(req)) },
           { $set: { ...input, ...archive } },

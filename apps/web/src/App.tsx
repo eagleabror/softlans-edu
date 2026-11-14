@@ -1,3 +1,4 @@
+import { StudentPortal } from "./StudentPortal";
 import { Expenses } from "./Expenses";
 import { MfaLoginChallenge, SecuritySettings } from "./MfaSecurity";
 import { PasswordSecurity } from "./PasswordSecurity";
@@ -90,6 +91,7 @@ const roleNames: Record<Role, string> = {
   business_owner: "Markaz egasi",
   admin: "Administrator",
   teacher: "O‘qituvchi",
+  student: "O‘quvchi",
 };
 function uzbekDate(value: Date) {
   const parts = new Intl.DateTimeFormat("en-GB", {
@@ -1610,6 +1612,8 @@ export function App() {
     return (
       <SuperAdminLayout session={session} onLogout={() => setSession(null)} onPasswordUpdated={onPasswordUpdated} />
     );
+  if (session?.user.role === "student")
+    return <StudentPortal session={session} onSignedOut={() => setSession(null)} onPasswordUpdated={onPasswordUpdated} />;
   if (session)
     return (
       <AuthContext.Provider value={{ session, setSession, onPasswordUpdated }}>
