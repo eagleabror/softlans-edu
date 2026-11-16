@@ -3,7 +3,7 @@ import { z } from "zod";
 import { parseConfig } from "../config.js";
 import { connectDatabase } from "../db.js";
 import { ensureIndexes } from "../models.js";
-import { runPayrollScheduler, payrollCursor } from "../payroll-automation.js";
+import { runPayrollScheduler, payrollCursor, assertPayrollSchedulerEnabled } from "../payroll-automation.js";
 import { billingMonth } from "../billing-validation.js";
 // Uses the same closing policy and durable cursor protocol as the HTTP scheduler.
 // No HTTP acknowledgement can make this process exit successfully.
@@ -12,16 +12,21 @@ try {
   const selectedMonth = billingMonth
     .optional()
     .parse(process.env.PAYROLL_MONTH);
+  const dryRun = z.enum(["true", "false"]).default("true").parse(process.env.PAYROLL_DRY_RUN) === "true";
+  assertPayrollSchedulerEnabled(config, dryRun);
+  if (dryRun) mongoose.set("autoCreate", false);
   await connectDatabase(config.MONGODB_URI);
-  await ensureIndexes();
+  if (!dryRun) await ensureIndexes();
   let cursor: z.infer<typeof payrollCursor> | undefined;
   let month = selectedMonth;
   let failed = false;
   do {
-    const result = await runPayrollScheduler(config, { month, cursor });
+    const result = await runPayrollScheduler(config, { month, cursor, dryRun });
     console.info(
       JSON.stringify({
         event: "payroll_monthly",
+        dryRun,
+        wouldCreate: "wouldCreate" in result ? result.wouldCreate : 0,
         month: result.month,
         status: result.status,
         created: result.created,

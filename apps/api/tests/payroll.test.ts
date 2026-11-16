@@ -1,12 +1,17 @@
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import {
   PayrollRun,
   PayrollRunItem,
+  PayrollAttempt,
 } from "../src/payroll-automation-models.js";
 import {
   generatePayrollBatch,
   previousPayrollMonth,
   payrollDueAt,
   runPayrollScheduler,
+  previewPayrollBatch,
+  assertPayrollClosed,
 } from "../src/payroll-automation.js";
 import {
   NotificationJob,
@@ -16,7 +21,7 @@ import { TelegramIntegration } from "../src/telegram-models.js";
 import { processNotification } from "../src/notifications.js";
 import { TelegramDispatch } from "../src/telegram-models.js";
 import { payrollReadyEligibility } from "../src/payroll-notifications.js";
-import { beforeAll, afterAll, beforeEach, it, expect } from "vitest";
+import { beforeAll, afterAll, beforeEach, it, expect, vi } from "vitest";
 import { randomBytes, randomUUID } from "node:crypto";
 import mongoose from "mongoose";
 import request from "supertest";
@@ -39,6 +44,7 @@ import { percentageSalary } from "../src/payroll-calculation.js";
 import { monthBounds } from "../src/billing-validation.js";
 const origin = "http://localhost:5173";
 const config = parseConfig({
+  PAYROLL_SCHEDULER_ENABLED: "true",
   PAYROLL_SCHEDULER_SECRET: randomBytes(48).toString("base64url"),
   NODE_ENV: "test",
   APP_ORIGIN: origin,
@@ -165,6 +171,7 @@ beforeEach(async () => {
   for (const m of [
     PayrollRun,
     PayrollRunItem,
+  PayrollAttempt,
     NotificationJob,
     NotificationSettings,
     TelegramIntegration,
@@ -181,7 +188,7 @@ beforeEach(async () => {
     User,
     Tenant,
   ])
-    await m.deleteMany({});
+    await m.collection.deleteMany({});
   tenant = (await Tenant.create({ name: "Tenant" }))._id;
   const t = await actor("teacher", tenant);
   teacherId = t.id;
@@ -706,7 +713,7 @@ it("authenticates machine scheduler independently and keeps manual fallback tena
     (await trigger({ month: "2025-02", tenantId: String(tenant) })).status,
   ).toBe(400);
   await rule({ salaryType: "fixed", fixedAmount: 1000, percentage: null });
-  const batch = await trigger({ month: "2025-02" });
+  const batch = await trigger({ month: "2025-02", dryRun: false });
   expect(batch.status).toBe(200);
   expect(batch.body.month).toBe("2025-02");
   expect(
@@ -919,4 +926,201 @@ it("delivers payroll readiness through the existing notification processor with 
   expect(
     (await NotificationJob.findOne({ kind: "payroll_ready" }))!.status,
   ).toBe("sent");
+});
+
+async function allFixed() {
+  for (const t of await User.find({ tenantId: tenant, role: "teacher", active: true }))
+    await rule({ teacherId: t.id, salaryType: "fixed", percentage: null, fixedAmount: 1000 });
+  return (await User.findOne({ tenantId: tenant, role: "business_owner" }))!;
+}
+
+it("checks the exact Tashkent closing boundary, not the UTC calendar day", () => {
+  expect(() => assertPayrollClosed("2024-02", new Date("2024-02-29T18:59:59.999Z"))).toThrow();
+  expect(() => assertPayrollClosed("2024-02", new Date("2024-02-29T19:00:00Z"))).not.toThrow();
+  expect(() => assertPayrollClosed("2025-12", new Date("2025-12-31T19:00:00Z"))).not.toThrow();
+});
+it("requires explicit enablement for scheduled writes while dry-run still requires a secret", async () => {
+  const disabled = { ...config, PAYROLL_SCHEDULER_ENABLED: false };
+  await expect(runPayrollScheduler(disabled, { month: "2025-02" })).rejects.toMatchObject({ code: "SCHEDULER_DISABLED" });
+  await expect(runPayrollScheduler({ ...disabled, PAYROLL_SCHEDULER_SECRET: undefined }, { dryRun: true })).rejects.toMatchObject({ code: "SCHEDULER_DISABLED" });
+  const offApp = createApp(disabled);
+  const trigger = (body: object, secret = config.PAYROLL_SCHEDULER_SECRET!) => request(offApp).post("/api/internal/payroll/run")
+    .set("Authorization", `Bearer ${secret}`).send(body);
+  expect((await trigger({ month: "2025-02", dryRun: false })).status).toBe(503);
+  expect((await trigger({ month: "2025-02", dryRun: true }, "wrong")).status).toBe(401);
+  expect((await trigger({ month: "2025-02", dryRun: "true" })).status).toBe(400);
+  expect((await trigger({ month: "2025-02" })).body).toMatchObject({ dryRun: true, created: 0 });
+  expect(await Payroll.countDocuments()).toBe(0);
+  expect(await PayrollAttempt.countDocuments()).toBe(0);
+  expect((await auto()).status).toBe(200); // manual fallback is independent
+  const parsed = parseConfig({ NODE_ENV: "test", APP_ORIGIN: origin, JWT_SECRET: config.JWT_SECRET, MONGODB_URI: "mongodb://localhost/test" });
+  expect(parsed.PAYROLL_SCHEDULER_ENABLED).toBe(false);
+});
+it("previews frozen statements and exceptions without changing any collection, audit, lock or outbox", async () => {
+  await rule({ salaryType: "fixed", percentage: null, fixedAmount: 1000 });
+  const d = await draft();
+  await post(`/${d.id}/adjustments`, { revision: 0, amount: -100, reason: "Sinov tuzatish" });
+  const snapshot = async () => {
+    const result: Record<string, unknown> = {};
+    for (const c of await mongoose.connection.db!.listCollections().toArray())
+      result[c.name] = await mongoose.connection.db!.collection(c.name).find().sort({ _id: 1 }).toArray();
+    return result;
+  };
+  const before = await snapshot();
+  const r = await post("/automation/preview", { month: "2025-02" });
+  expect(r.status).toBe(200);
+  expect(r.body).toMatchObject({ dryRun: true, created: 0, wouldCreate: 0, preserved: 1, exceptions: 1 });
+  expect(r.body.items.find((i: {status: string}) => i.status === "preserved")).toMatchObject({ finalSalary: 900, basis: { grossSalary: 1000 } });
+  expect((await preview()).status).toBe(200);
+  const dry = await runPayrollScheduler({ ...config, PAYROLL_SCHEDULER_ENABLED: false }, { month: "2025-02", dryRun: true });
+  expect(dry.created).toBe(0);
+  expect(await snapshot()).toEqual(before);
+});
+it("persists safe failure history after a partial batch and resumes without duplicate drafts", async () => {
+  const actor = await allFixed();
+  const original = Payroll.create.bind(Payroll);
+  let inserts = 0;
+  const spy = vi.spyOn(Payroll, "create").mockImplementation((async (...args: unknown[]) => {
+    if (++inserts === 2) throw new Error("synthetic-private-URI-secret");
+    return (original as (...args: unknown[]) => Promise<unknown>)(...args);
+  }) as typeof Payroll.create);
+  try { await expect(generatePayrollBatch(tenant, actor._id, "2025-02", "scheduled")).rejects.toThrow("synthetic-private"); }
+  finally { spy.mockRestore(); }
+  expect(await Payroll.countDocuments({ tenantId: tenant })).toBe(1);
+  expect(await PayrollRunItem.countDocuments({ tenantId: tenant, status: "ready" })).toBe(1);
+  const failed = await PayrollAttempt.findOne({ tenantId: tenant });
+  expect(failed).toMatchObject({ status: "failed", errorCode: "PAYROLL_RUN_FAILED" });
+  expect(JSON.stringify(failed)).not.toContain("synthetic-private");
+  expect(await NotificationJob.countDocuments()).toBe(0);
+  expect(await generatePayrollBatch(tenant, actor._id, "2025-02", "scheduled")).toMatchObject({ created: 1, preserved: 1, status: "completed" });
+  expect(await generatePayrollBatch(tenant, actor._id, "2025-02", "manual")).toMatchObject({ created: 0, preserved: 2 });
+  expect(await Payroll.countDocuments({ tenantId: tenant })).toBe(2);
+  expect(await PayrollAudit.countDocuments({ action: "draft_created" })).toBe(2);
+});
+it("rolls back and retries a genuine transient teacher transaction exactly once", async () => {
+  const actor = await allFixed();
+  const original = PayrollAudit.create.bind(PayrollAudit);
+  let calls = 0;
+  const spy = vi.spyOn(PayrollAudit, "create").mockImplementation((async (...args: unknown[]) => {
+    if (++calls === 1) {
+      const error = new mongoose.mongo.MongoServerError({ message: "synthetic conflict", code: 112 });
+      error.addErrorLabel("TransientTransactionError");
+      throw error;
+    }
+    return (original as (...args: unknown[]) => Promise<unknown>)(...args);
+  }) as typeof PayrollAudit.create);
+  try { expect(await generatePayrollBatch(tenant, actor._id, "2025-02", "scheduled")).toMatchObject({ created: 2, preserved: 0, exceptions: 0 }); }
+  finally { spy.mockRestore(); }
+  expect(calls).toBe(3);
+  expect(await Payroll.countDocuments()).toBe(2);
+  expect(await PayrollAudit.countDocuments({ action: "draft_created" })).toBe(2);
+  expect(await PayrollAttempt.countDocuments({ status: "completed", created: 2 })).toBe(1);
+});
+it("keeps interrupted and acknowledgement-failed attempts uncertain and allows safe replay", async () => {
+  await allFixed();
+  const interrupted = await PayrollAttempt.create({ tenantId: tenant, month: "2025-02", source: "scheduled" });
+  const spy = vi.spyOn(PayrollAttempt, "updateOne").mockImplementationOnce(() => { throw new Error("synthetic completion failure"); });
+  try { expect((await auto()).status).toBe(500); }
+  finally { spy.mockRestore(); }
+  expect(await Payroll.countDocuments()).toBe(2); // committed teacher transactions survive lost acknowledgement
+  expect((await auto()).body).toMatchObject({ created: 0, preserved: 2 });
+  expect((await PayrollAttempt.findById(interrupted._id))!.status).toBe("running");
+  const r = await get("/automation/status?month=2025-02");
+  expect(r.body.attempts.runs.map((a: {status: string}) => a.status)).toEqual(expect.arrayContaining(["running", "failed", "completed"]));
+});
+it("fails closed before writes when attempt storage is unavailable; individual manual drafts still work", async () => {
+  await allFixed();
+  const spy = vi.spyOn(PayrollAttempt, "create").mockRejectedValue(new Error("synthetic unavailable"));
+  try {
+    expect((await auto()).status).toBe(500);
+    expect(await Payroll.countDocuments()).toBe(0);
+    expect((await post("/drafts", { teacherId, month: "2025-02", confirmed: true })).status).toBe(200);
+  } finally { spy.mockRestore(); }
+});
+it("isolates preview/history/outbox by tenant and rejects admin/teacher/platform access", async () => {
+  await allFixed();
+  await auto();
+  for (const cookie of [admin, self, platform]) {
+    expect((await post("/automation/preview", { month: "2025-02" }, cookie)).status).toBe(403);
+    expect((await get("/automation/status?month=2025-02", cookie)).status).toBe(403);
+  }
+  const otherStatus = await get("/automation/status?month=2025-02", other);
+  expect(otherStatus.body).toMatchObject({ items: [], attempts: { runs: [], total: 0 }, notifications: [] });
+  const otherPreview = await post("/automation/preview", { month: "2025-02" }, other);
+  expect(otherPreview.body.items.some((i: {teacherId: string}) => i.teacherId === teacherId)).toBe(false);
+  expect((await post("/automation/preview", { month: "2025-02", tenantId: String(tenant) })).status).toBe(400);
+  expect((await get("/automation/status?month=2025-02&historyPage=0")).status).toBe(400);
+});
+it("reports missing groups and corrupt calculation amounts as explicit exceptions", async () => {
+  await rule({ salaryType: "billed", percentage: 50 });
+  const c = await charge();
+  await Charge.collection.updateOne({ _id: c._id }, { $set: { finalAmount: 1.5 } });
+  expect((await auto()).body.status).toBe("exceptions");
+  expect((await PayrollRunItem.findOne({ teacherId }))!.code).toBe("PAYROLL_CALCULATION_DATA_INVALID");
+  await Group.deleteMany({ tenantId: tenant });
+  await auto();
+  expect((await PayrollRunItem.findOne({ teacherId }))!.code).toBe("PAYROLL_GROUP_MISSING");
+  expect(await Payroll.countDocuments()).toBe(0);
+});
+it("reports queued readiness as pending, with one job under concurrent scheduler/manual retries", async () => {
+  const actor = await allFixed();
+  await TelegramIntegration.create({ tenantId: tenant, userId: actor._id, status: "connected", telegramUserId: "999", chatId: "999", notificationPreferences: { enabled: true } });
+  await Promise.all([
+    runPayrollScheduler(config, { month: "2025-02", cursor: { tenantId: String(tenant) } }),
+    auto(), post("/drafts", { teacherId, month: "2025-02", confirmed: true }),
+  ]);
+  expect(await Payroll.countDocuments({ tenantId: tenant })).toBe(2);
+  expect(await Payroll.countDocuments({ status: { $ne: "draft" } })).toBe(0);
+  expect(await SalaryPayout.countDocuments()).toBe(0);
+  expect(await NotificationJob.countDocuments({ status: "pending" })).toBe(1);
+  expect(await TelegramDispatch.countDocuments()).toBe(0);
+  expect((await get("/automation/status?month=2025-02")).body.notifications).toEqual([{ _id: "pending", count: 1 }]);
+});
+
+it("CLI defaults to dry-run and does not even create collections or indexes in an empty synthetic database", async () => {
+  const database = mongoose.connection.getClient().db("payroll_readonly_cli");
+  await database.dropDatabase();
+  const { stdout } = await promisify(execFile)(process.execPath, ["--import", "tsx", "src/scripts/payroll-monthly.ts"], {
+    cwd: process.cwd(), env: { ...process.env, NODE_ENV: "test", APP_ORIGIN: origin,
+      JWT_SECRET: config.JWT_SECRET, MONGODB_URI: repl.getUri("payroll_readonly_cli"),
+      PAYROLL_SCHEDULER_SECRET: config.PAYROLL_SCHEDULER_SECRET, PAYROLL_SCHEDULER_ENABLED: "false",
+      PAYROLL_MONTH: "2025-02", PAYROLL_DRY_RUN: undefined,
+    }, timeout: 20_000,
+  });
+  expect(JSON.parse(stdout.trim())).toMatchObject({ dryRun: true, created: 0 });
+  expect(await database.listCollections().toArray()).toEqual([]);
+});
+it("paginates preview teachers and durable attempt history without crossing tenant boundaries", async () => {
+  for (let n = 0; n < 11; n++) await actor("teacher", tenant);
+  const before = (await Tenant.findById(tenant))!.billingRevision;
+  const first = await previewPayrollBatch(tenant, "2025-02");
+  expect(first.items).toHaveLength(10);
+  expect(first.nextTeacher).toBeTruthy();
+  const second = await previewPayrollBatch(tenant, "2025-02", first.nextTeacher!);
+  expect(second.items).toHaveLength(3);
+  expect(second.nextTeacher).toBeNull();
+  expect(new Set([...first.items, ...second.items].map(i => i.teacherId)).size).toBe(13);
+  expect((await Tenant.findById(tenant))!.billingRevision).toBe(before);
+  await PayrollAttempt.insertMany(Array.from({ length: 21 }, (_, n) => ({ tenantId: tenant, month: "2025-02", source: "manual", startedAt: new Date(2025, 2, 1, 0, n) })));
+  const page1 = (await get("/automation/status?month=2025-02")).body;
+  const page2 = (await get("/automation/status?month=2025-02&historyPage=2")).body;
+  expect(page1.attempts.total).toBe(21);
+  expect(page1.attempts.runs).toHaveLength(20);
+  expect(page2.attempts.runs).toHaveLength(1);
+  expect(page1.attempts.runs[0]._id).not.toBe(page2.attempts.runs[0]._id);
+  expect((await get("/automation/status?month=2025-03")).body.attempts.total).toBe(0);
+});
+
+it("requires a group for percentage payroll but preserves a genuine zero-collection basis", async () => {
+  await rule({ salaryType: "collected", percentage: 50 });
+  const zero = await preview();
+  expect(zero.status).toBe(200);
+  expect(zero.body).toMatchObject({ grossSalary: 0 });
+  expect(zero.body.lines).toHaveLength(1);
+  await Group.deleteMany({ tenantId: tenant });
+  const missing = await post("/automation/preview", { month: "2025-02" });
+  expect(missing.body.items.find((i: {teacherId: string}) => i.teacherId === teacherId)).toMatchObject({ status: "exception", code: "PAYROLL_GROUP_MISSING" });
+  await auto();
+  expect(await Payroll.countDocuments({ teacherId })).toBe(0);
+  expect((await PayrollRunItem.findOne({ teacherId }))!.code).toBe("PAYROLL_GROUP_MISSING");
 });

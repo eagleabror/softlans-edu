@@ -36,6 +36,7 @@ export function payrollScheduler(config: Config) {
       z.object({}).strict().parse(req.query);
       const input = z
         .object({
+          dryRun: z.boolean().default(true),
           month: billingMonth.optional(),
           cursor: payrollCursor.optional(),
         })

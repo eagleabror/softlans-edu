@@ -2483,6 +2483,10 @@ td {
   align-items: end;
   gap: 12px;
 }
+.payroll-automation > :is(p, h3), .payroll-preview > :is(p, h3) { margin-block: 12px; }
+.payroll-preview > div { padding-block: 12px; border-bottom: 1px solid var(--color-line); }
+.payroll-preview li, .payroll-attempts li { margin-block: 8px; overflow-wrap: anywhere; }
+.payroll-preview h4 { font-weight: 600; }
 .payroll-page label {
   min-width: 0;
   display: grid;

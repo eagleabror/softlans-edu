@@ -5,6 +5,8 @@ import { SalaryRule } from "./payroll-models.js";
 import { monthBounds } from "./billing-validation.js";
 import { AppError } from "./errors.js";
 export function safeTotal(values: number[]) {
+  if (values.some(v => !Number.isSafeInteger(v)))
+    throw new AppError(409, "PAYROLL_CALCULATION_DATA_INVALID", "Hisoblash summalari xavfsiz butun son bo‘lishi kerak.");
   const n = values.reduce((a, b) => a + BigInt(b), 0n);
   if (n < 0n || n > BigInt(Number.MAX_SAFE_INTEGER))
     throw new AppError(422, "TOTAL_LIMIT", "Hisobot summasi chegaradan oshdi.");
@@ -69,6 +71,9 @@ export async function calculatePayroll(
       "NO_SALARY_RULE",
       "Oy boshida amal qiluvchi maosh qoidasini kiriting.",
     );
+  if (owned.some(c => !groups.some(g => g._id.equals(c.groupId))) ||
+      rules.some(r => r.groupId && !groups.some(g => g._id.equals(r.groupId!))))
+    throw new AppError(409, "PAYROLL_GROUP_MISSING", "Hisob yoki maosh qoidasidagi guruh topilmadi. Guruh ma’lumotlarini tekshiring.");
   const scopes = new Set<string>();
   for (const rule of rules) {
     const key = String(rule.groupId ?? "default");
@@ -170,6 +175,8 @@ export async function calculatePayroll(
       rule.salaryType === "collected"
         ? ps
         : cs.filter((c) => c.billingMonth === month);
+    if (sources.some(s => ("amount" in s ? s.amount : s.finalAmount) < 0))
+      throw new AppError(409, "PAYROLL_CALCULATION_DATA_INVALID", "Hisoblash manbasidagi summa manfiy bo‘lmasin.");
     const basis =
       rule.salaryType === "fixed"
         ? rule.fixedAmount!
@@ -197,6 +204,8 @@ export async function calculatePayroll(
       "INVALID_SALARY_SETTINGS",
       "O‘qituvchining guruhlari uchun amal qiluvchi maosh qoidasini kiriting.",
     );
+  if (!lines.length)
+    throw new AppError(409, "PAYROLL_GROUP_MISSING", "Foizli maosh uchun o‘qituvchining hisoblash guruhi topilmadi. Guruh biriktirilganini tekshiring.");
   return {
     policyVersion: "tashkent-charge-owner-v1",
     timezone: "Asia/Tashkent",

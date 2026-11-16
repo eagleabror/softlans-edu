@@ -115,3 +115,34 @@ it("explains when an inactive teacher has left payroll eligibility", async () =>
   expect(await screen.findByText("Hisob-kitobdan chiqarilgan")).toBeInTheDocument();
   expect(screen.getByText("O‘qituvchi faol emas.")).toBeInTheDocument();
 });
+
+it("shows a read-only preview with calculation basis without triggering draft generation", async () => {
+  vi.mocked(api).mockImplementation(async (_path, options) => {
+    if (!options) return { run: null, items: [], total: 0 };
+    return { month: "2026-10", nextTeacher: null, items: [{ teacherId: "1", teacherName: "Ustoz", status: "would_create", basis: { grossSalary: 500, lines: [{ groupName: "Ingliz tili", salaryType: "billed", basisAmount: 1000, salary: 500 }] } }] };
+  });
+  mount();
+  await userEvent.click(screen.getByRole("button", { name: "Yozuvsiz tekshirish" }));
+  expect(await screen.findByText(/Ingliz tili · Hisoblangan ta’lim haqidan foiz · asos:/)).toBeInTheDocument();
+  expect(screen.getByText(/Qoralama, audit yoki xabar yaratilmaydi/)).toBeInTheDocument();
+  expect(api).toHaveBeenCalledWith("/payroll/automation/preview", { method: "POST", body: JSON.stringify({ month: "2026-10" }) });
+  expect(vi.mocked(api).mock.calls.some(([path]) => path === "/payroll/automation/run")).toBe(false);
+});
+it("shows failed/interrupted history and pending outbox without claiming delivery", async () => {
+  vi.mocked(api).mockResolvedValue({ run: { status: "completed" }, items: [], total: 0,
+    notifications: [{ _id: "pending", count: 1 }], attempts: { total: 2, runs: [
+      { _id: "1", source: "scheduled", status: "running", startedAt: "2026-11-01T00:00:00Z" },
+      { _id: "2", source: "manual", status: "failed", errorCode: "PAYROLL_RUN_FAILED", startedAt: "2026-11-01T01:00:00Z" },
+    ] } });
+  mount();
+  expect(await screen.findByText(/Yakun tasdiqlanmagan/)).toBeInTheDocument();
+  expect(screen.getByText(/PAYROLL_RUN_FAILED/)).toBeInTheDocument();
+  expect(screen.getByText(/Navbatda: 1/)).toHaveTextContent("yetkazib berish tasdig‘i emas");
+  expect(screen.queryByText(/Yuborildi:/)).not.toBeInTheDocument();
+});
+it("paginates attempt history separately from monthly teacher results", async () => {
+  vi.mocked(api).mockResolvedValue({ run: null, items: [], total: 0, attempts: { total: 21, runs: [] } });
+  mount();
+  await userEvent.click(await screen.findByRole("button", { name: "Keyingi urinishlar" }));
+  await waitFor(() => expect(api).toHaveBeenLastCalledWith("/payroll/automation/status?month=2026-10&page=1&historyPage=2"));
+});

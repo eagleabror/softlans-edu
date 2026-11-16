@@ -1,5 +1,6 @@
-import { generatePayrollBatch } from "./payroll-automation.js";
-import { PayrollRun, PayrollRunItem } from "./payroll-automation-models.js";
+import { generatePayrollBatch, previewPayrollBatch } from "./payroll-automation.js";
+import { PayrollRun, PayrollRunItem, PayrollAttempt } from "./payroll-automation-models.js";
+import { NotificationJob } from "./notification-models.js";
 import { allocateCash, reverseAllocatedCash } from "./cash-service.js";
 import { Router, type Request } from "express";
 import mongoose, { type ClientSession } from "mongoose";
@@ -216,16 +217,25 @@ payrollRouter.post("/automation/run", owner, async (req, res) => {
     ),
   );
 });
+payrollRouter.post("/automation/preview", owner, async (req, res) => {
+  const q = z.object({ month: billingMonth, afterTeacher: objectId.optional() }).strict().parse(req.body);
+  res.json(await previewPayrollBatch(scope(req).tenantId, q.month, q.afterTeacher));
+});
 payrollRouter.get("/automation/status", owner, async (req, res) => {
   const q = z
     .object({
       month: billingMonth,
+      historyPage: z.coerce.number().int().min(1).max(10000).default(1),
       page: z.coerce.number().int().min(1).max(10000).default(1),
     })
     .strict()
     .parse(req.query);
   const filter = { ...scope(req), month: q.month };
   res.json({
+    attempts: {
+      runs: await PayrollAttempt.find(filter).sort({ startedAt: -1, _id: -1 }).skip((q.historyPage - 1) * 20).limit(20).lean(),
+      total: await PayrollAttempt.countDocuments(filter),
+    },
     run: await PayrollRun.findOne(filter).lean(),
     items: await PayrollRunItem.find(filter)
       .sort({ teacherId: 1 })
@@ -235,6 +245,11 @@ payrollRouter.get("/automation/status", owner, async (req, res) => {
     total: await PayrollRunItem.countDocuments(filter),
     page: q.page,
     pageSize: 20,
+    // Outbox states are reported verbatim: queued != delivered.
+    notifications: await NotificationJob.aggregate([
+      { $match: { ...scope(req), kind: "payroll_ready", eventDate: q.month } },
+      { $group: { _id: "$status", count: { $sum: 1 } } },
+    ]),
   });
 });
 payrollRouter.get("/rules", owner, async (req, res) => {
@@ -347,10 +362,10 @@ payrollRouter.delete("/rules/:id", owner, async (req, res) => {
 payrollRouter.post("/preview", owner, async (req, res) => {
   const q = calculation.parse(req.body);
   res.json(
-    await locked(req, async (tx) => {
+    await mongoose.connection.transaction(async (tx) => {
       await teacher(req, q.teacherId, tx);
       return calculatePayroll(scope(req).tenantId, q.teacherId, q.month, tx);
-    }),
+    }, { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } }),
   );
 });
 payrollRouter.post("/drafts", owner, async (req, res) => {

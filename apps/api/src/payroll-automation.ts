@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { Config } from "./config.js";
 import { Tenant, User } from "./models.js";
 import { Payroll, PayrollAudit } from "./payroll-models.js";
-import { PayrollRun, PayrollRunItem } from "./payroll-automation-models.js";
+import { PayrollRun, PayrollRunItem, PayrollAttempt } from "./payroll-automation-models.js";
 import { calculatePayroll } from "./payroll-calculation.js";
 import { lockBilling } from "./billing-lock.js";
 import {
@@ -148,7 +148,7 @@ async function generateTeacher(
     return prior ? ("preserved" as const) : ("created" as const);
   }, transactionOptions);
 }
-export async function generatePayrollBatch(
+async function generatePayrollBatchImpl(
   tenantId: Types.ObjectId,
   actorId: Types.ObjectId,
   month: string,
@@ -185,7 +185,7 @@ export async function generatePayrollBatch(
       // process failures reject the request: never claim successful completion.
       if (!(error instanceof AppError) || ![409, 422].includes(error.status))
         throw error;
-      await mongoose.connection.transaction(async (tx) => {
+      const recorded = await mongoose.connection.transaction(async (tx) => {
         await lockBilling(tenantId, tx);
         // A concurrent retry may have succeeded after this calculation failed.
         if (
@@ -195,7 +195,7 @@ export async function generatePayrollBatch(
             payrollMonth: month,
           }).session(tx)
         )
-          return;
+          return false;
         await PayrollRunItem.updateOne(
           { tenantId, month, teacherId: teacher._id },
           {
@@ -209,8 +209,10 @@ export async function generatePayrollBatch(
           },
           { upsert: true, session: tx },
         );
+        return true;
       }, transactionOptions);
-      exceptions++;
+      if (recorded) exceptions++;
+      else preserved++;
     }
   }
   const nextTeacher = teachers.length > 10 ? String(teachers[9]!._id) : null;
@@ -285,16 +287,83 @@ export async function generatePayrollBatch(
   }, transactionOptions);
   return { month, created, preserved, exceptions, status, nextTeacher };
 }
+// Attempt creation precedes every possible draft write. Partial teacher commits
+// survive infrastructure failures; retry preserves them through the same lock.
+export async function generatePayrollBatch(
+  tenantId: Types.ObjectId, actorId: Types.ObjectId, month: string,
+  source: "manual" | "scheduled", afterTeacher?: string, now = new Date(),
+) {
+  assertPayrollClosed(month, now);
+  const attempt = await PayrollAttempt.create({ tenantId, month, source, afterTeacher, startedAt: now });
+  try {
+    const result = await generatePayrollBatchImpl(tenantId, actorId, month, source, afterTeacher, now);
+    await PayrollAttempt.updateOne({ _id: attempt._id }, { $set: {
+      status: result.status, finishedAt: new Date(), created: result.created,
+      preserved: result.preserved, exceptions: result.exceptions,
+    } });
+    return result;
+  } catch (error) {
+    // Never persist raw database errors, names, connection strings or credentials.
+    // If recording fails too, the initial running record remains uncertain.
+    await PayrollAttempt.updateOne({ _id: attempt._id }, { $set: {
+      status: "failed", finishedAt: new Date(), errorCode: "PAYROLL_RUN_FAILED",
+    } }).catch(() => undefined);
+    throw error;
+  }
+}
+
+export function assertPayrollSchedulerEnabled(config: Config, dryRun = false) {
+  if (!config.PAYROLL_SCHEDULER_SECRET || (!dryRun && !config.PAYROLL_SCHEDULER_ENABLED))
+    throw new AppError(503, "SCHEDULER_DISABLED", "Maosh avtomatlashtirishi o‘chirilgan yoki sozlanmagan.");
+}
+
+// Snapshot transaction with no tenant lock and no writes, audit or outbox.
+// Existing statements use their frozen basis; previews are never payout quotes.
+export async function previewPayrollBatch(
+  tenantId: Types.ObjectId, month: string, afterTeacher?: string, now = new Date(),
+) {
+  assertPayrollClosed(month, now);
+  return mongoose.connection.transaction(async tx => {
+    const teachers = await User.find({ tenantId, active: true, role: "teacher",
+      ...(afterTeacher ? { _id: { $gt: afterTeacher } } : {}),
+    }).sort({ _id: 1 }).limit(11).session(tx);
+    const items = [];
+    for (const teacher of teachers.slice(0, 10)) {
+      const prior = await Payroll.findOne({ tenantId, teacherId: teacher._id, payrollMonth: month }).session(tx);
+      if (prior) {
+        items.push({ teacherId: teacher.id, teacherName: teacher.name, status: "preserved",
+          payrollId: prior.id, basis: prior.calculationBasis, finalSalary: prior.finalSalary });
+        continue;
+      }
+      try {
+        const basis = await calculatePayroll(tenantId, teacher.id, month, tx);
+        items.push({ teacherId: teacher.id, teacherName: teacher.name, status: "would_create", basis });
+      } catch (error) {
+        if (!(error instanceof AppError) || ![409, 422].includes(error.status)) throw error;
+        items.push({ teacherId: teacher.id, teacherName: teacher.name, status: "exception", code: error.code, message: error.message });
+      }
+    }
+    return { month, dryRun: true as const, items,
+      created: 0, preserved: items.filter(i => i.status === "preserved").length,
+      wouldCreate: items.filter(i => i.status === "would_create").length,
+      exceptions: items.filter(i => i.status === "exception").length,
+      nextTeacher: teachers.length > 10 ? teachers[9]!.id : null,
+    };
+  }, transactionOptions);
+}
+
 export async function runPayrollScheduler(
   config: Config,
-  input: { month?: string; cursor?: z.infer<typeof payrollCursor> },
+  input: { month?: string; cursor?: z.infer<typeof payrollCursor>; dryRun?: boolean },
   now = new Date(),
 ) {
+  assertPayrollSchedulerEnabled(config, input.dryRun);
   const month = input.month ?? previousPayrollMonth(now);
   assertPayrollClosed(month, now);
-  if (now < payrollDueAt(month, config))
+  if (!input.dryRun && now < payrollDueAt(month, config))
     return {
       month,
+      dryRun: input.dryRun ?? false,
       status: "not_due",
       created: 0,
       preserved: 0,
@@ -311,6 +380,7 @@ export async function runPayrollScheduler(
   if (!tenant)
     return {
       month,
+      dryRun: input.dryRun ?? false,
       status: "completed",
       created: 0,
       preserved: 0,
@@ -318,7 +388,7 @@ export async function runPayrollScheduler(
       nextCursor: null,
     };
   if (
-    await PayrollRun.exists({
+    !input.dryRun && await PayrollRun.exists({
       tenantId: tenant._id,
       month,
       status: "completed",
@@ -326,6 +396,7 @@ export async function runPayrollScheduler(
   )
     return {
       month,
+      dryRun: input.dryRun ?? false,
       status: "completed",
       created: 0,
       preserved: 0,
@@ -338,6 +409,9 @@ export async function runPayrollScheduler(
     role: "business_owner",
   }).sort({ _id: 1 });
   if (!actor) {
+    if (!input.dryRun) {
+    await PayrollAttempt.create({ tenantId: tenant._id, month, source: "scheduled",
+      status: "exceptions", startedAt: now, finishedAt: now, exceptions: 1, errorCode: "PAYROLL_OWNER_REQUIRED" });
     await PayrollRun.updateOne(
       { tenantId: tenant._id, month },
       {
@@ -351,8 +425,10 @@ export async function runPayrollScheduler(
       },
       { upsert: true },
     );
+    }
     return {
       month,
+      dryRun: input.dryRun ?? false,
       status: "exceptions",
       code: "PAYROLL_OWNER_REQUIRED",
       created: 0,
@@ -360,6 +436,13 @@ export async function runPayrollScheduler(
       exceptions: 1,
       nextCursor: tenants[1] ? { tenantId: String(tenants[1]._id) } : null,
     };
+  }
+  if (input.dryRun) {
+    const result = await previewPayrollBatch(tenant._id, month,
+      String(tenant._id) === input.cursor?.tenantId ? input.cursor.afterTeacher : undefined, now);
+    return { ...result, status: result.exceptions ? "exceptions" : result.nextTeacher ? "processing" : "completed",
+      nextCursor: result.nextTeacher ? { tenantId: String(tenant._id), afterTeacher: result.nextTeacher }
+        : tenants[1] ? { tenantId: String(tenants[1]._id) } : null };
   }
   const result = await generatePayrollBatch(
     tenant._id,
@@ -376,5 +459,5 @@ export async function runPayrollScheduler(
     : tenants[1]
       ? { tenantId: String(tenants[1]._id) }
       : null;
-  return { ...result, nextCursor };
+  return { ...result, dryRun: false, nextCursor };
 }

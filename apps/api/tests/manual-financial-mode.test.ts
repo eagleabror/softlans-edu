@@ -85,6 +85,11 @@ it("completes manual enrollment, billing, debt and owner payroll with all schedu
   for (const [target, salaryType, values] of [[teacher, "billed", { percentage: 40 }], [collected, "collected", { percentage: 50 }], [fixed, "fixed", { fixedAmount: 500000 }]] as const) {
     ok(await post("/payroll/rules", { teacherId: target.user.id, salaryType, ...values, effectiveFrom: "2026-10-01", reason: "Sintetik kelishuv" }, owner.cookie), 201);
   }
+  // Zero collections are valid with an actual calculation group; an unassigned
+  // percentage rule is now an explicit Phase C group exception.
+  await Group.create({ tenantId: tenant._id, teacherId: collected.user._id,
+    name: "Sintetik tushumsiz guruh", courseName: "Matematika", capacity: 10,
+    monthlyFee: 300000, startDate: "2026-10-01" });
   ok(await payroll(owner.cookie, "2026-10"), 409); // Still open at October 16.
   vi.setSystemTime(new Date("2026-11-02T12:00:00+05:00"));
   for (const a of [owner, admin, teacher, foreign]) a.cookie = "softlans_session=" + await createSession(a.user, config);
