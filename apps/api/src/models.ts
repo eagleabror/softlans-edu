@@ -25,6 +25,7 @@ import {
 } from "./billing-models.js";
 import mongoose, { Schema, type InferSchemaType } from "mongoose";
 import { saasModels } from "./saas-models.js";
+import { paymentModels } from "./payment-models.js";
 import { SaasReminder } from "./saas-reminders-models.js";
 import { ensureSaasDefaults } from "./saas-service.js";
 import { Classroom, Schedule } from "./schedule-models.js";
@@ -194,6 +195,7 @@ export async function ensureIndexes() {
     ...securityModels,
     ...cashModels,
     ...saasModels,
+    ...paymentModels,
     SaasReminder,
     PlatformAudit,
     StudentImportLog,

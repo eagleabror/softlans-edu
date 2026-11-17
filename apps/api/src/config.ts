@@ -56,6 +56,7 @@ const schema = z
     PASSWORD_EMAIL_API_KEY: z.string().min(32).regex(/^[^\r\n]+$/).optional(),
     PASSWORD_EMAIL_FROM: z.string().email().optional(),
     MFA_ENCRYPTION_KEY: z.string().regex(/^[a-fA-F0-9]{64}$/).optional(),
+    PAYMENT_CREDENTIALS_ENCRYPTION_KEY: z.string().regex(/^[a-fA-F0-9]{64}$/).optional(),
     SUPER_ADMIN_MFA_ENFORCED: booleanFlag.default(false),
     SESSION_LEGACY_ISSUED_BEFORE: z.string().datetime().optional(),
     JWT_SECRET: z.string().min(48),
@@ -64,6 +65,8 @@ const schema = z
     PUBLIC_REGISTRATION_ENABLED: booleanFlag.optional(),
   })
   .superRefine((value, ctx) => {
+    if (value.PAYMENT_CREDENTIALS_ENCRYPTION_KEY && [value.JWT_SECRET, value.MFA_ENCRYPTION_KEY].includes(value.PAYMENT_CREDENTIALS_ENCRYPTION_KEY))
+      ctx.addIssue({ code: "custom", path: ["PAYMENT_CREDENTIALS_ENCRYPTION_KEY"], message: "Use a separate payment encryption key" });
     if (value.OPERATOR_ALERTS_ENABLED &&
       (!value.OPERATOR_TELEGRAM_BOT_TOKEN || !value.OPERATOR_TELEGRAM_CHAT_ID))
       ctx.addIssue({

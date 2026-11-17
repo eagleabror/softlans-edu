@@ -52,3 +52,9 @@
   .saas-actions > .button { flex: 1 1 auto; }
   .saas-table th, .saas-table td { padding: 12px 8px; }
 }
+
+.payment-tenant { display: block; overflow-wrap: anywhere; margin-top: 6px; }
+.payment-dialog > .saas-actions { align-items: flex-start; flex-wrap: nowrap; }
+.payment-dialog > .saas-actions > h2 { flex: 1; min-width: 0; font-size: 20px; }
+.payment-dialog > .saas-actions > .button { flex: 0 0 auto; }
+.payment-dialog p { margin: 12px 0; }

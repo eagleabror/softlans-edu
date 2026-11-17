@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "rea
 import { Link, useLocation } from "react-router-dom";
 import { api, HttpError } from "./api";
 import "./Saas.css";
+import { OnlineCheckout, OnlineHistory } from "./OnlinePayments";
 
 export interface Plan {
   id: string; name: string; code: string; monthlyPriceUZS: number;
@@ -53,7 +54,7 @@ export function SaasHeading({ title, children }: { title: string; children?: Rea
 export function SaasPagination({ page, total, pageSize, onPage }: { page: number; total: number; pageSize: number; onPage: (n: number) => void }) {
   return <div className="saas-actions saas-pagination"><span>Jami {total} ta · {page}-sahifa</span><button className="button light" disabled={page <= 1} onClick={() => onPage(page - 1)}>Oldingi</button><button className="button light" disabled={page * pageSize >= total} onClick={() => onPage(page + 1)}>Keyingi</button></div>;
 }
-export function SaasDialog({ title, onClose, children, busy = false }: { title: string; onClose: () => void; children: ReactNode; busy?: boolean }) {
+export function SaasDialog({ title, onClose, children, busy = false, className = "" }: { title: string; onClose: () => void; children: ReactNode; busy?: boolean; className?: string }) {
   const ref = useRef<HTMLDialogElement>(null);
   const headingId = `saas-dialog-${title.replaceAll(" ", "-")}`;
   useEffect(() => {
@@ -61,7 +62,7 @@ export function SaasDialog({ title, onClose, children, busy = false }: { title: 
     const dialog = ref.current; dialog?.showModal();
     return () => { dialog?.close(); previous?.focus(); };
   }, []);
-  return <dialog ref={ref} className="member-dialog saas-dialog" aria-labelledby={headingId} onCancel={e => { e.preventDefault(); if (!busy) onClose(); }}>
+  return <dialog ref={ref} className={`member-dialog saas-dialog ${className}`} aria-labelledby={headingId} onCancel={e => { e.preventDefault(); if (!busy) onClose(); }}>
     <div className="saas-actions"><h2 id={headingId}>{title}</h2><button className="button light" type="button" onClick={onClose} disabled={busy} aria-label="Oynani yopish">Yopish</button></div>{children}
   </dialog>;
 }
@@ -98,6 +99,9 @@ export function TenantSubscription() {
   const payments = useSaasResource<RequestsPage>(`/saas/payment-requests?page=${page}`);
   const reminders = useSaasResource<{ reminders: { id: string; message: string; periodEnd: string }[] }>("/saas/reminders");
   const [chosen, setChosen] = useState<Plan | null>(null), [success, setSuccess] = useState("");
+  const providers = useSaasResource<{ providers: string[] }>("/saas/payment-providers");
+  const [manual, setManual] = useState(false);
+  const available = providers.data?.providers ?? [];
   const subscription = state.data?.subscription;
   function saved() {
     setChosen(null); setPage(1); payments.reload(); state.reload();
@@ -128,20 +132,24 @@ export function TenantSubscription() {
       </section>
       {reminders.error ? <SaasFeedback {...reminders} /> : reminders.data?.reminders.length ? <section className="panel saas-panel" aria-label="Obuna eslatmalari"><h2>Obuna eslatmalari</h2><ul>{reminders.data.reminders.map(item => <li key={item.id}>{item.message} <span className="saas-muted">({saasDate(item.periodEnd)})</span></li>)}</ul></section> : null}
       <section className="panel saas-panel"><h2>Tariflarni solishtirish</h2><SaasFeedback {...plans} />
+        <SaasFeedback {...providers} />
+        {subscription?.status === "active" && <p className="saas-muted">Amaldagi pullik davr tugamaguncha faqat joriy tarifni uzaytirish mumkin.</p>}
         {!plans.loading && !plans.error && <div className="saas-plan-grid">{plans.data?.plans.map(plan => <article className="saas-plan" key={plan.id}>
           <h3>{plan.name}</h3><p className="saas-price">{saasMoney(plan.monthlyPriceUZS)}<span> / oy</span></p>
           <dl><dt>Faol o‘quvchilar</dt><dd>{limitText(plan.studentLimit)}</dd><dt>Faol guruhlar</dt><dd>{limitText(plan.groupLimit)}</dd></dl>
           {plan.features.length > 0 && <ul>{plan.features.map((feature, index) => <li key={index}>{feature}</li>)}</ul>}
-          <button className="button primary" disabled={!state.data?.instructions} onClick={() => { setChosen(plan); setSuccess(""); }}>{plan.name} tarifini tanlash</button>
+          <button className="button primary" disabled={(!state.data?.instructions && !available.length) || (subscription?.status === "active" && subscription.planId !== plan.id)} onClick={() => { setChosen(plan); setManual(false); setSuccess(""); }}>{plan.name} tarifini tanlash</button>
         </article>)}</div>}
         {!plans.loading && !plans.error && plans.data?.plans.length === 0 && <p>Hozircha faol tariflar mavjud emas.</p>}
-        {!state.data.instructions && <p className="notice" role="status">Tasdiqlangan to‘lov yo‘riqnomasi hali kiritilmagan. To‘lov uchun Super administrator bilan bog‘laning.</p>}
+        {!state.data.instructions && !available.length && <p className="notice" role="status">Tasdiqlangan to‘lov yo‘riqnomasi hali kiritilmagan. To‘lov uchun Super administrator bilan bog‘laning.</p>}
       </section>
     </>}
+    <OnlineHistory onPaid={state.reload} />
     <section className="panel saas-panel"><h2>To‘lov so‘rovlari tarixi</h2><SaasFeedback {...payments} />
       {!payments.loading && !payments.error && payments.data && <>{payments.data.requests.length ? <div className="table-scroll saas-table" role="region" aria-label="SaaS to‘lovlar tarixi" tabIndex={0}><table><caption className="saas-sr-only">SaaS to‘lov so‘rovlari</caption><thead><tr><th scope="col">Sana</th><th scope="col">Tarif</th><th scope="col">Summa</th><th scope="col">Davr</th><th scope="col">Holat</th><th scope="col">Ko‘rib chiqish izohi</th></tr></thead><tbody>{payments.data.requests.map(request => <tr key={request.id}><td>{saasDate(request.submittedAt)}</td><td>{request.planName}</td><td>{saasMoney(request.amountUZS)}</td><td>{request.billingPeriod} oy</td><td><SaasStatus status={request.status} /></td><td>{request.reviewNote || "—"}</td></tr>)}</tbody></table></div> : <p>Hali to‘lov so‘rovlari yuborilmagan.</p>}<SaasPagination {...payments.data} page={page} onPage={setPage} /></>}
     </section>
-    {chosen && state.data?.instructions && <PaymentDialog plan={chosen} instructions={state.data.instructions.text} onClose={() => setChosen(null)} onSaved={saved} />}
+    {chosen && available.length > 0 && !manual && <OnlineCheckout plan={chosen} providers={available} onClose={() => setChosen(null)} onManual={state.data?.instructions ? () => setManual(true) : undefined} />}
+    {chosen && (manual || !available.length) && state.data?.instructions && <PaymentDialog plan={chosen} instructions={state.data.instructions.text} onClose={() => setChosen(null)} onSaved={saved} />}
   </div>;
 }
 interface PaymentPayload { planId: string; billingPeriod: number; paidAt: string; paymentMethod: string; transactionNote: string; idempotencyKey: string }

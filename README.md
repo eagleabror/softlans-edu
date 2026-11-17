@@ -183,6 +183,8 @@ See [Telegram integration setup and operations](docs/telegram-phase-5.1.md) for 
 
 Tariflar, 14 kunlik trial, qo‘lda SaaS to‘lov tasdiqlash, tenant limitlari va analitika uchun [o‘zbekcha foydalanish va migration yo‘riqnomasi](docs/phase-6-3-2-subscriptions.md).
 
+Payme/Click orqali tarif to‘lovi va Super Admin panelidan merchant rekvizitlarini sozlash uchun [to‘lov tizimlari yo‘riqnomasi](docs/saas-payment-gateways.md).
+
 ## Nazorat qilinadigan AI avtomatlashtirish — 1-bosqich
 
 CI, ixtiyoriy read-only Codex auditi, xavfsizlik chegaralari, API budjeti va

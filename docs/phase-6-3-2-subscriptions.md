@@ -1,5 +1,7 @@
 # 6.3.2 — SaaS tariflar, obunalar va qo‘lda to‘lov tasdiqlash
 
+> Bu hujjat dastlabki qo‘lda to‘lov bosqichini tasvirlaydi. Keyingi Payme/Click integratsiyasi va Super Admin sozlamalari [alohida yo‘riqnomada](saas-payment-gateways.md).
+
 Bu modul markazning SoftLans Edu platformasidan foydalanish obunasini boshqaradi. O‘quvchilar to‘lovlari, qarzlari, davomat va ish haqi hisoblari mavjud alohida modullarda qoladi. SaaS to‘lovi hech qachon o‘quvchi to‘lovi sifatida yozilmaydi. Click, Payme, Uzum yoki boshqa to‘lov gateway integratsiyasi qo‘shilmagan.
 
 ## Ma’lumotlar va pul hisoblari

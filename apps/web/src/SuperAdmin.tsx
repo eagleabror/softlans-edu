@@ -1,3 +1,5 @@
+import { PaymentProviders } from "./PaymentProviders";
+import { OnlinePaymentsAdmin } from "./OnlinePayments";
 import { SecuritySettings } from "./MfaSecurity";
 import { PasswordSecurity } from "./PasswordSecurity";
 import { SaasPlans, SaasSubscriptions, SaasPayments, SaasAnalytics } from "./SaasAdmin";
@@ -963,6 +965,8 @@ export function SuperAdminLayout({
             <Building2 size={20} aria-hidden="true" />
             O‘quv markazlari
           </NavLink>
+          <NavLink aria-label="To‘lov tizimlari" to={`${root}/payment-providers`}><Layers size={20} aria-hidden="true" />To‘lov tizimlari</NavLink>
+          <NavLink aria-label="Onlayn to‘lovlar" to={`${root}/online-payments`}><Layers size={20} aria-hidden="true" />Onlayn to‘lovlar</NavLink>
           <NavLink aria-label="Tariflar" to={`${root}/plans`}><Layers size={20} aria-hidden="true" />Tariflar</NavLink>
           <NavLink aria-label="Obunalar" to={`${root}/subscriptions`}><Building2 size={20} aria-hidden="true" />Obunalar</NavLink>
           <NavLink aria-label="To‘lov so‘rovlari" to={`${root}/payment-requests`}><ShieldCheck size={20} aria-hidden="true" />To‘lov so‘rovlari</NavLink>
@@ -1006,6 +1010,8 @@ export function SuperAdminLayout({
               path={`${root}/tenants/:id`}
               element={<SuperAdminTenantDetail />}
             />
+            <Route path={`${root}/payment-providers`} element={<PaymentProviders />} />
+            <Route path={`${root}/online-payments`} element={<OnlinePaymentsAdmin />} />
             <Route path={`${root}/plans`} element={<SaasPlans />} />
             <Route path={`${root}/subscriptions`} element={<SaasSubscriptions />} />
             <Route path={`${root}/payment-requests`} element={<SaasPayments />} />

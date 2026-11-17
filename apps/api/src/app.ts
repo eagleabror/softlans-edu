@@ -17,6 +17,8 @@ import {
 } from "./leads.js";
 import { superAdminRouter } from "./super-admin.js";
 import { saasRouter, saasAdminRouter } from "./saas.js";
+import { paymentOwnerRouter, paymentAdminRouter } from "./payment-routes.js";
+import { paymentCallbacks } from "./payment-callbacks.js";
 import { createInitialTrial } from "./saas-service.js";
 import { studentImportsRouter } from "./student-imports.js";
 import { notificationScheduler } from "./notification-scheduler.js";
@@ -132,6 +134,10 @@ export function createApp(
         }),
     });
   const apiLimiter = limiter(300, 15 * 60_000);
+  // Provider-to-provider requests use independent authentication, parsers and rate limits.
+  // Mount before browser Origin checks and the shared browser IP budget.
+  app.use("/api/integrations/payme", paymentCallbacks(config, "payme"));
+  app.use("/api/integrations/click", paymentCallbacks(config, "click"));
   app.use("/api", (req, res, next) => {
     // Render probes must not exhaust the public API request budget.
     if (
@@ -272,8 +278,8 @@ export function createApp(
   app.use("/api/cash", authenticate(config), cashRouter);
   app.use("/api/management-reports", authenticate(config), managementRouter);
   app.use("/api/payroll", authenticate(config), payrollRouter);
-  app.use("/api/saas", authenticate(config), saasRouter);
-  app.use("/api/super-admin/saas", authenticate(config), saasAdminRouter);
+  app.use("/api/saas", authenticate(config), paymentOwnerRouter(config), saasRouter);
+  app.use("/api/super-admin/saas", authenticate(config), paymentAdminRouter(config), saasAdminRouter);
   app.use("/api/super-admin", authenticate(config), superAdminRouter);
   app.use("/api/attendance", authenticate(config), attendanceRouter);
   app.use("/api/analytics", authenticate(config), analyticsRouter);

@@ -18,7 +18,7 @@ export async function ensureSaasDefaults() {
 }
 export async function lockSubscription(tenantId: Types.ObjectId, session: ClientSession) {
   // Every quota creation and subscription mutation writes this same document.
-  const tenant = await Tenant.findOneAndUpdate({ _id: tenantId }, { $inc: { subscriptionRevision: 1 } }, { session });
+  const tenant = await Tenant.findOneAndUpdate({ _id: tenantId }, { $inc: { subscriptionRevision: 1 } }, { session }).select("+subscriptionRevision");
   if (!tenant) throw new AppError(404, "NOT_FOUND", "Markaz topilmadi.");
   return tenant;
 }

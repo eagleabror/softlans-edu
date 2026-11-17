@@ -115,26 +115,9 @@ export function mfaSecurityRouter(config: Config, view: (user: UserRecord) => Pr
       superAdminEnforced: user.role === "super_admin" && config.SUPER_ADMIN_MFA_ENFORCED });
   });
 
-  // Password is verified in this request; no reusable browser-side reauthentication token.
-  async function settings<T>(req: Request, action: (user: UserRecord, session: ClientSession, code?: string) => Promise<T>, strong = true) {
-    const input = proof.parse(req.body);
-    const actor = principal(req);
-    await reserveAttempt(actor.userId);
-    return mongoose.connection.transaction(async session => {
-      const user = await lockedUser(actor.userId, actor.user.sessionVersion, session);
-      if (!await bcrypt.compare(input.password, user.passwordHash)) throw invalid();
-      if (user.mfaEnabled && strong) await consumeFactor(user, input.code ?? "", config, session);
-      // Serialize settings with current-device revocation. Legacy sessions must log in again.
-      if (!actor.sessionId) throw conflict();
-      const active = await DeviceSession.updateOne({ sid: actor.sessionId, userId: user._id, revokedAt: { $exists: false }, expiresAt: { $gt: new Date() } },
-        { $set: { lastActivityAt: new Date() } }, { session });
-      if (active.matchedCount !== 1) throw conflict();
-      return action(user, session, input.code);
-    });
-  }
   router.post("/security/enroll", limit(10), authenticate(config), async (req, res) => {
     encryptionKey(config);
-    const result = await settings(req, async (user, session) => {
+    const result = await verifiedSecurityMutation(config, req, async (user, session) => {
       if (user.mfaEnabled) throw conflict();
       const secret = newSecret();
       await User.updateOne({ _id: user._id }, { $set: { mfaPendingSecret: seal(secret, user._id.toString(), config),
@@ -146,7 +129,7 @@ export function mfaSecurityRouter(config: Config, view: (user: UserRecord) => Pr
     res.json(result);
   });
   router.post("/security/confirm", limit(10), authenticate(config), async (req, res) => {
-    const result = await settings(req, async (user, session, code) => {
+    const result = await verifiedSecurityMutation(config, req, async (user, session, code) => {
       if (user.mfaEnabled || !user.mfaPendingSecret || !user.mfaPendingExpiresAt || user.mfaPendingExpiresAt.getTime() <= Date.now()) throw invalid();
       const step = acceptedStep(unseal(user.mfaPendingSecret, user._id.toString(), config), code ?? "", -1);
       if (step === null) throw invalid();
@@ -161,11 +144,11 @@ export function mfaSecurityRouter(config: Config, view: (user: UserRecord) => Pr
     res.json({ recoveryCodes: result.codes });
   });
   router.post("/security/cancel", limit(10), authenticate(config), async (req, res) => {
-    await settings(req, async (user, session) => { await User.updateOne({ _id: user._id }, { $unset: pendingClear }, { session }); }, false);
+    await verifiedSecurityMutation(config, req, async (user, session) => { await User.updateOne({ _id: user._id }, { $unset: pendingClear }, { session }); }, false);
     res.status(204).end();
   });
   router.post("/security/recovery-codes", limit(10), authenticate(config), async (req, res) => {
-    const result = await settings(req, async (user, session) => {
+    const result = await verifiedSecurityMutation(config, req, async (user, session) => {
       if (!user.mfaEnabled) throw invalid();
       const recovery = recoveryCodes();
       await User.updateOne({ _id: user._id }, { $set: { mfaRecoveryHashes: recovery.hashes }, $inc: { mfaRevision: 1 } }, { session });
@@ -174,7 +157,7 @@ export function mfaSecurityRouter(config: Config, view: (user: UserRecord) => Pr
     res.json(result);
   });
   router.post("/security/disable", limit(10), authenticate(config), async (req, res) => {
-    await settings(req, async (user, session) => {
+    await verifiedSecurityMutation(config, req, async (user, session) => {
       if (user.role === "super_admin" && config.SUPER_ADMIN_MFA_ENFORCED)
         throw new AppError(403, "MFA_REQUIRED", "Super administrator uchun ikki bosqichli himoya majburiy.");
       if (!user.mfaEnabled) throw invalid();
@@ -202,7 +185,7 @@ export function mfaSecurityRouter(config: Config, view: (user: UserRecord) => Pr
   });
   router.post("/sessions/revoke-others", limit(10), authenticate(config), async (req, res) => {
     // Version bump also revokes legacy JWTs, outstanding challenges and concurrent logins.
-    const token = await settings(req, async (user, session) => {
+    const token = await verifiedSecurityMutation(config, req, async (user, session) => {
       await User.updateOne({ _id: user._id }, { $inc: { sessionVersion: 1 } }, { session });
       user.sessionVersion++;
       return createSession(user, config, req, user.mfaEnabled, session);
@@ -210,4 +193,22 @@ export function mfaSecurityRouter(config: Config, view: (user: UserRecord) => Pr
     res.cookie(COOKIE_NAME, token, cookieOptions(config)).status(204).end();
   });
   return router;
+}
+
+// Password is verified in this request; no reusable browser-side reauthentication token.
+export async function verifiedSecurityMutation<T>(config: Config, req: Request, action: (user: UserRecord, session: ClientSession, code?: string) => Promise<T>, strong = true, command = false) {
+  const input = proof.parse(command ? { password: req.body.password, ...(req.body.code ? { code: req.body.code } : {}) } : req.body);
+  const actor = principal(req);
+  await reserveAttempt(actor.userId);
+  return mongoose.connection.transaction(async session => {
+    const user = await lockedUser(actor.userId, actor.user.sessionVersion, session);
+    if (!await bcrypt.compare(input.password, user.passwordHash)) throw invalid();
+    if (user.mfaEnabled && strong) await consumeFactor(user, input.code ?? "", config, session);
+    // Serialize settings with current-device revocation. Legacy sessions must log in again.
+    if (!actor.sessionId) throw conflict();
+    const active = await DeviceSession.updateOne({ sid: actor.sessionId, userId: user._id, revokedAt: { $exists: false }, expiresAt: { $gt: new Date() } },
+      { $set: { lastActivityAt: new Date() } }, { session });
+    if (active.matchedCount !== 1) throw conflict();
+    return action(user, session, input.code);
+  });
 }
