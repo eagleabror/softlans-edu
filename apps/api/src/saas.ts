@@ -9,6 +9,7 @@ import { AppError } from "./errors.js";
 import { principal, requireRoles, tenantScope } from "./security.js";
 import { Plan, Subscription, PaymentRequest, SaasAudit, SaasSettings } from "./saas-models.js";
 import { effectiveSubscriptionStatus, lockSubscription, manageSubscription, reviewPayment, subscriptionView } from "./saas-service.js";
+import { PaymentOrder } from "./payment-models.js";
 
 const objectId = z.string().regex(/^[a-f\d]{24}$/i);
 const integer = z.number().int().min(0).max(1_000_000_000_000);
@@ -144,7 +145,7 @@ saasAdminRouter.patch("/settings", async (req, res) => {
 });
 saasAdminRouter.get("/analytics", async (_req, res) => {
   const now = new Date();
-  const [activePaid, trialing, expired, pendingPayments, income, mrr, byPlan] = await Promise.all([
+  const [activePaid, trialing, expired, pendingPayments, income, mrr, byPlan, online] = await Promise.all([
     Subscription.countDocuments({ status: "active", periodEnd: { $gt: now }, periodStart: { $lte: now }, agreedPriceUZS: { $gt: 0 } }),
     Subscription.countDocuments({ status: "trialing", trialEnd: { $gt: now } }),
     Subscription.countDocuments({ $or: [{ status: "expired" }, { status: { $in: ["active", "trialing"] }, periodEnd: { $lte: now } }] }),
@@ -152,7 +153,9 @@ saasAdminRouter.get("/analytics", async (_req, res) => {
     PaymentRequest.aggregate([{ $match: { status: "approved" } }, { $group: { _id: null, amount: { $sum: "$amountUZS" } } }]),
     Subscription.aggregate([{ $match: { status: "active", periodEnd: { $gt: now }, periodStart: { $lte: now } } }, { $group: { _id: null, amount: { $sum: "$agreedPriceUZS" } } }]),
     Subscription.aggregate([{ $group: { _id: "$planId", planName: { $first: "$planName" }, count: { $sum: 1 } } }]),
+    PaymentOrder.aggregate([{ $match: { environment: "production", status: { $in: ["paid", "refunded"] } } }, { $group: { _id: "$status", amount: { $sum: "$amountUZS" } } }]),
   ]);
   res.json({ activePaid, trialing, expired, pendingPayments, approvedAmountUZS: income[0]?.amount ?? 0, mrrUZS: mrr[0]?.amount ?? 0,
+    onlineAmountUZS: online.find(row => row._id === "paid")?.amount ?? 0, refundedAmountUZS: online.find(row => row._id === "refunded")?.amount ?? 0,
     byPlan: byPlan.map(row => ({ planId: row._id.toString(), planName: row.planName, count: row.count })), generatedAt: now.toISOString() });
 });
