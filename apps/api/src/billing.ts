@@ -103,6 +103,41 @@ async function paidFor(
 }
 export const billingRouter = Router();
 billingRouter.use(requireRoles("business_owner", "admin"));
+// Diagnostic only: zero is not proof of an error. Preserve every historical
+// snapshot and include protection evidence; this endpoint never repairs records.
+billingRouter.get("/charges/zero-diagnostics", requireRoles("business_owner"), async (req, res) => {
+  const q = z.object({ month: billingMonth, after: z.string().regex(/^[a-f\d]{24}$/i).optional() }).strict().parse(req.query);
+  const tenant = scope(req);
+  const result = await mongoose.connection.transaction(async tx => {
+    const charges = await Charge.find({ ...tenant, billingMonth: q.month, finalAmount: 0,
+      ...(q.after ? { _id: { $gt: q.after } } : {}),
+    }).sort({ _id: 1 }).limit(51).session(tx);
+    const items = [];
+    for (const c of charges.slice(0, 50)) {
+      const payment = await Payment.exists({ ...tenant, chargeId: c._id }).session(tx);
+      const adjustment = await ChargeAdjustment.exists({ ...tenant, chargeId: c._id }).session(tx);
+      const protectedRecord = c.cancelled || c.paidAmount > 0 || !!payment || !!adjustment;
+      const snapshot = c.calculation;
+      const classification = protectedRecord ? "protected"
+        : !snapshot ? "insufficient_evidence"
+        : snapshot.monthlyFee === 0 ? "free_course"
+        : snapshot.totalLessons > 0 && snapshot.eligibleLessons === 0 ? "no_eligible_lessons"
+        : snapshot.totalLessons === 0 && !snapshot.readiness ? "review_required"
+        : "zero_with_snapshot";
+      items.push({ chargeId: String(c._id), groupId: String(c.groupId), studentId: String(c.studentId),
+        classification, protected: protectedRecord, cancelled: c.cancelled,
+        hasPaymentHistory: !!payment, hasAdjustmentHistory: !!adjustment,
+        calculation: c.toObject().calculation ?? null,
+        message: classification === "review_required"
+          ? "Eski hisobda jadval tayyorligi qayd etilmagan. Bu xato isboti emas; bekor qilingan darslar va tarixni tekshiring."
+          : "Hisob avtomatik o‘zgartirilmaydi.",
+      });
+    }
+    return { dryRun: true, month: q.month, items,
+      nextCursor: charges.length > 50 ? String(charges[49]!._id) : null };
+  }, { readConcern: { level: "snapshot" } });
+  res.json(result);
+});
 billingRouter.post("/charges/preview", async (req, res) => {
   const input = z.object({
     month: billingMonth,

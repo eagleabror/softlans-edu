@@ -246,6 +246,8 @@ export interface BillingSummary {
 }
 export type TuitionPolicy = "first_partial_month" | "full_month";
 export interface BillingCalculation {
+  readiness?: "ready" | "schedule_missing" | "not_due";
+  reason?: string | null;
   policyVersion: string;
   policy: TuitionPolicy;
   timezone: "Asia/Tashkent";
@@ -464,6 +466,8 @@ export interface ManagementReport {
 }
 
 export interface TuitionMonthPreview {
+  deferred?: number;
+  reasons?: { code: "SCHEDULE_MISSING"; count: number; message: string }[];
   month: string;
   timezone: string;
   dryRun: true;
@@ -486,8 +490,9 @@ export interface TuitionAutomationView {
     finishedAt: string | null;
     created: number;
     skipped: number;
+    deferred?: number;
     amount: number;
-    errorCode: "BILLING_OWNER_REQUIRED" | "BILLING_RUN_FAILED" | null;
+    errorCode: "BILLING_OWNER_REQUIRED" | "BILLING_TOTAL_LIMIT" | "BILLING_RUN_FAILED" | null;
   }[];
 }
 
@@ -556,4 +561,17 @@ export interface StudentDashboardView {
   outstandingAmount: number;
   nextDueDate: string | null;
   nextLesson: StudentLessonView | null;
+}
+
+export interface TuitionBatchResult {
+  month: string;
+  status: "completed" | "partial";
+  created: number;
+  skipped: number;
+  wouldCreate: number;
+  deferred: number;
+  dryRun: boolean;
+  failed: number;
+  errors: { tenantId: string; code: "BILLING_OWNER_REQUIRED" | "BILLING_TOTAL_LIMIT" }[];
+  nextCursor: string | null;
 }

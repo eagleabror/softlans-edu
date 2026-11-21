@@ -12,11 +12,14 @@ try {
   await connectDatabase(config.MONGODB_URI);
   if (!dryRun) await ensureIndexes();
   let after: string | undefined;
+  let failures = 0;
   do {
     const result = await runTuitionBatch(after, new Date(), dryRun);
     console.info(JSON.stringify({ event: "tuition_billing", ...result }));
+    failures += result.failed;
     after = result.nextCursor ?? undefined;
   } while (after);
+  if (failures) process.exitCode = 1;
 } catch {
   console.error(
     JSON.stringify({ event: "tuition_billing", code: "RUN_FAILED" }),

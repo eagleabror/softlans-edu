@@ -10,8 +10,11 @@ import { calculateTuition } from "./billing-calculation.js";
 import { currentBillingMonth, monthBounds } from "./billing-validation.js";
 import { localDate } from "./schedule-time.js";
 import { lockBilling } from "./billing-lock.js";
-import type { BillingCalculation } from "@softlans/contracts";
+import type { BillingCalculation, TuitionBatchResult } from "@softlans/contracts";
 
+class TenantBillingError extends Error {
+  constructor(readonly code: "BILLING_OWNER_REQUIRED" | "BILLING_TOTAL_LIMIT") { super(code); }
+}
 type GroupDoc = InstanceType<typeof Group>;
 type Member = { studentId: Types.ObjectId; enrolledAt: Date };
 export function previewKey(c: BillingCalculation) {
@@ -28,23 +31,33 @@ export function previewKey(c: BillingCalculation) {
     )
     .digest("hex");
 }
-export async function tuitionCalculation(
-  g: GroupDoc,
-  m: Member,
-  month: string,
-  tx: ClientSession,
-  dueDay?: number,
-) {
-  const tenant = { tenantId: g.tenantId },
-    { end } = monthBounds(month);
-  const schedules = await Schedule.find({ ...tenant, groupId: g._id }).session(
-    tx,
-  );
+// Cache belongs to one transaction attempt and one group/month only. Never
+// share it across tenants or driver retries; all reads are sequential.
+async function tuitionSchedule(g: GroupDoc, month: string, tx: ClientSession) {
+  const tenant = { tenantId: g.tenantId }, { end } = monthBounds(month);
+  const schedules = await Schedule.find({ ...tenant, groupId: g._id }).session(tx);
   const sessions = await LessonSession.find({
-    ...tenant,
-    groupId: g._id,
+    ...tenant, groupId: g._id,
     lessonDate: { $gte: month + "-01", $lt: localDate(end) },
   }).session(tx);
+  return {
+    schedules: schedules.map(s => ({ ...s.toObject(), id: s.id as string })),
+    sessions: sessions.map(s => ({ ...s.toObject(), scheduleId: String(s.scheduleId) })),
+  };
+}
+type ScheduleSnapshot = Awaited<ReturnType<typeof tuitionSchedule>>;
+type ScheduleCache = Map<string, ScheduleSnapshot>;
+export async function tuitionCalculation(
+  g: GroupDoc, m: Member, month: string, tx: ClientSession,
+  dueDay?: number, cache?: ScheduleCache,
+) {
+  const tenant = { tenantId: g.tenantId };
+  const key = `${g.tenantId}/${g._id}/${month}`;
+  let snapshot = cache?.get(key);
+  if (!snapshot) {
+    snapshot = await tuitionSchedule(g, month, tx);
+    cache?.set(key, snapshot);
+  }
   const firstMembership = await Membership.findOne({
     ...tenant,
     groupId: g._id,
@@ -60,11 +73,7 @@ export async function tuitionCalculation(
     firstEnrolledAt: firstMembership?.enrolledAt ?? m.enrolledAt,
     policy: g.billingPolicy,
     dueDay: dueDay ?? g.billingDueDay,
-    schedules: schedules.map((s) => ({ ...s.toObject(), id: s.id as string })),
-    sessions: sessions.map((s) => ({
-      ...s.toObject(),
-      scheduleId: String(s.scheduleId),
-    })),
+    ...snapshot,
   });
 }
 // Caller must hold the tenant billing lock in this transaction. No update path:
@@ -77,6 +86,7 @@ async function planTuitionCharge(
   tx: ClientSession,
   source: "manual" | "enrollment" | "scheduled",
   dueDay?: number,
+  cache?: ScheduleCache,
 ) {
   const filter = {
     tenantId: g.tenantId,
@@ -95,7 +105,8 @@ async function planTuitionCharge(
     enrollmentDate: { $lt: end },
   }).session(tx);
   if (!student) return null;
-  const calculation = await tuitionCalculation(g, m, month, tx, dueDay);
+  const calculation = await tuitionCalculation(g, m, month, tx, dueDay, cache);
+  if (calculation.readiness === "schedule_missing") return "schedule_missing" as const;
   return {
     ...filter,
     generatedBy: actor,
@@ -115,7 +126,7 @@ export async function createTuitionCharge(
   tx: ClientSession, source: "manual" | "enrollment" | "scheduled", dueDay?: number,
 ) {
   const charge = await planTuitionCharge(g, m, month, actor, tx, source, dueDay);
-  if (!charge) return false;
+  if (!charge || charge === "schedule_missing") return false;
   await Charge.create([charge], { session: tx });
   return true;
 }
@@ -136,30 +147,34 @@ export async function generateTuitionMonth(
         status: "active",
         enrolledAt: { $lt: end },
       }).session(tx);
-      let created = 0, skipped = 0, amount = 0;
+      let created = 0, skipped = 0, amount = 0, deferred = 0;
+      const cache: ScheduleCache = new Map();
+      const groups = new Map<string, GroupDoc | null>();
       const planned = new Set<string>();
       for (const member of members) {
-        const group = await Group.findOne({
-          tenantId,
-          _id: member.groupId,
-        }).session(tx);
+        const groupKey = String(member.groupId);
+        if (!groups.has(groupKey)) groups.set(groupKey, await Group.findOne({
+          tenantId, _id: member.groupId,
+        }).session(tx));
+        const group = groups.get(groupKey);
         const key = `${member.studentId}/${member.groupId}`;
         const charge = group && !planned.has(key)
-          ? await planTuitionCharge(group, member, month, actor, tx, source, dueDay)
+          ? await planTuitionCharge(group, member, month, actor, tx, source, dueDay, cache)
           : null;
+        if (charge === "schedule_missing") { deferred++; skipped++; continue; }
         if (charge) {
           planned.add(key);
           if (!options.dryRun) await Charge.create([charge], { session: tx });
           created++;
           amount += charge.finalAmount;
-          if (!Number.isSafeInteger(amount)) throw new Error("BILLING_TOTAL_LIMIT");
+          if (!Number.isSafeInteger(amount)) throw new TenantBillingError("BILLING_TOTAL_LIMIT");
         } else skipped++;
       }
       if (options.runId && !options.dryRun) {
         // Completion and charges commit together, including driver transaction retries.
         const updated = await TuitionRun.updateOne(
           { _id: options.runId, tenantId, status: "running" },
-          { $set: { status: "completed", finishedAt: new Date(), created, skipped, amount } },
+          { $set: { status: "completed", finishedAt: new Date(), created, skipped, deferred, amount } },
           { session: tx },
         );
         if (updated.modifiedCount !== 1) throw new Error("BILLING_AUDIT_REQUIRED");
@@ -167,7 +182,10 @@ export async function generateTuitionMonth(
       return {
         created: options.dryRun ? 0 : created,
         wouldCreate: options.dryRun ? created : 0,
-        skipped, amount, month, timezone: "Asia/Tashkent", dryRun: !!options.dryRun,
+        skipped, deferred,
+        reasons: deferred ? [{ code: "SCHEDULE_MISSING" as const, count: deferred,
+          message: "Bu oy uchun dars jadvali tayyor emas. Jadvalni kiriting va hisoblashni qayta bajaring." }] : [],
+        amount, month, timezone: "Asia/Tashkent", dryRun: !!options.dryRun,
       };
     },
     { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } },
@@ -175,7 +193,7 @@ export async function generateTuitionMonth(
 }
 // A bounded, resumable tenant batch. The caller follows nextCursor; failures can
 // be retried from the same cursor because every insert is idempotent.
-export async function runTuitionBatch(after?: string, now = new Date(), dryRun = false) {
+export async function runTuitionBatch(after?: string, now = new Date(), dryRun = false): Promise<TuitionBatchResult> {
   const tenants = await Tenant.find({
     active: true,
     ...(after ? { _id: { $gt: after } } : {}),
@@ -183,19 +201,20 @@ export async function runTuitionBatch(after?: string, now = new Date(), dryRun =
     .sort({ _id: 1 })
     .limit(11);
   const month = currentBillingMonth(now);
-  let created = 0, skipped = 0, wouldCreate = 0;
+  let created = 0, skipped = 0, wouldCreate = 0, deferred = 0;
+  const errors: TuitionBatchResult["errors"] = [];
   for (const tenant of tenants.slice(0, 10)) {
     // Persist start before attempting work. A process crash remains visibly running,
     // never a false success; retry creates a new attempt and deduplicates charges.
     const run = dryRun ? null : await TuitionRun.create({ tenantId: tenant._id, month });
-    let errorCode: "BILLING_OWNER_REQUIRED" | "BILLING_RUN_FAILED" = "BILLING_RUN_FAILED";
+    let errorCode: "BILLING_OWNER_REQUIRED" | "BILLING_TOTAL_LIMIT" | "BILLING_RUN_FAILED" = "BILLING_RUN_FAILED";
     try {
       const actor = await User.findOne({
         tenantId: tenant._id, role: "business_owner", active: true,
       }).sort({ _id: 1 });
       if (!actor) {
         errorCode = "BILLING_OWNER_REQUIRED";
-        throw new Error(errorCode);
+        throw new TenantBillingError(errorCode);
       }
       const result = await generateTuitionMonth(
         tenant._id, actor._id, month, "scheduled", undefined,
@@ -204,7 +223,11 @@ export async function runTuitionBatch(after?: string, now = new Date(), dryRun =
       created += result.created;
       skipped += result.skipped;
       wouldCreate += result.wouldCreate;
+      deferred += result.deferred;
     } catch (error) {
+      // Only known domain failures are recoverable per tenant. Unknown errors,
+      // database outages and audit failures must fail the request.
+      if (error instanceof TenantBillingError) errorCode = error.code;
       if (run) {
         // The status predicate protects a confirmed commit after an ambiguous response.
         await TuitionRun.updateOne(
@@ -212,11 +235,13 @@ export async function runTuitionBatch(after?: string, now = new Date(), dryRun =
           { $set: { status: "failed", finishedAt: new Date(), errorCode } },
         );
       }
-      throw error;
+      if (errorCode === "BILLING_RUN_FAILED") throw error;
+      errors.push({ tenantId: String(tenant._id), code: errorCode });
     }
   }
   return {
-    month, created, skipped, wouldCreate, dryRun,
+    month, created, skipped, wouldCreate, deferred, dryRun,
+    status: errors.length ? "partial" : "completed", failed: errors.length, errors,
     nextCursor: tenants.length > 10 ? String(tenants[9]!._id) : null,
   };
 }

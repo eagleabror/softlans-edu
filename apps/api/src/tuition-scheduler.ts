@@ -73,7 +73,7 @@ export function tuitionAutomation(config: Config) {
       runs: runs.map(r => ({
         id: String(r._id), month: r.month, status: r.status,
         startedAt: r.startedAt.toISOString(), finishedAt: r.finishedAt?.toISOString() ?? null,
-        created: r.created, skipped: r.skipped, amount: r.amount, errorCode: r.errorCode ?? null,
+        created: r.created, skipped: r.skipped, deferred: r.deferred, amount: r.amount, errorCode: r.errorCode ?? null,
       })),
     });
   });

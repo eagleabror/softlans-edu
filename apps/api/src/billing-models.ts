@@ -15,6 +15,8 @@ const money = {
 const options = { timestamps: true as const, strict: "throw" as const };
 const calculationSchema = new Schema(
   {
+    readiness: { type: String, enum: ["ready", "schedule_missing", "not_due"] },
+    reason: { type: String, default: null },
     policyVersion: { type: String, required: true },
     policy: {
       type: String,

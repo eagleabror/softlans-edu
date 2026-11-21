@@ -56,14 +56,17 @@ it("recovers a partially committed billing batch, follows >10 tenant cursors and
   const trigger = (after?: string) => request(app).post("/api/internal/billing/run")
     .set("Authorization", `Bearer ${config.BILLING_SCHEDULER_SECRET}`).send(after ? { after } : {});
   const failed = await trigger();
-  expect(failed.status).toBe(500);
-  expect(await TuitionRun.countDocuments({ status: "completed" })).toBe(4);
+  expect(failed.status).toBe(200);
+  expect(failed.body).toMatchObject({ status: "partial", created: 9, failed: 1,
+    errors: [{ tenantId: String(missingOwner!.tenantId), code: "BILLING_OWNER_REQUIRED" }] });
+  expect(failed.body.nextCursor).toMatch(/^[a-f\d]{24}$/i);
+  expect(await TuitionRun.countDocuments({ status: "completed" })).toBe(9);
   expect((await TuitionRun.findOne({ status: "failed" }))!.errorCode).toBe("BILLING_OWNER_REQUIRED");
-  expect(await Charge.countDocuments()).toBe(4); // Earlier tenant commits survive the batch error.
+  expect(await Charge.countDocuments()).toBe(9); // Healthy tenants on both sides of the failure commit.
   await User.updateOne({ _id: missingOwner!._id }, { $set: { active: true } });
   const first = await trigger();
   expect(first.status).toBe(200);
-  expect(first.body).toMatchObject({ created: 6, skipped: 4 });
+  expect(first.body).toMatchObject({ status: "completed", failed: 0, created: 1, skipped: 9 });
   expect(first.body.nextCursor).toMatch(/^[a-f\d]{24}$/i);
   const last = await trigger(first.body.nextCursor);
   expect(last.status).toBe(200);
