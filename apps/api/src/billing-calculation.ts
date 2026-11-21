@@ -106,7 +106,15 @@ export function calculateTuition(input: {
       new Date(`${groupStart}T00:00:00+05:00`).getTime(),
     ),
   ).toISOString();
+  // An occurrence (even cancelled) is evidence of a prepared month. No
+  // occurrences is not evidence of a free course. Future groups are not due.
+  const readiness = (groupStart >= monthEnd || input.enrolledAt >= end) ? "not_due"
+    : input.monthlyFee === 0 || occurrences.size > 0 ? "ready" : "schedule_missing";
   return {
+    readiness,
+    reason: readiness === "schedule_missing"
+      ? "Bu oy uchun dars jadvali tayyor emas. Jadvalni kiriting va hisoblashni qayta bajaring."
+      : readiness === "not_due" ? "Bu oy uchun hisoblash muddati kelmagan." : null,
     policyVersion: "lesson-tashkent-v1",
     policy,
     timezone: "Asia/Tashkent",

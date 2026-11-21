@@ -1,5 +1,8 @@
 # Phase B — avtomatik oylik billing
 
+> Keyingi reliability tekshiruvi va yangi response kontrakti: [billing-reliability](reports/billing-reliability.md). Quyidagi matn oldingi bosqichning tarixiy hisobotidir.
+
+
 Holat: kod darajasida tayyorlash; production faollashtirilmagan. Phase A production
 backup keyinga qoldirilgan va tayyor deb hisoblanmaydi. Phase C va boshqa
 avtomatlashtirishlar ushbu ish doirasiga kirmaydi.

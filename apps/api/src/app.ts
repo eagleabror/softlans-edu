@@ -36,7 +36,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
-import { rateLimit } from "express-rate-limit";
+import { rateLimit, type Options } from "express-rate-limit";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import { randomUUID } from "node:crypto";
@@ -117,12 +117,13 @@ export function createApp(
       allowedHeaders: ["Content-Type"],
     }),
   );
-  const limiter = (limit: number, windowMs: number) =>
+  const limiter = (limit: number, windowMs: number, extra: Partial<Options> = {}) =>
     rateLimit({
       windowMs,
       limit,
       standardHeaders: "draft-8",
       legacyHeaders: false,
+      ...extra,
       handler: (_req, res) =>
         res.status(429).json({
           error: {
@@ -133,11 +134,28 @@ export function createApp(
           },
         }),
     });
-  const apiLimiter = limiter(300, 15 * 60_000);
+  // Coarse abuse ceiling before expensive authentication; individual CRM
+  // budgets below use only a database-verified principal, never client IDs.
+  const apiLimiter = limiter(10000, 15 * 60_000);
+  const crmLimiter = limiter(300, 15 * 60_000, {
+    keyGenerator: req => `user:${principal(req).userId}`,
+  });
+  const authenticated = express.Router().use(authenticate(config), crmLimiter);
   // Provider-to-provider requests use independent authentication, parsers and rate limits.
   // Mount before browser Origin checks and the shared browser IP budget.
   app.use("/api/integrations/payme", paymentCallbacks(config, "payme"));
   app.use("/api/integrations/click", paymentCallbacks(config, "click"));
+  // Webhook authentication is independent of browser cookies and CSRF origin checks.
+  app.post(
+    "/api/integrations/telegram/webhook",
+    limiter(600, 60_000),
+    express.json({ limit: "16kb", strict: true }),
+    telegramWebhook(config),
+  );
+  // Machine-to-machine authentication is separate from CRM cookies and webhook secrets.
+  app.use("/api/internal/notifications", limiter(120, 60_000), notificationScheduler(config, lifecycle));
+  app.use("/api/internal/billing", limiter(120, 60_000), tuitionScheduler(config));
+  app.use("/api/internal/payroll", limiter(120, 60_000), payrollScheduler(config));
   app.use("/api", (req, res, next) => {
     // Render probes must not exhaust the public API request budget.
     if (
@@ -147,21 +165,11 @@ export function createApp(
       next();
     else apiLimiter(req, res, next);
   });
-  // Webhook authentication is independent of browser cookies and CSRF origin checks.
-  app.post(
-    "/api/integrations/telegram/webhook",
-    express.json({ limit: "16kb", strict: true }),
-    telegramWebhook(config),
-  );
-  // Machine-to-machine authentication is separate from CRM cookies and webhook secrets.
-  app.use("/api/internal/notifications", notificationScheduler(config, lifecycle));
-  app.use("/api/internal/billing", tuitionScheduler(config));
-  app.use("/api/internal/payroll", payrollScheduler(config));
   app.use(protectWrites(config));
   app.use(
     "/api/student-imports",
     cookieParser(),
-    authenticate(config),
+    authenticated,
     studentImportsRouter,
   );
   // Attendance bulk requests are bounded to 1000 validated records; other APIs keep their existing limit.
@@ -248,10 +256,10 @@ export function createApp(
     res.cookie(COOKIE_NAME, await passwordSession(user, config, req), cookieOptions(config));
     res.json(await sessionView(user));
   });
-  app.get("/api/auth/me", authenticate(config), async (req, res) =>
+  app.get("/api/auth/me", authenticated, async (req, res) =>
     res.json(await sessionView(principal(req).user)),
   );
-  app.post("/api/auth/logout", authenticate(config), async (req, res) => {
+  app.post("/api/auth/logout", authenticated, async (req, res) => {
     const actor = principal(req);
     if (actor.sessionId) await DeviceSession.updateOne({ sid: actor.sessionId, userId: actor.userId }, { $set: { revokedAt: new Date() } });
     else await User.updateOne({ _id: actor.userId }, { $inc: { sessionVersion: 1 } });
@@ -261,41 +269,41 @@ export function createApp(
 
   app.use(
     "/api/integrations/telegram",
-    authenticate(config),
+    authenticated,
     telegramRouter(config),
   );
   app.use(
     "/api/daily-reports",
-    authenticate(config),
+    authenticated,
     dailyReportRouter(config),
   );
   app.use(
     "/api/notifications",
-    authenticate(config),
+    authenticated,
     notificationRouter(config),
   );
-  app.use("/api/onboarding", authenticate(config), onboardingRouter);
-  app.use("/api/cash", authenticate(config), cashRouter);
-  app.use("/api/management-reports", authenticate(config), managementRouter);
-  app.use("/api/payroll", authenticate(config), payrollRouter);
-  app.use("/api/saas", authenticate(config), paymentOwnerRouter(config), saasRouter);
-  app.use("/api/super-admin/saas", authenticate(config), paymentAdminRouter(config), saasAdminRouter);
-  app.use("/api/super-admin", authenticate(config), superAdminRouter);
-  app.use("/api/attendance", authenticate(config), attendanceRouter);
-  app.use("/api/analytics", authenticate(config), analyticsRouter);
-  app.use("/api/debts", authenticate(config), debtsRouter);
-  app.use("/api/billing/automation", authenticate(config), tuitionAutomation(config));
-  app.use("/api/billing", authenticate(config), billingRouter);
-  app.use("/api/classrooms", authenticate(config), classroomsRouter);
-  app.use("/api/schedules", authenticate(config), schedulesRouter);
-  app.use("/api/groups", authenticate(config), groupsRouter);
-  app.use("/api/leads", authenticate(config), leadsRouter);
-  app.use("/api/trial-lessons", authenticate(config), trialsRouter);
-  app.use("/api/follow-ups", authenticate(config), followUpsRouter);
-  app.use("/api/student", authenticate(config), studentPortalRouter);
-  app.use("/api/students", authenticate(config), studentAccountsRouter, studentsRouter);
+  app.use("/api/onboarding", authenticated, onboardingRouter);
+  app.use("/api/cash", authenticated, cashRouter);
+  app.use("/api/management-reports", authenticated, managementRouter);
+  app.use("/api/payroll", authenticated, payrollRouter);
+  app.use("/api/saas", authenticated, paymentOwnerRouter(config), saasRouter);
+  app.use("/api/super-admin/saas", authenticated, paymentAdminRouter(config), saasAdminRouter);
+  app.use("/api/super-admin", authenticated, superAdminRouter);
+  app.use("/api/attendance", authenticated, attendanceRouter);
+  app.use("/api/analytics", authenticated, analyticsRouter);
+  app.use("/api/debts", authenticated, debtsRouter);
+  app.use("/api/billing/automation", authenticated, tuitionAutomation(config));
+  app.use("/api/billing", authenticated, billingRouter);
+  app.use("/api/classrooms", authenticated, classroomsRouter);
+  app.use("/api/schedules", authenticated, schedulesRouter);
+  app.use("/api/groups", authenticated, groupsRouter);
+  app.use("/api/leads", authenticated, leadsRouter);
+  app.use("/api/trial-lessons", authenticated, trialsRouter);
+  app.use("/api/follow-ups", authenticated, followUpsRouter);
+  app.use("/api/student", authenticated, studentPortalRouter);
+  app.use("/api/students", authenticated, studentAccountsRouter, studentsRouter);
 
-  app.get("/api/dashboard", authenticate(config), requireRoles("super_admin", "business_owner", "admin", "teacher"), async (req, res) => {
+  app.get("/api/dashboard", authenticated, requireRoles("super_admin", "business_owner", "admin", "teacher"), async (req, res) => {
     const actor = principal(req);
     if (actor.role === "super_admin") {
       const [tenantCount, teamCount] = await Promise.all([
@@ -359,7 +367,7 @@ export function createApp(
     });
   });
   const teamAuth = [
-    authenticate(config),
+    authenticated,
     requireRoles("business_owner", "admin"),
   ];
   app.get("/api/team", ...teamAuth, async (req, res) => {

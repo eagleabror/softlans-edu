@@ -35,7 +35,7 @@ async function run(name: "tuition-billing" | "payroll-monthly", replies: (Respon
   });
   return { promise, calls, logs };
 }
-const bill = (extra = {}, status = 200) => Response.json({ month: "2026-11", created: 1, skipped: 0, wouldCreate: 0, dryRun: false, nextCursor: null, ...extra }, { status });
+const bill = (extra = {}, status = 200) => Response.json({ month: "2026-11", created: 1, skipped: 0, wouldCreate: 0, deferred: 0, status: "completed", failed: 0, errors: [], dryRun: false, nextCursor: null, ...extra }, { status });
 const payroll = (extra = {}, status = 200) => Response.json({ month: "2026-10", status: "completed", created: 1, preserved: 0, exceptions: 0, nextCursor: null, ...extra }, { status });
 const cursor = "a".repeat(24);
 
@@ -117,4 +117,15 @@ describe("payroll workflow completion", () => {
     await r.promise;
     expect(r.logs.join()).toContain("not_due");
   });
+});
+
+it("billing follows partial batches but fails visibly after finishing healthy tenants", async () => {
+  const r = await run("tuition-billing", [bill({ status: "partial", failed: 1, errors: [{ tenantId: cursor, code: "BILLING_OWNER_REQUIRED" }], nextCursor: cursor }), bill()]);
+  await expect(r.promise).rejects.toThrow("tenant failures");
+  expect(r.calls).toHaveLength(2);
+  expect(r.logs.join()).toContain("BILLING_OWNER_REQUIRED");
+});
+it.each([{ errors: null }, { failed: 1 }, { status: "completed", failed: 1, errors: [{ tenantId: cursor, code: "BILLING_OWNER_REQUIRED" }] }, { status: "partial", failed: 1, errors: [{ tenantId: cursor, code: "secret" }] }])("rejects invalid billing failure acknowledgement %j", async extra => {
+  const r = await run("tuition-billing", [bill(extra)]);
+  await expect(r.promise).rejects.toThrow();
 });

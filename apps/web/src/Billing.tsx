@@ -153,6 +153,8 @@ export function Billing({
         month: string;
         created: number;
         skipped: number;
+        deferred?: number;
+        reasons?: { code: string; count: number; message: string }[];
       }>("/billing/charges/generate", {
         method: "POST",
         body: JSON.stringify({
@@ -173,7 +175,7 @@ export function Billing({
       done();
       // Generation is atomic: a successful response has no failed items.
       setSuccess(
-        `${result.month}: Yaratildi: ${result.created} · O‘tkazib yuborildi: ${result.skipped} · Xatolar: 0`,
+        `${result.month}: Yaratildi: ${result.created} · O‘tkazib yuborildi: ${result.skipped} · Xatolar: 0${result.deferred ? ` · Kutilmoqda: ${result.deferred}. ${result.reasons?.map(r => r.message).join(" ") ?? ""}` : ""}`,
       );
     } catch (e) {
       setError((e as Error).message);

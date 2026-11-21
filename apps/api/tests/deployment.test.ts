@@ -207,3 +207,10 @@ describe("demo registration configuration", () => {
     expect(login.body.error.code).toBe("VALIDATION_ERROR");
   });
 });
+
+it("keeps the main Blueprint manually deployed", async () => {
+  const { readFileSync } = await import("node:fs");
+  const blueprint = readFileSync(new URL("../../../render.yaml", import.meta.url), "utf8");
+  expect(blueprint).toMatch(/branch: main\s/);
+  expect(blueprint).toContain("autoDeployTrigger: off");
+});

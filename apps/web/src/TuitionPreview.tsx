@@ -13,6 +13,7 @@ export function TuitionCalculation({
       aria-label="Darslar bo‘yicha to‘lov hisobi"
     >
       <h3>{c.month} · Darslar bo‘yicha hisob</h3>
+      {c.reason && <p className="notice" role="status">{c.reason}</p>}
       <dl>
         <div>
           <dt>Oylik narx</dt>
@@ -33,7 +34,7 @@ export function TuitionCalculation({
         <div>
           <dt>Yakuniy to‘lov</dt>
           <dd>
-            <strong>{uzs(c.calculatedAmount)}</strong>
+            <strong>{c.readiness === "schedule_missing" ? "Hisob kutilmoqda" : uzs(c.calculatedAmount)}</strong>
           </dd>
         </div>
         <div>
@@ -57,7 +58,7 @@ export function TuitionCalculation({
           : "To‘liq oylik narx siyosati qo‘llanadi."}{" "}
         Qo‘lda chegirma alohida kiritiladi.
       </p>
-      {c.totalLessons === 0 && (
+      {c.totalLessons === 0 && c.readiness !== "schedule_missing" && (
         <p>Bu oyda rejalashtirilgan darslar yo‘q. To‘lov: 0 UZS.</p>
       )}
     </section>
@@ -135,8 +136,8 @@ export function EnrollmentBilling({
               <TuitionCalculation calculation={preview.calculation} />
               {!preview.automatic && (
                 <p>
-                  Hozir hisob yaratilmaydi. Faol o‘quvchi va faol guruh uchun
-                  guruh boshlangan oyda avtomatik hisoblanadi.
+                  Hozir hisob yaratilmaydi. Guruh va jadval tayyor bo‘lgach,
+                  oylik hisobni qo‘lda yarating.
                 </p>
               )}
             </>

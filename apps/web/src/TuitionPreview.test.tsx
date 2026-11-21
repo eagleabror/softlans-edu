@@ -114,3 +114,9 @@ it("documents zero-lesson months and full-month policy", () => {
   expect(screen.getByText(/rejalashtirilgan darslar yo‘q/)).toBeInTheDocument();
   expect(screen.getByText(/To‘liq oylik narx siyosati/)).toBeInTheDocument();
 });
+it("shows a pending schedule instead of a final zero price", () => {
+  render(<TuitionCalculation calculation={{ ...calculation, totalLessons: 0, calculatedAmount: 0, readiness: "schedule_missing", reason: "Jadval tayyor emas." }} />);
+  expect(screen.getByRole("status")).toHaveTextContent("Jadval tayyor emas.");
+  expect(screen.queryByText(/To‘lov: 0 UZS/)).not.toBeInTheDocument();
+  expect(screen.getByText("Hisob kutilmoqda")).toBeInTheDocument();
+});

@@ -1,3 +1,4 @@
+import { LessonSession } from "../src/attendance-models.js";
 import { TuitionRun } from "../src/tuition-run-model.js";
 import { generateTuitionMonth, runTuitionBatch } from "../src/tuition-service.js";
 import { Schedule } from "../src/schedule-models.js";
@@ -100,6 +101,7 @@ afterAll(async () => {
 beforeEach(async () => {
   await Promise.all([
     TuitionRun.deleteMany({}),
+    LessonSession.deleteMany({}),
     Schedule.deleteMany({}),
     Charge.deleteMany({}),
     Payment.deleteMany({}),
@@ -928,4 +930,152 @@ describe("Phase B monthly preview, audit and recovery", () => {
     expect((await runTuitionBatch(undefined, now)).created).toBe(0);
     expect(await Charge.countDocuments()).toBe(0);
   });
+});
+
+describe("billing reliability regressions", () => {
+  it("defers unscheduled enrollment, explains preview, then generates exactly once in parallel", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-16T09:00:00+05:00"));
+    // Reissue sessions at the synthetic time (fixture sessions use wall time).
+    owner = await actor("business_owner", tenant);
+    other = await actor("business_owner", otherTenant);
+    try {
+    await Schedule.deleteMany({});
+    await Membership.deleteMany({});
+    const preview = await get(`/groups/${groupId}/billing-preview?studentId=${studentId}`);
+    expect(preview.body.calculation).toMatchObject({ readiness: "schedule_missing" });
+    expect(preview.body.automatic).toBe(false);
+    expect((await post(`/groups/${groupId}/members`, { studentId })).status).toBe(201);
+    expect(await Charge.countDocuments()).toBe(0);
+    const month = currentBillingMonth(new Date());
+    expect((await generate(month)).body).toMatchObject({ created: 0, deferred: 1, reasons: [{ code: "SCHEDULE_MISSING", count: 1, message: expect.any(String) }] });
+    const g = (await Group.findById(groupId))!;
+    await Schedule.create({ tenantId: tenant, groupId, teacherId: g.teacherId, classroomId: new mongoose.Types.ObjectId(), dayOfWeek: 1, startTime: "10:00", endTime: "11:00" });
+    const results = await Promise.all([generate(month), generate(month)]);
+    expect(results.map(r => r.status)).toEqual([200, 200]);
+    expect(results.reduce((n, r) => n + r.body.created, 0)).toBe(1);
+    expect(await Charge.countDocuments()).toBe(1);
+    expect(await Charge.findOne().lean()).toMatchObject({ finalAmount: 600, calculation: { readiness: "ready", totalLessons: 5, eligibleLessons: 3 } });
+    expect((await generate(month)).body.created).toBe(0);
+    expect((await generate(month, other)).body.created).toBe(0);
+    } finally { vi.useRealTimers(); }
+  });
+  it("continues A/B/C after a missing owner, audits B and retries safely", async () => {
+    await User.updateMany({ tenantId: otherTenant }, { active: false });
+    const c = await Tenant.create({ name: "Sinov C" });
+    await actor("business_owner", c._id);
+    const g = (await Group.findById(groupId))!;
+    const student = (await Student.findById(studentId))!;
+    for (const t of [otherTenant, c._id]) {
+      const s = await Student.create({ tenantId: t, firstName: "Sinov", lastName: "Oquvchi", enrollmentDate: "2025-01-01", createdBy: student.createdBy });
+      const group = await Group.create({ tenantId: t, name: "Sinov", courseName: "Fan", teacherId: g.teacherId, capacity: 10, monthlyFee: 1000, startDate: "2025-01-01" });
+      await Membership.create({ tenantId: t, groupId: group._id, studentId: s._id, enrolledAt: "2025-01-01" });
+      await Schedule.create({ tenantId: t, groupId: group._id, teacherId: g.teacherId, classroomId: new mongoose.Types.ObjectId(), dayOfWeek: 1, startTime: "10:00", endTime: "11:00" });
+    }
+    const result = await runTuitionBatch(undefined, new Date("2026-11-01"));
+    expect(result).toMatchObject({ status: "partial", created: 2, failed: 1, nextCursor: null, errors: [{ tenantId: String(otherTenant), code: "BILLING_OWNER_REQUIRED" }] });
+    expect(await TuitionRun.findOne({ tenantId: otherTenant }).lean()).toMatchObject({ status: "failed", errorCode: "BILLING_OWNER_REQUIRED" });
+    await User.updateMany({ tenantId: otherTenant }, { active: true });
+    expect(await runTuitionBatch(undefined, new Date("2026-11-01"))).toMatchObject({ status: "completed", created: 1, failed: 0 });
+    expect(await Charge.countDocuments()).toBe(3);
+  });
+  it("separates verified user budgets and webhook traffic on one IP", async () => {
+    const isolated = createApp(config);
+    for (let i = 0; i < 300; i++) {
+      expect((await request(isolated).get("/api/auth/me").set("Cookie", owner)).status).toBe(200);
+    }
+    expect((await request(isolated).get("/api/auth/me").set("Cookie", admin)).status).toBe(200);
+    expect((await request(isolated).get("/api/auth/me").set("Cookie", owner).set("X-User-Id", "forged").set("X-Forwarded-For", "198.51.100.1")).status).toBe(429);
+    expect((await request(isolated).post("/api/integrations/telegram/webhook").send({})).status).not.toBe(429);
+    expect((await request(isolated).get("/api/health")).status).toBe(200);
+    expect((await request(isolated).get("/api/ready")).status).toBe(200);
+    expect((await request(isolated).get("/api/auth/me").set("Cookie", "softlans_session=forged")).status).toBe(401);
+    for (let i = 0; i < 15; i++) await request(isolated).post("/api/auth/login").set("Origin", origin).send({});
+    expect((await request(isolated).post("/api/auth/login").set("Origin", origin).send({})).status).toBe(429);
+  });
+  it.each([10, 500])("measures %i students with one shared schedule", async count => {
+    const u = (await User.findOne({ tenantId: tenant, role: "business_owner" }))!;
+    const students = await Student.insertMany(Array.from({ length: count - 1 }, () => ({ tenantId: tenant, firstName: "Sintetik", lastName: "Test", enrollmentDate: "2025-01-01", createdBy: u._id })));
+    await Membership.insertMany(students.map(s => ({ tenantId: tenant, groupId, studentId: s._id, enrolledAt: "2025-01-01" })));
+    const queries: Record<string, number> = {};
+    mongoose.set("debug", (collection: string, method: string) => { if (method.startsWith("find")) queries[collection] = (queries[collection] ?? 0) + 1; });
+    const start = performance.now();
+    let result;
+    try { result = await generateTuitionMonth(tenant, u._id, "2025-02", "manual", undefined, { dryRun: true }); }
+    finally { mongoose.set("debug", false); }
+    console.log("BILLING_BENCHMARK", JSON.stringify({ count, reads: queries, elapsedMs: Math.round(performance.now() - start), amount: result.amount }));
+    expect(result.amount).toBe(count * 1000);
+    expect(queries.schedules).toBe(1);
+    expect(queries.lessonsessions).toBe(1);
+  });
+});
+
+it("zero diagnostics are read-only, owner-only, tenant-scoped and do not call every zero an error", async () => {
+  await Group.updateOne({ _id: groupId }, { monthlyFee: 0 });
+  await generate();
+  const before = await Charge.find().lean();
+  expect((await get("/billing/charges/zero-diagnostics?month=2025-02", admin)).status).toBe(403);
+  expect((await get("/billing/charges/zero-diagnostics?month=2025-02", other)).body.items).toEqual([]);
+  const r = await get("/billing/charges/zero-diagnostics?month=2025-02");
+  expect(r.status).toBe(200);
+  expect(r.body).toMatchObject({ dryRun: true, items: [{ classification: "free_course", protected: false }] });
+  expect(await Charge.find().lean()).toEqual(before);
+  expect(await ChargeAdjustment.countDocuments()).toBe(0);
+});
+
+it("never reports success for a database outage", async () => {
+  const failure = new mongoose.mongo.MongoNetworkError("synthetic connection outage");
+  const spy = vi.spyOn(User, "findOne").mockImplementationOnce(() => { throw failure; });
+  try { await expect(runTuitionBatch(undefined, new Date("2026-11-01"))).rejects.toThrow("synthetic connection outage"); }
+  finally { spy.mockRestore(); }
+  expect(await Charge.countDocuments()).toBe(0);
+  expect(await TuitionRun.findOne({ tenantId: tenant }).lean()).toMatchObject({ status: "failed", errorCode: "BILLING_RUN_FAILED" });
+});
+it("advances past an ownerless tenant at a page boundary and supports dry-run retry without writes", async () => {
+  await Tenant.insertMany(Array.from({ length: 10 }, (_, i) => ({ name: `Sinov ${i}` })));
+  const now = new Date("2026-11-01");
+  const first = await runTuitionBatch(undefined, now, true);
+  expect(first.status).toBe("partial");
+  expect(first.nextCursor).not.toBeNull();
+  const next = await runTuitionBatch(first.nextCursor!, now, true);
+  expect(next.nextCursor).toBeNull();
+  expect(next.errors.every(e => e.tenantId > first.nextCursor!)).toBe(true);
+  expect(await Charge.countDocuments()).toBe(0);
+  expect(await TuitionRun.countDocuments()).toBe(0);
+});
+
+it.each(["free", "cancelled_lessons", "future_group", "late_enrollment"])("preserves legitimate zero semantics: %s", async scenario => {
+  if (scenario === "free") {
+    await Schedule.deleteMany({});
+    await Group.updateOne({ _id: groupId }, { monthlyFee: 0 });
+  } else if (scenario === "future_group") {
+    await Group.updateOne({ _id: groupId }, { startDate: new Date("2025-03-01") });
+  } else if (scenario === "late_enrollment") {
+    await Membership.deleteMany({ tenantId: tenant });
+    await Membership.create({ tenantId: tenant, groupId, studentId, enrolledAt: new Date("2025-02-28T12:00:00+05:00") });
+  } else {
+    const schedule = (await Schedule.findOne({ tenantId: tenant }))!;
+    await LessonSession.create(["03", "10", "17", "24"].map(day => ({ tenantId: tenant, groupId, scheduleId: schedule._id, teacherId: schedule.teacherId,
+      lessonDate: "2025-02-" + day, startTime: "10:00", endTime: "11:00", groupName: "Sinov", roster: [], status: "cancelled" })));
+  }
+  const result = await generate();
+  expect(result.status).toBe(200);
+  expect(result.body).toMatchObject({ created: scenario === "future_group" ? 0 : 1, deferred: 0, amount: 0 });
+  const before = await Charge.find().lean();
+  expect((await generate()).body.created).toBe(0);
+  expect(await Charge.find().lean()).toEqual(before);
+});
+it("treats legacy no-lesson zeros as ambiguous, preserves them, and protects adjusted/cancelled records", async () => {
+  const u = (await User.findOne({ tenantId: tenant, role: "business_owner" }))!;
+  const c = await Charge.create({ tenantId: tenant, studentId, groupId, billingMonth: "2025-02", generatedBy: u._id,
+    originalAmount: 1000, prorationAmount: 1000, discountAmount: 0, finalAmount: 0, paidAmount: 0, dueDate: "2025-02-10", generationSource: "enrollment",
+    calculation: { policyVersion: "lesson-tashkent-v1", policy: "first_partial_month", timezone: "Asia/Tashkent", month: "2025-02", monthlyFee: 1000,
+      totalLessons: 0, eligibleLessons: 0, calculatedAmount: 0, prorationAmount: 1000, approximateLessonPrice: 0,
+      enrolledAt: "2025-02-01T00:00:00Z", firstEnrolledAt: "2025-02-01T00:00:00Z", dueDate: "2025-02-10T00:00:00Z", lessons: [] } });
+  const before = c.toObject();
+  expect((await get("/billing/charges/zero-diagnostics?month=2025-02")).body.items[0]).toMatchObject({ classification: "review_required", protected: false });
+  expect((await generate()).body.created).toBe(0);
+  expect((await Charge.findById(c._id))!.toObject()).toEqual(before);
+  expect((await patch(`/billing/charges/${c.id}`, adjustment({ cancelled: true }))).status).toBe(200);
+  expect((await get("/billing/charges/zero-diagnostics?month=2025-02")).body.items[0]).toMatchObject({ classification: "protected", protected: true, hasAdjustmentHistory: true, cancelled: true });
 });

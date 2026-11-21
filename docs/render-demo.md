@@ -203,8 +203,9 @@ a stage-specific fallback such as `database_connection_failed`; raw names/codes,
 messages and nested causes are never printed to provide more detail.
 
 In Render **Settings → Build & Deploy**, confirm the configured branch **and the
-deployed commit** contain this diagnostic fix. The Render-readiness work is on
-`feat/phase-1-foundation`; `main` may still contain the earlier Phase 1 startup.
+deployed commit** contain this diagnostic fix. The readiness changes are now on
+`main`; the Blueprint follows `main` with `autoDeployTrigger: off`. This is repository
+configuration only, not evidence of the live Render branch or deployed SHA.
 The older message “API startup failed. Verify environment configuration, MongoDB
 replica set and indexes.” cannot identify the failing stage and indicates the
 older startup code. After reviewing/merging the fix, an operator can manually

@@ -12,6 +12,7 @@ const status = {
   failed: "Xato — hisoblar qaytarilgan",
 };
 const errors = {
+  BILLING_TOTAL_LIMIT: "Hisoblash summasi ruxsat etilgan chegaradan oshdi.",
   BILLING_OWNER_REQUIRED: "Faol biznes egasi topilmadi.",
   BILLING_RUN_FAILED: "Hisoblash bajarilmadi. Qayta urinishdan oldin tizimni tekshiring.",
 };
@@ -74,7 +75,7 @@ export function BillingAutomation({ month, version }: { month: string; version: 
             <thead><tr>{["Boshlangan", "Tugagan", "Holat", "Yaratildi", "O‘tkazildi", "Summa", "Xato"].map(t => <th scope="col" key={t}>{t}</th>)}</tr></thead>
             <tbody>{data.runs.map(r => <tr key={r.id}>
               <td>{date(r.startedAt)}</td><td>{r.finishedAt ? date(r.finishedAt) : "—"}</td>
-              <td>{status[r.status]}</td><td>{r.created}</td><td>{r.skipped}</td><td>{money(r.amount)}</td>
+              <td>{status[r.status]}</td><td>{r.created}</td><td>{r.skipped}{!!r.deferred && <span> · Jadval kutilmoqda: {r.deferred}</span>}</td><td>{money(r.amount)}</td>
               <td>{r.errorCode ? <>{errors[r.errorCode]} <code>{r.errorCode}</code></> : "—"}</td>
             </tr>)}</tbody>
           </table>
@@ -89,6 +90,7 @@ export function BillingAutomation({ month, version }: { month: string; version: 
     <p className="muted">{month} uchun guruh narxi, jadvali va to‘lov muddati asosida oldindan tekshirish. Hisoblar yaratilmaydi. Qo‘lda yaratishda tanlangan to‘lov kuni alohida qo‘llanadi.</p>
     <button className="button light" disabled={busy} onClick={loadPreview}>{busy ? "Tekshirilmoqda…" : "Oylik hisobni oldindan tekshirish"}</button>
     {previewError && <p className="notice" role="alert">{previewError}</p>}
+    {preview?.reasons?.map(r => <p key={r.code} className="notice" role="status">{r.message} Kutilmoqda: {r.count}.</p>)}
     {preview && <p role="status">{preview.month}: Yaratilishi mumkin: {preview.wouldCreate} · O‘tkaziladi: {preview.skipped} · Summa: {money(preview.amount)}. Hisoblar yozilmadi. Bu joriy ma’lumotlar nusxasi; yaratish paytida qayta hisoblanadi.</p>}
   </section>;
 }

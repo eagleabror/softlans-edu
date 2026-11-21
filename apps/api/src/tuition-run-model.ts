@@ -10,8 +10,9 @@ const schema = new Schema({
   finishedAt: Date,
   created: count,
   skipped: count,
+  deferred: count,
   amount: count,
-  errorCode: { type: String, enum: ["BILLING_OWNER_REQUIRED", "BILLING_RUN_FAILED"] },
+  errorCode: { type: String, enum: ["BILLING_OWNER_REQUIRED", "BILLING_TOTAL_LIMIT", "BILLING_RUN_FAILED"] },
 }, { strict: "throw" });
 schema.index({ tenantId: 1, startedAt: -1, _id: -1 });
 export const TuitionRun = mongoose.model("TuitionRun", schema);

@@ -312,6 +312,7 @@ groupsRouter.get("/:id/billing-preview", manage, async (req, res) => {
       previewKey: previewKey(calculation),
       existingCharge: !!existing,
       automatic:
+        calculation.readiness === "ready" &&
         g.status === "active" &&
         student.status === "active" &&
         g.startDate < monthBounds(month).end,

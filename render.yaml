@@ -3,7 +3,7 @@ services:
   - type: web
     name: softlans-edu-demo
     runtime: node
-    branch: feat/phase-1-foundation
+    branch: main
     plan: starter
     numInstances: 1
     autoDeployTrigger: off

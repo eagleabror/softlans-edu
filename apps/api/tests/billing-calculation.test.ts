@@ -157,3 +157,12 @@ describe("Asia/Tashkent lesson-based tuition", () => {
     expect(calculate().dueDate).toBe("2026-11-16T04:00:00.000Z");
   });
 });
+
+it("distinguishes missing schedule from genuine zero and future enrollment", () => {
+  expect(calculate({ schedules: [] })).toMatchObject({ readiness: "schedule_missing", reason: expect.any(String) });
+  expect(calculate({ schedules: [], monthlyFee: 0 })).toMatchObject({ readiness: "ready", calculatedAmount: 0 });
+  expect(calculate({ schedules: [], groupStartDate: new Date("2026-12-01") })).toMatchObject({ readiness: "not_due" });
+  expect(calculate({ enrolledAt: new Date("2026-11-30T11:00:00+05:00") })).toMatchObject({ readiness: "ready", calculatedAmount: 0 });
+  expect(calculate({ schedules: [], sessions: [{ scheduleId: "old", lessonDate: "2026-11-02", startTime: "10:00", status: "cancelled" }] })).toMatchObject({ readiness: "ready", calculatedAmount: 0 });
+  expect(calculate({ schedules: schedules.map(s => ({ ...s, effectiveFrom: "2026-12-01" })) })).toMatchObject({ readiness: "schedule_missing" });
+});
